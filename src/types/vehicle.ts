@@ -35,6 +35,17 @@ export interface Vehicle {
   seoDescription?: string
   createdAt?: any
   updatedAt?: any
+  pricing?: {
+    id?: string
+    vehicleId: string
+    dailyRate: number
+    weeklyRate: number
+    monthlyRate: number
+    weekendExempt: boolean
+    acceptedPayments: string[]
+    active: boolean
+    promoCampaign?: string
+  }
 }
 
 export interface VehicleCategory {

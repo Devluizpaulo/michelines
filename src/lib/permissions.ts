@@ -9,7 +9,7 @@
  */
 
 export type UserRole = "super_admin" | "gerente" | "vendedor" | "marketing"
-export type TabId = "dashboard" | "leads" | "campanhas" | "landing" | "frota" | "analytics" | "configuracoes" | "usuarios"
+export type TabId = "dashboard" | "leads" | "campanhas" | "landing" | "frota" | "analytics" | "configuracoes" | "usuarios" | "operacao"
 
 export interface AdminUser {
   uid: string
@@ -27,8 +27,8 @@ export interface AdminUser {
  * Define quais abas cada role pode acessar
  */
 export const ROLE_PERMISSIONS: Record<UserRole, TabId[]> = {
-  super_admin: ["dashboard", "leads", "campanhas", "landing", "frota", "analytics", "configuracoes", "usuarios"],
-  gerente:     ["dashboard", "leads", "campanhas", "landing", "frota", "analytics"],
+  super_admin: ["dashboard", "leads", "campanhas", "landing", "frota", "analytics", "configuracoes", "usuarios", "operacao"],
+  gerente:     ["dashboard", "leads", "campanhas", "landing", "frota", "analytics", "operacao"],
   vendedor:    ["dashboard", "leads"],
   marketing:   ["dashboard", "campanhas", "landing"],
 }

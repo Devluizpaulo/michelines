@@ -14,6 +14,7 @@ import {
   BarChart3,
   Settings,
   Users,
+  Sliders,
   LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -47,6 +48,7 @@ const ALL_MENU_ITEMS: MenuItem[] = [
   { id: "campanhas",     label: "Campanhas",     icon: Megaphone },
   { id: "landing",       label: "Landing Page",  icon: Monitor },
   { id: "frota",         label: "Frota",         icon: Car },
+  { id: "operacao",      label: "Operação & Preços", icon: Sliders },
   { id: "analytics",     label: "Analytics",     icon: BarChart3 },
   { id: "usuarios",      label: "Usuários",      icon: Users },
   { id: "configuracoes", label: "Configurações", icon: Settings },

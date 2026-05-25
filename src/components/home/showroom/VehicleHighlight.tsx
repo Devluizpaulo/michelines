@@ -19,7 +19,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
   // WhatsApp Link Construction
   const waPhone = "5511944830851" // Michelin's commercial contact
   const waText = encodeURIComponent(
-    `Olá! Tenho interesse em alugar o táxi ${vehicle.name} (Plano Mensal de R$ ${vehicle.monthlyPrice}). Vocês têm disponibilidade imediata?`
+    `Olá! Tenho interesse em alugar o táxi ${vehicle.name} (Diária a partir de R$ ${vehicle.pricing?.dailyRate || vehicle.dailyPrice || 150}). Vocês têm disponibilidade imediata?`
   )
   const waUrl = `https://wa.me/${waPhone}?text=${waText}`
 
@@ -27,7 +27,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
   const weeklyRevenueMicheline = vehicle.isDTaxiApproved ? 2800 : 2200
   const weeklyRevenueCommon = 1650
   
-  const fuelCostMicheline = vehicle.isHybrid ? 290 : vehicle.hasGNV ? 340 : 450
+  const fuelCostMicheline = vehicle.fuelType === "electric" ? 180 : vehicle.isHybrid ? 290 : vehicle.hasGNV ? 340 : 450
   const fuelCostCommon = 690
 
   return (
@@ -44,6 +44,11 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             {vehicle.isHybrid && (
               <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
                 🔋 Isento de Rodízio
+              </Badge>
+            )}
+            {vehicle.fuelType === "electric" && (
+              <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
+                ⚡ 100% Elétrico
               </Badge>
             )}
             {vehicle.hasGNV && (
@@ -128,16 +133,16 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
               </div>
             </div>
 
-            <p className="text-[10px] text-slate-550 font-semibold leading-relaxed flex items-center gap-1.5 pt-1">
-              <Info className="h-3.5 w-3.5 text-sky-600 shrink-0" />
-              *Cálculo baseado em jornada média de 40h/semana. Os veículos homologados D-TAXI possuem acesso livre à fila rápida do Aeroporto de Congonhas.
+            <p className="text-[10px] text-slate-550 font-semibold leading-relaxed flex items-start gap-1.5 pt-1 text-justify">
+              <Info className="h-3.5 w-3.5 text-sky-600 shrink-0 mt-0.5" />
+              <span>*Cálculo baseado em jornada média de 40h/semana. Os veículos homologados D-TAXI possuem acesso livre à fila rápida do Aeroporto de Congonhas.</span>
             </p>
           </div>
 
           {/* Description */}
           <div className="space-y-2.5">
             <h4 className="text-xs uppercase font-black tracking-widest text-slate-450">Sobre o Veículo</h4>
-            <p className="text-sm text-slate-600 leading-relaxed font-semibold">
+            <p className="text-sm text-slate-600 leading-relaxed font-semibold text-justify">
               {vehicle.fullDescription || vehicle.shortDescription}
             </p>
           </div>
@@ -185,15 +190,50 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
 
           <div className="h-px bg-slate-100" />
 
-          {/* Pricing Box */}
-          <div className="bg-slate-50 border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-sm">
-            <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Investimento Mensal</p>
-              <p className="text-2xl font-black text-emerald-600 mt-0.5">R$ {vehicle.monthlyPrice}/mês</p>
+          {/* Detailed Pricing & Operational Model Box */}
+          <div className="space-y-4 pt-2">
+            <h4 className="text-xs uppercase font-black tracking-widest text-slate-450">Opções de Contrato e Planos</h4>
+            
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-slate-50 border border-slate-200/60 p-3.5 rounded-xl text-center space-y-1">
+                <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block">Por Diária</span>
+                <span className="text-base font-black text-slate-800 block">R$ {vehicle.pricing?.dailyRate || vehicle.dailyPrice}/dia</span>
+                <span className="text-[8px] text-slate-500 font-bold leading-tight block">Faturamento flexível</span>
+              </div>
+              <div className="bg-slate-50 border border-slate-200/60 p-3.5 rounded-xl text-center space-y-1">
+                <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block">Semanal</span>
+                <span className="text-base font-black text-slate-800 block">R$ {vehicle.pricing?.weeklyRate || Math.round((vehicle.monthlyPrice || 2400) / 4)}/sem</span>
+                <span className="text-[8px] text-slate-500 font-bold leading-tight block">Ajuste semanal</span>
+              </div>
+              <div className="bg-sky-50/40 border border-sky-100 p-3.5 rounded-xl text-center space-y-1 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-sky-500 text-[7px] font-black text-white px-1.5 py-0.5 rounded-bl uppercase">Foco</div>
+                <span className="text-[9px] text-sky-700 font-black uppercase tracking-wider block">Mensal Premium</span>
+                <span className="text-base font-black text-emerald-600 block">R$ {vehicle.pricing?.monthlyRate || vehicle.monthlyPrice}/mês</span>
+                <span className="text-[8px] text-slate-500 font-bold leading-tight block">Melhor rendimento</span>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Custo Diário Estimado</p>
-              <p className="text-base font-extrabold text-slate-600 mt-0.5">R$ {vehicle.dailyPrice}/dia</p>
+
+            {/* Financial and Exemption Rules */}
+            <div className="bg-slate-50/50 border border-slate-200/80 p-4 rounded-xl grid sm:grid-cols-2 gap-4 text-xs font-semibold">
+              <div className="space-y-1.5">
+                <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Isenção Especial</span>
+                <p className="text-slate-800 flex items-center gap-1.5 font-extrabold text-[11px]">
+                  📅 {vehicle.pricing?.weekendExempt ? "Domingos & Feriados Isentos" : "Diárias Normais"}
+                </p>
+                <p className="text-[10px] text-slate-550 font-semibold leading-tight text-justify">
+                  {vehicle.pricing?.weekendExempt ? "Cobrança de segunda a sábado. Domingos e feriados nacionais são 100% isentos de diária." : "Diárias calculadas de forma corrida durante o contrato."}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Meios de Pagamento</span>
+                <p className="text-slate-800 flex items-center gap-1.5 font-extrabold text-[11px]">
+                  💳 Pix, Débito ou Crédito
+                </p>
+                <p className="text-[10px] text-slate-500 font-semibold leading-tight text-justify">
+                  Mais controle financeiro. Escolha pagar via Pix ou cartões de débito/crédito sem burocracias extras.
+                </p>
+              </div>
             </div>
           </div>
 

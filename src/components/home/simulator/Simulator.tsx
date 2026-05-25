@@ -1,195 +1,293 @@
 "use client"
 
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { Sparkles, Info } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
+import { collection, getDocs } from "firebase/firestore"
+import { db } from "@/app/firebase/config"
 import { Badge } from "@/components/ui/badge"
-import { useSimulator } from "@/hooks/useSimulator"
+import { Button } from "@/components/ui/button"
+import { Check, X, HelpCircle, ArrowRight, Info, MessageSquare } from "lucide-react"
+import Link from "next/link"
+
+interface SimulatorScenario {
+  category: "convencional" | "michelines"
+  weeklyCostLabel: string
+  monthlyCostLabel: string
+  kmLimit: string
+  hasDeposit: boolean
+  rodizioExempt: boolean
+  support24h: boolean
+  executiveOperation: boolean
+}
+
+const DEFAULT_SCENARIOS: Record<"convencional" | "michelines", SimulatorScenario> = {
+  convencional: {
+    category: "convencional",
+    weeklyCostLabel: "A partir de R$ 750/sem",
+    monthlyCostLabel: "A partir de R$ 3.000/mês",
+    kmLimit: "Restrito (2.500 km/sem)",
+    hasDeposit: true,
+    rodizioExempt: false,
+    support24h: false,
+    executiveOperation: false
+  },
+  michelines: {
+    category: "michelines",
+    weeklyCostLabel: "A partir de R$ 900/sem",
+    monthlyCostLabel: "A partir de R$ 3.600/mês",
+    kmLimit: "Quilometragem flexível",
+    hasDeposit: false,
+    rodizioExempt: true,
+    support24h: true,
+    executiveOperation: true
+  }
+}
 
 export function Simulator() {
-  const {
-    hoursPerDay,
-    setHoursPerDay,
-    daysPerWeek,
-    setDaysPerWeek,
-    grossTaxi,
-    costTaxi,
-    netTaxi,
-    grossApp,
-    costApp,
-    netApp,
-    diffMonthly
-  } = useSimulator()
+  const [scenarios, setScenarios] = useState<Record<"convencional" | "michelines", SimulatorScenario>>(DEFAULT_SCENARIOS)
+  const [loading, setLoading] = useState(true)
+
+  // WhatsApp Link Construction
+  const waPhone = "5511944830851" // Michelin's commercial contact
+  const waText = encodeURIComponent(
+    "Olá! Estava analisando o Comparador de Mobilidade Profissional no site e gostaria de tirar algumas dúvidas com um consultor operacional."
+  )
+  const waUrl = `https://wa.me/${waPhone}?text=${waText}`
+
+  useEffect(() => {
+    const fetchScenarios = async () => {
+      try {
+        setLoading(true)
+        const snap = await getDocs(collection(db, "simulator_scenarios"))
+        if (!snap.empty) {
+          const fetched: any = {}
+          snap.forEach((doc) => {
+            const data = doc.data() as SimulatorScenario
+            if (data.category) {
+              fetched[data.category] = data
+            }
+          })
+          
+          if (fetched.convencional && fetched.michelines) {
+            setScenarios(fetched)
+          }
+        }
+      } catch (e) {
+        console.warn("Erro ao buscar simulator_scenarios, usando estático:", e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchScenarios()
+  }, [])
+
+  interface ComparisonRow {
+    feature: string
+    help: string
+    convencional: string | boolean
+    michelines: string | boolean
+    highlight: boolean
+  }
+
+  const comparisonRows: ComparisonRow[] = [
+    {
+      feature: "Limite de Quilometragem",
+      help: "Quilometragem semanal máxima inclusa no contrato padrão.",
+      convencional: scenarios.convencional.kmLimit,
+      michelines: scenarios.michelines.kmLimit,
+      highlight: false
+    },
+    {
+      feature: "Cobrança Excedente",
+      help: "Custos surpresa ou multas por quilometragem extra rodada.",
+      convencional: "Cobrança de taxa por km extra",
+      michelines: "Maior previsibilidade operacional (sem cobrança de km extra)",
+      highlight: false
+    },
+    {
+      feature: "Exigência de Caução",
+      help: "Necessidade de cartão de crédito e alto depósito financeiro inicial.",
+      convencional: scenarios.convencional.hasDeposit ? "Sim (Valor alto via Cartão)" : "Isento",
+      michelines: scenarios.michelines.hasDeposit ? "Sim" : "Isento / Condições Facilitadas",
+      highlight: false
+    },
+    {
+      feature: "Isenção de Rodízio SP",
+      help: "Liberdade para circular todos os dias graças a motorização eficiente.",
+      convencional: scenarios.convencional.rodizioExempt ? "Isenção total" : "Sujeito a bloqueios semanais",
+      michelines: scenarios.michelines.rodizioExempt ? "Isento (Híbridos, Elétricos e GNV)" : "Sujeito a rodízio",
+      highlight: false
+    },
+    {
+      feature: "Operação Executiva (Congonhas)",
+      help: "Acesso livre à fila digital rápida de Congonhas (D-TAXI).",
+      convencional: scenarios.convencional.executiveOperation ? "Homologado" : "Restrito (Fila padrão demorada)",
+      michelines: scenarios.michelines.executiveOperation ? "Homologado (D-TAXI Prioritário)" : "Sem acesso",
+      highlight: false
+    },
+    {
+      feature: "Suporte Operacional & Oficina",
+      help: "Central de mecânica integrada e resolução de sinistros.",
+      convencional: "Mecânicas credenciadas externas (com filas)",
+      michelines: "Oficina própria integrada & socorro 24hs",
+      highlight: false
+    },
+    {
+      feature: "Previsibilidade e Isenções",
+      help: "Estrutura contratual de cobrança das diárias.",
+      convencional: "Cobradas todos os dias corridos",
+      michelines: "Segunda a Sábado. Domingos e Feriados Isentos",
+      highlight: true
+    },
+    {
+      feature: "Formas de Pagamento",
+      help: "Meios e frequência aceitos para acerto de contas.",
+      convencional: "Cartão de crédito ou boleto semanal rígido",
+      michelines: "Pix, Débito ou Crédito (Diário, Semanal ou Mensal)",
+      highlight: false
+    },
+    {
+      feature: "O que está incluso?",
+      help: "Estrutura e serviços agregados à sua rotina operacional.",
+      convencional: "Locação básica do veículo",
+      michelines: "Estrutura operacional integrada",
+      highlight: true
+    }
+  ]
 
   return (
     <section id="simulador" className="w-full py-20 lg:py-32 bg-[#F8FAFC] border-b border-slate-200 relative select-none">
-      {/* Subtle Backlight */}
-      <div className="absolute right-0 top-1/4 w-[400px] h-[400px] bg-sky-500/[0.02] rounded-full blur-[100px] pointer-events-none" />
       
-      <div className="container mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <Badge className="bg-sky-50 text-sky-700 px-3.5 py-1 rounded-full text-xs font-bold mb-4 border border-sky-200 shadow-xs hover:bg-sky-100/50">
-            Transparência de Ganhos
+      {/* Background radial spotlight */}
+      <div className="absolute right-0 top-1/4 w-[400px] h-[400px] bg-sky-500/[0.015] rounded-full blur-[100px] pointer-events-none" />
+      
+      <div className="container mx-auto px-6 relative z-10">
+        
+        {/* Title Block */}
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+          <Badge className="bg-sky-50 text-sky-700 border-sky-200 px-3.5 py-1 rounded-full text-xs font-semibold border shadow-xs">
+            Comparador Operacional
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
-            Quanto dá para faturar por mês?
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+            Simulador de Operação Professional
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium">
-            Veja em tempo real a diferença de rendimento líquido com base no corredor de ônibus e no GNV.
+          <p className="text-base md:text-lg text-slate-500 font-medium leading-relaxed text-justify">
+            Compare a estrutura de trabalho e custos fixos. Escolha o modelo que traz previsibilidade real e suporte para a sua jornada profissional.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 items-stretch max-w-6xl mx-auto">
+        {/* Comparison Grid (Stripe / Apple Style) */}
+        <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
           
-          {/* Controles de Simulação */}
-          <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 flex flex-col justify-between shadow-sm">
-            <div>
-              <h3 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-sky-600 animate-pulse" />
-                Configure sua rotina
-              </h3>
-              
-              {/* Slider Dias por Semana */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs md:text-sm font-bold text-slate-600">Dias trabalhados na semana:</span>
-                  <span className="text-base font-black text-sky-600">{daysPerWeek} dias</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="4" 
-                  max="7" 
-                  value={daysPerWeek} 
-                  onChange={(e) => setDaysPerWeek(Number(e.target.value))}
-                  className="w-full accent-sky-600 bg-slate-100 rounded-full h-2 cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wide">
-                  <span>4 dias (Part-time)</span>
-                  <span>6 dias (Padrão)</span>
-                  <span>7 dias (Focado)</span>
-                </div>
-              </div>
-
-              {/* Slider Horas por Dia */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs md:text-sm font-bold text-slate-600">Horas dedicadas por dia:</span>
-                  <span className="text-base font-black text-sky-600">{hoursPerDay} horas</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="6" 
-                  max="12" 
-                  value={hoursPerDay} 
-                  onChange={(e) => setHoursPerDay(Number(e.target.value))}
-                  className="w-full accent-sky-600 bg-slate-100 rounded-full h-2 cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wide">
-                  <span>6 horas</span>
-                  <span>10 horas</span>
-                  <span>12 horas</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex gap-3 text-xs text-emerald-800 font-semibold shadow-xs">
-              <Info className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="leading-relaxed">
-                Cálculo baseado no uso real do corredor de ônibus (viagens 35% mais rápidas) e acesso livre à fila D-Taxi em Congonhas.
-              </p>
+          {/* Header Row */}
+          <div className="grid grid-cols-12 border-b border-slate-200 bg-slate-50/50 p-6 md:p-8 items-center text-xs md:text-sm font-black uppercase tracking-wider text-slate-700">
+            <div className="col-span-5 md:col-span-4 text-left">Parâmetro Operacional</div>
+            <div className="col-span-3 md:col-span-4 text-center text-slate-400">Modelos Convencionais</div>
+            <div className="col-span-4 md:col-span-4 text-center text-sky-700 flex justify-center items-center gap-1.5">
+              <span>Grupo Michelines</span>
+              <Badge className="bg-sky-100 text-sky-850 text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 border border-sky-200 shadow-xs">Premium</Badge>
             </div>
           </div>
 
-          {/* Resultado e Comparação */}
-          <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden shadow-sm">
-            
-            {/* Glow decorativo no fundo */}
-            <div className="absolute -right-24 -bottom-24 w-64 h-64 bg-emerald-500/[0.02] rounded-full blur-[80px]" />
-            
-            <div>
-              <h3 className="text-lg font-black text-slate-800 mb-8">Demonstrativo de Lucro Líquido Mensal</h3>
-              
-              <div className="space-y-6">
-                {/* Linha Táxi */}
-                <div>
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="font-bold text-slate-800 flex items-center gap-2 text-xs md:text-sm">
-                      <span className="h-3 w-3 rounded-full bg-emerald-500"></span>
-                      Táxi Grupo Micheline's
-                    </span>
-                    <span className="text-xl md:text-2xl font-black text-emerald-600">
-                      R$ {Math.round(netTaxi).toLocaleString('pt-BR')}
-                      <span className="text-xs font-semibold text-slate-450">/mês</span>
-                    </span>
-                  </div>
-                  
-                  {/* Gráfico de barra animado */}
-                  <div className="w-full bg-slate-50 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                    <motion.div 
-                      className="bg-gradient-to-r from-emerald-600 to-green-500 h-full rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: 0.8 }}
-                      style={{ width: `${(netTaxi / Math.max(netTaxi, netApp)) * 100}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-1.5 uppercase">
-                    <span>Faturamento Bruto: R$ {Math.round(grossTaxi).toLocaleString('pt-BR')}</span>
-                    <span>Custos (Aluguel+GNV): R$ {Math.round(costTaxi).toLocaleString('pt-BR')}</span>
+          {/* Comparison Rows */}
+          <div className="divide-y divide-slate-100 text-xs md:text-sm">
+            {comparisonRows.map((row, idx) => (
+              <div 
+                key={idx} 
+                className={`grid grid-cols-12 p-6 md:p-8 items-center font-semibold transition-colors hover:bg-slate-50/30 ${
+                  row.highlight ? "bg-sky-50/10" : ""
+                }`}
+              >
+                {/* Feature Name & Helper tooltip */}
+                <div className="col-span-5 md:col-span-4 text-left flex items-start gap-1.5 pr-2">
+                  <span className="text-slate-800 font-bold leading-tight">{row.feature}</span>
+                  <div className="group relative cursor-help shrink-0 mt-0.5 hidden sm:block">
+                    <HelpCircle className="h-3.5 w-3.5 text-slate-350 hover:text-slate-500" />
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-48 p-2.5 bg-slate-900 text-white text-[10px] font-semibold leading-relaxed rounded-xl shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                      {row.help}
+                    </div>
                   </div>
                 </div>
 
-                {/* Linha Apps Comuns */}
-                <div>
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="font-bold text-slate-500 flex items-center gap-2 text-xs md:text-sm">
-                      <span className="h-3 w-3 rounded-full bg-slate-300"></span>
-                      Aplicativo Convencional (Uber/99)
+                {/* Conventional App Column */}
+                <div className="col-span-3 md:col-span-4 text-center text-slate-500/80 font-medium">
+                  {row.feature === "O que está incluso?" ? (
+                    <div className="text-left max-w-xs mx-auto space-y-1 font-medium text-slate-400 text-[10px] md:text-xs">
+                      <div className="flex items-center gap-1"><X className="h-3.5 w-3.5 text-rose-500 shrink-0" /> Sem oficina própria</div>
+                      <div className="flex items-center gap-1"><X className="h-3.5 w-3.5 text-rose-500 shrink-0" /> Sem suporte 24h humano</div>
+                      <div className="flex items-center gap-1"><X className="h-3.5 w-3.5 text-rose-500 shrink-0" /> Sujeito a rodízio municipal</div>
+                      <div className="flex items-center gap-1"><X className="h-3.5 w-3.5 text-rose-500 shrink-0" /> Sem acesso a fila D-Taxi</div>
+                      <div className="flex items-center gap-1"><X className="h-3.5 w-3.5 text-rose-500 shrink-0" /> Pagamento rígido</div>
+                      <div className="flex items-center gap-1"><X className="h-3.5 w-3.5 text-rose-500 shrink-0" /> Sem espaço físico de apoio</div>
+                    </div>
+                  ) : row.convencional === false ? (
+                    <X className="h-4 w-4 text-red-500 mx-auto" />
+                  ) : row.convencional === true ? (
+                    <Check className="h-4 w-4 text-slate-400 mx-auto" />
+                  ) : (
+                    <span className="inline-flex items-center justify-center gap-1.5">
+                      <X className="h-3.5 w-3.5 text-rose-450/80 shrink-0" />
+                      <span>{row.convencional}</span>
                     </span>
-                    <span className="text-lg md:text-xl font-bold text-slate-500">
-                      R$ {Math.round(netApp).toLocaleString('pt-BR')}
-                      <span className="text-xs font-semibold text-slate-400">/mês</span>
+                  )}
+                </div>
+
+                {/* Michelines Platform Column */}
+                <div className="col-span-4 md:col-span-4 text-center">
+                  {row.feature === "O que está incluso?" ? (
+                    <div className="text-left max-w-xs mx-auto space-y-1 font-bold text-slate-800 text-[10px] md:text-xs">
+                      <div className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> Oficina própria</div>
+                      <div className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> Suporte operacional 24h</div>
+                      <div className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> Isenção de rodízio</div>
+                      <div className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> Operação executiva opcional</div>
+                      <div className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> Flexibilidade de pagamento</div>
+                      <div className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> Estrutura operacional integrada</div>
+                    </div>
+                  ) : row.michelines === false ? (
+                    <X className="h-4 w-4 text-red-500 mx-auto" />
+                  ) : row.michelines === true ? (
+                    <Check className="h-4 w-4 text-sky-600 font-black mx-auto" />
+                  ) : (
+                    <span className={`inline-flex items-center justify-center gap-1.5 font-bold ${row.highlight ? "text-sky-700 font-extrabold" : "text-emerald-700"}`}>
+                      <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      <span>{row.michelines}</span>
                     </span>
-                  </div>
-                  {/* Gráfico de barra animado */}
-                  <div className="w-full bg-slate-50 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                    <motion.div 
-                      className="bg-slate-350 h-full rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: 0.8 }}
-                      style={{ width: `${(netApp / Math.max(netTaxi, netApp)) * 100}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-1.5 uppercase">
-                    <span>Faturamento Bruto: R$ {Math.round(grossApp).toLocaleString('pt-BR')}</span>
-                    <span>Custos (Aluguel+Gasolina): R$ {Math.round(costApp).toLocaleString('pt-BR')}</span>
-                  </div>
+                  )}
                 </div>
               </div>
-            </div>
-
-            {/* Bloco Destaque da Diferença */}
-            <div className="mt-8 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento Adicional no Táxi</p>
-                <p className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
-                  +R$ {Math.round(diffMonthly).toLocaleString('pt-BR')} <span className="text-emerald-600 text-lg">/ mês</span>
-                </p>
-                <p className="text-[11px] text-slate-500 font-semibold mt-1">
-                  Representa aproximadamente <strong className="text-emerald-700 font-extrabold">+R$ {Math.round(diffMonthly * 12).toLocaleString('pt-BR')}</strong> extras por ano no seu bolso!
-                </p>
-              </div>
-              <Link href="/cadastro" className="w-full md:w-auto">
-                <Button className="w-full md:w-auto bg-sky-600 hover:bg-sky-500 text-white rounded-2xl font-bold px-8 h-12 transition-all shadow-sm hover:shadow">
-                  Garantir Vaga
-                </Button>
-              </Link>
-            </div>
+            ))}
           </div>
 
         </div>
+
+        {/* Comparison Footer Notice (UX Humanizada) */}
+        <div className="mt-10 text-center max-w-2xl mx-auto space-y-4">
+          <p className="text-xs text-slate-500 leading-relaxed font-semibold text-justify">
+            * Cada operação possui características diferentes. Nossa equipe ajuda você a encontrar a alternativa mais adequada para sua rotina profissional.
+          </p>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-6 max-w-4xl mx-auto text-left shadow-xs">
+            <div className="space-y-1">
+              <p className="text-xs font-black text-slate-450 uppercase tracking-widest">Encontre a sua estrutura</p>
+              <h4 className="text-base font-extrabold text-slate-900 leading-tight">
+                Nossa equipe ajuda você a encontrar a melhor operação para sua realidade.
+              </h4>
+              <p className="text-xs text-slate-550 font-medium text-justify">
+                O modelo ideal depende da sua rotina, perfil operacional e objetivo profissional.
+              </p>
+            </div>
+            
+            <a 
+              href={waUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto shrink-0"
+            >
+              <Button className="w-full sm:w-auto bg-slate-50 border border-slate-200 hover:bg-slate-100 text-emerald-600 hover:text-emerald-700 font-bold h-11 px-5 flex items-center justify-center gap-2 rounded-xl text-xs shadow-sm transition-all">
+                <MessageSquare className="h-4 w-4" /> Consultar Consultor Operacional
+              </Button>
+            </a>
+          </div>
+        </div>
+
       </div>
     </section>
   )

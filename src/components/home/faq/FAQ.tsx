@@ -22,7 +22,7 @@ export function FAQ() {
               <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
                 Restou alguma dúvida?
               </h2>
-              <p className="text-base md:text-lg text-slate-600 leading-relaxed font-semibold">
+              <p className="text-base md:text-lg text-slate-600 leading-relaxed font-semibold text-justify">
                 Selecionamos as perguntas mais comuns dos motoristas que estão migrando para o táxi. Caso precise de mais detalhes, clique no botão para chamar no WhatsApp.
               </p>
               <Link href="https://wa.me/5511944830851">
@@ -39,7 +39,7 @@ export function FAQ() {
                   <AccordionTrigger className="text-left text-slate-800 font-extrabold hover:text-sky-600 transition-colors text-sm md:text-base hover:no-underline py-3">
                     Eu não tenho Condutax, posso alugar mesmo assim?
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2">
+                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2 text-justify">
                     Sim! O Grupo Micheline's te assessora em todo o processo para obtenção do Condutax rápido. Temos parcerias com escolas de formação autorizadas com descontos exclusivos. Enquanto seu documento oficial é gerado pela Prefeitura, você já pode deixar seu cadastro pré-aprovado com a gente.
                   </AccordionContent>
                 </AccordionItem>
@@ -48,7 +48,7 @@ export function FAQ() {
                   <AccordionTrigger className="text-left text-slate-800 font-extrabold hover:text-sky-600 transition-colors text-sm md:text-base hover:no-underline py-3">
                     Vocês aceitam motoristas com restrição no nome (CPF negativado)?
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2">
+                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2 text-justify">
                     Sim. A nossa análise de cadastro é flexível e focada no seu histórico de condução e na regularidade da sua CNH. Não exigimos score de crédito alto e oferecemos condições facilitadas para quem quer começar a trabalhar honestamente.
                   </AccordionContent>
                 </AccordionItem>
@@ -57,7 +57,7 @@ export function FAQ() {
                   <AccordionTrigger className="text-left text-slate-800 font-extrabold hover:text-sky-600 transition-colors text-sm md:text-base hover:no-underline py-3">
                     O que está incluso no valor do aluguel do carro?
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2">
+                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2 text-justify">
                     Nossas locações são completas. Está incluso o seguro total contra colisões e terceiros, manutenção preventiva e corretiva completa, fornecimento do carro reserva em caso de quebras ou sinistros, e assessoria para renovação de alvarás e documentos. Você só se preocupa em abastecer e faturar.
                   </AccordionContent>
                 </AccordionItem>
@@ -66,7 +66,7 @@ export function FAQ() {
                   <AccordionTrigger className="text-left text-slate-800 font-extrabold hover:text-sky-600 transition-colors text-sm md:text-base hover:no-underline py-3">
                     Como funciona o acesso à fila prioritária de Congonhas?
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2">
+                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2 text-justify">
                     Nossa frota com o selo D-Taxi é homologada e cadastrada no sistema digital do aeroporto de Congonhas. Isso te dá direito a ingressar na área de embarque de passageiros do aeroporto pela fila interna prioritária, reduzindo o tempo de espera nas vagas comuns e conectando você diretamente com passageiros corporativos de alto padrão.
                   </AccordionContent>
                 </AccordionItem>
@@ -75,7 +75,7 @@ export function FAQ() {
                   <AccordionTrigger className="text-left text-slate-800 font-extrabold hover:text-sky-600 transition-colors text-sm md:text-base hover:no-underline py-3">
                     Há fidelidade mínima no contrato?
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2">
+                  <AccordionContent className="text-slate-600 leading-relaxed font-semibold text-xs md:text-sm pt-2 text-justify">
                     Temos contratos flexíveis de acordo com a sua necessidade, com renovação semanal ou mensal simplificada. Você tem autonomia total para gerenciar seu tempo e planejar sua carreira sem contratos de gaveta abusivos.
                   </AccordionContent>
                 </AccordionItem>
@@ -106,7 +106,7 @@ export function FAQ() {
               Chegou a hora de ter o controle do seu destino financeiro
             </h2>
             
-            <p className="text-base md:text-lg text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed font-semibold">
+            <p className="text-base md:text-lg text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed font-semibold text-justify">
               Garanta seu veículo pronto, homologado com GNV ou Híbrido, e comece a rodar no corredor em menos de 24 horas. Faturamento líquido superior garantido.
             </p>
 

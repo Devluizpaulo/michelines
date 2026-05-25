@@ -3,12 +3,11 @@
 import { useLandingSettings } from "@/hooks/useLandingSettings"
 import { Navbar } from "@/components/home/navbar/Navbar"
 import { Hero } from "@/components/home/hero/Hero"
-import { LiveStatus } from "@/components/home/live-status/LiveStatus"
 import { CampaignBanner } from "@/components/home/campaign-banner/CampaignBanner"
 import { Simulator } from "@/components/home/simulator/Simulator"
 import { Timeline } from "@/components/home/timeline/Timeline"
-import { DTaxiSection } from "@/components/home/dtaxi/DTaxiSection"
 import { Showroom } from "@/components/home/showroom/Showroom"
+import { DiferenciaisInstitucionais } from "@/components/home/diferenciais/DiferenciaisInstitucionais"
 import { Advantages } from "@/components/home/advantages/Advantages"
 import { MapSection } from "@/components/home/maps/MapSection"
 import { Testimonials } from "@/components/home/testimonials/Testimonials"
@@ -24,12 +23,11 @@ export default function Home() {
       
       <main className="flex-1">
         <Hero landingSettings={landingSettings} isMobile={isMobile} />
-        <LiveStatus landingSettings={landingSettings} />
         <CampaignBanner landingSettings={landingSettings} />
         <Simulator />
         <Timeline />
-        <DTaxiSection />
         <Showroom />
+        <DiferenciaisInstitucionais />
         <Advantages />
         <MapSection />
         <Testimonials />

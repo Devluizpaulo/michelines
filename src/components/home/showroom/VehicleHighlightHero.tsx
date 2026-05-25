@@ -46,8 +46,8 @@ export function VehicleHighlightHero({ vehicle, onOpenDetails }: VehicleHighligh
           <div className="space-y-3">
             <span className="text-xs text-sky-600 uppercase font-black tracking-widest">{vehicle.brand} Premium</span>
             <h3 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">{vehicle.name}</h3>
-            <p className="text-sm md:text-base text-slate-650 font-medium leading-relaxed">
-              O modelo definitivo para faturar alto. Combina a motorização {vehicle.isHybrid ? "Híbrida autocarregável" : "Flex de alta performance"} com espaço interno executivo e isenções que trazem mais rentabilidade diária.
+            <p className="text-sm md:text-base text-slate-650 font-medium leading-relaxed text-justify">
+              O modelo definitivo para faturar alto. Combina a motorização {vehicle.fuelType === "electric" ? "100% Elétrica" : vehicle.isHybrid ? "Híbrida autocarregável" : "Flex de alta performance"} com espaço interno executivo e isenções que trazem mais rentabilidade diária.
             </p>
           </div>
 
@@ -60,7 +60,7 @@ export function VehicleHighlightHero({ vehicle, onOpenDetails }: VehicleHighligh
                 <span className="text-[10px] font-black uppercase tracking-widest">Rentabilidade</span>
               </div>
               <p className="text-base font-black text-slate-800">Alta Demanda</p>
-              <p className="text-[10px] text-slate-500 font-semibold leading-tight">Escolha número 1 de motoristas corporativos.</p>
+              <p className="text-[10px] text-slate-500 font-semibold leading-tight text-justify">Escolha número 1 de motoristas corporativos.</p>
             </div>
 
             <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl space-y-1">
@@ -69,7 +69,7 @@ export function VehicleHighlightHero({ vehicle, onOpenDetails }: VehicleHighligh
                 <span className="text-[10px] font-black uppercase tracking-widest">Manutenção</span>
               </div>
               <p className="text-base font-black text-slate-800">Seguro Total</p>
-              <p className="text-[10px] text-slate-500 font-semibold leading-tight">Plano de revisões preventivas inclusas.</p>
+              <p className="text-[10px] text-slate-500 font-semibold leading-tight text-justify">Plano de revisões preventivas inclusas.</p>
             </div>
 
           </div>

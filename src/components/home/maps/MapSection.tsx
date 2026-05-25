@@ -16,24 +16,24 @@ export function MapSection() {
           <div className="lg:col-span-5 space-y-6">
             <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3.5 py-1 rounded-full text-xs font-bold">Posicionamento Estratégico</Badge>
             <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
-              Conectado aos pontos mais lucrativos da cidade
+              Conexão urbana inteligente
             </h2>
-            <p className="text-base md:text-lg text-slate-600 leading-relaxed font-semibold">
-              Não rode à toa. Com nossa base próxima ao aeroporto de Congonhas e acesso livre aos principais eixos de SP, você se posiciona sempre onde a demanda por corridas corporativas é maior.
+            <p className="text-base md:text-lg text-slate-600 leading-relaxed font-semibold text-justify">
+              Nossa base e eixos de atuação estão localizados nas rotas de maior circulação corporativa e terminais preferenciais da cidade.
             </p>
 
             <div className="space-y-4 pt-4 border-t border-slate-200">
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 rounded-full bg-emerald-500 shrink-0"></span>
-                <span className="text-sm text-slate-650 font-semibold"><strong>Congonhas (Aeroporto):</strong> Fila D-Taxi ativa</span>
+                <span className="text-sm text-slate-650 font-semibold">Terminais de embarque: alta demanda ativa</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 rounded-full bg-amber-500 shrink-0"></span>
-                <span className="text-sm text-slate-650 font-semibold"><strong>Corredor Norte-Sul:</strong> Circulação rápida liberada</span>
+                <span className="text-sm text-slate-650 font-semibold">Corredor Norte-Sul: fluxo e tráfego prioritários</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 rounded-full bg-sky-500 shrink-0"></span>
-                <span className="text-sm text-slate-650 font-semibold"><strong>Base Micheline's:</strong> Matriz estratégica para suporte rápido</span>
+                <span className="text-sm text-slate-650 font-semibold">Matriz Micheline's: suporte operacional rápido</span>
               </div>
             </div>
           </div>

@@ -72,6 +72,16 @@ export const vehicleCategories: VehicleCategory[] = [
         glow: "border-slate-700/60 shadow-lg hover:border-sky-500/30",
         tagColor: "bg-sky-600 text-white",
         specs: ["Isenção de IPVA SP", "Ar Dual Zone", "Multimídia Premium"]
+      },
+      {
+        name: "BYD D1 Elétrico",
+        year: "2024",
+        image: "/images/cars/byd-d1.png",
+        price: "R$ 3.200/mês",
+        tag: "100% Elétrico",
+        glow: "border-slate-700/60 shadow-lg hover:border-sky-500/30",
+        tagColor: "bg-sky-600 text-white",
+        specs: ["Autonomia 370km", "Porta Deslizante", "Espaço Executivo Premium"]
       }
     ]
   },

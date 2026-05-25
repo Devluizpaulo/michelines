@@ -26,7 +26,7 @@ export function CampaignBanner({ landingSettings }: CampaignBannerProps) {
               <h3 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
                 {landingSettings.campaignText || "Alugue seu Corolla Cross com Fila D-TAXI!"}
               </h3>
-              <p className="text-slate-600 text-sm md:text-base leading-relaxed font-medium">
+              <p className="text-slate-600 text-sm md:text-base leading-relaxed font-medium text-justify">
                 {landingSettings.campaignSubtitle || "Fature alto no aeroporto de Congonhas. Retirada rápida em 24 horas."}
               </p>
               <div className="pt-2">
@@ -57,7 +57,7 @@ export function CampaignBanner({ landingSettings }: CampaignBannerProps) {
               <h3 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
                 {landingSettings.campaignText || "Taxa Zero: 3 Diárias Grátis para Começar!"}
               </h3>
-              <p className="text-slate-600 text-sm md:text-base leading-relaxed font-medium">
+              <p className="text-slate-600 text-sm md:text-base leading-relaxed font-medium text-justify">
                 {landingSettings.campaignSubtitle || "Inscreva-se hoje e aproveite as condições especiais sem comprovante de score."}
               </p>
               <div className="pt-2">
@@ -88,7 +88,7 @@ export function CampaignBanner({ landingSettings }: CampaignBannerProps) {
               <h3 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
                 {landingSettings.campaignText || "Economize até R$ 2.000 com Corolla Híbrido + GNV"}
               </h3>
-              <p className="text-slate-600 text-sm md:text-base leading-relaxed font-medium">
+              <p className="text-slate-600 text-sm md:text-base leading-relaxed font-medium text-justify">
                 {landingSettings.campaignSubtitle || "Tecnologia de ponta para rodar mais gastando muito menos combustível."}
               </p>
               <div className="pt-2">

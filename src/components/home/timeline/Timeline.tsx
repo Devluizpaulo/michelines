@@ -233,7 +233,7 @@ export function Timeline() {
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Sua jornada para a mobilidade profissional em São Paulo
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium">
+          <p className="text-base md:text-lg text-slate-600 font-medium text-justify">
             Entenda o caminho regulamentado para ingressar na atividade profissional, acessar a frota de suporte do Grupo Michelines e escolher a operação mais adequada para o seu perfil.
           </p>
         </div>
@@ -244,7 +244,7 @@ export function Timeline() {
             <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               💼 Mais autonomia
             </span>
-            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed text-justify">
               Construa sua própria rotina profissional com mais liberdade operacional em São Paulo.
             </p>
           </div>
@@ -252,15 +252,15 @@ export function Timeline() {
             <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               🚖 Operação regulamentada
             </span>
-            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
-              Atuação profissional legalizada com suporte especializado durante toda a jornada.
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed text-justify">
+              Atuação profissional legalizada com suporte specialized durante toda a jornada.
             </p>
           </div>
           <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_-4px_rgba(15,23,42,0.02)] flex flex-col gap-2 hover:border-sky-300 hover:shadow-sm transition-all duration-300">
             <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               🔋 Frota moderna
             </span>
-            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed text-justify">
               Veículos híbridos, GNV e executivos preparados para diferentes perfis de operação.
             </p>
           </div>
@@ -268,7 +268,7 @@ export function Timeline() {
             <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               ✈️ Operação Congonhas
             </span>
-            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed text-justify">
               Acesso opcional à divisão premium D-Taxi em uma das maiores demandas aeroportuárias do país.
             </p>
           </div>
@@ -360,7 +360,7 @@ export function Timeline() {
                 </div>
                 <div>
                   <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Suporte Humano</h4>
-                  <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
+                  <p className="text-[11px] text-slate-600 font-semibold mt-0.5 text-justify">
                     Nossa equipe acompanha você em todas as etapas de homologação e treinamento.
                   </p>
                 </div>
@@ -408,15 +408,15 @@ export function Timeline() {
                     {/* Description copy & Visual splitting */}
                     <div className="grid md:grid-cols-2 gap-6 items-stretch">
                       <div className="flex flex-col justify-between space-y-4 h-full">
-                        <p className="text-xs md:text-sm text-slate-650 font-semibold leading-relaxed">
+                        <p className="text-xs md:text-sm text-slate-650 font-semibold leading-relaxed text-justify">
                           {stepsData[activeStep].description}
                         </p>
                         <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl shadow-xs mt-auto">
-                          <p className="text-xs text-slate-600 leading-relaxed font-bold">
+                          <p className="text-xs text-slate-600 leading-relaxed font-bold text-justify">
                             {stepsData[activeStep].details}
                           </p>
                           {activeStep === 4 && (
-                            <p className="text-[9px] text-slate-400 mt-2 italic font-semibold leading-snug">
+                            <p className="text-[9px] text-slate-400 mt-2 italic font-semibold leading-snug text-justify">
                               * Os resultados variam conforme a rotina e estratégia operacional de cada motorista.
                             </p>
                           )}

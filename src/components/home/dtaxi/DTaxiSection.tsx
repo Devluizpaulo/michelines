@@ -14,7 +14,7 @@ export function DTaxiSection() {
       <div className="absolute left-10 top-10 w-[300px] h-[300px] bg-indigo-500/[0.01] rounded-full blur-[100px] pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10">
-        
+
         {/* Header Block */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <Badge className="bg-sky-50 text-sky-700 border border-sky-200 px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-xs">
@@ -23,19 +23,19 @@ export function DTaxiSection() {
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Não é só uma vaga. É o acesso à demanda mais qualificada de São Paulo.
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium">
+          <p className="text-base md:text-lg text-slate-600 font-medium text-justify">
             Opere na divisão **D-Taxi Congonhas**. Esqueça as corridas comuns e atenda o mercado executivo corporativo de alto ticket.
           </p>
         </div>
 
         {/* Content Grid */}
         <div className="grid lg:grid-cols-12 gap-12 items-center max-w-6xl mx-auto">
-          
+
           {/* Left Column: Visual Showcase Card */}
           <div className="lg:col-span-6 bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[480px]">
             {/* Spotlight overlay */}
             <div className="absolute top-0 right-0 w-[300px] h-[200px] bg-sky-500/[0.03] rounded-full blur-[60px]" />
-            
+
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Homologação Oficial</span>
@@ -43,8 +43,8 @@ export function DTaxiSection() {
               </div>
 
               <div className="relative w-full h-[220px] md:h-[250px] transition-transform duration-500 hover:scale-[1.02]">
-                <Image 
-                  src="/images/cars/corolla-cross.png" 
+                <Image
+                  src="/images/cars/corolla-cross.png"
                   alt="D-Taxi Corolla Cross"
                   fill
                   className="object-contain filter drop-shadow-[0_15px_15px_rgba(15,23,42,0.12)]"
@@ -94,7 +94,7 @@ export function DTaxiSection() {
             </div>
 
             <div className="space-y-5 pt-4">
-              
+
               {/* Item 1 */}
               <div className="flex gap-4">
                 <div className="bg-sky-50 text-sky-600 border border-sky-100 p-3 rounded-2xl h-fit shrink-0">
@@ -102,7 +102,7 @@ export function DTaxiSection() {
                 </div>
                 <div>
                   <h4 className="text-base font-extrabold text-slate-800 mb-1">Acesso à Fila Digital de Congonhas</h4>
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold">
+                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
                     Evite o tempo ocioso. Os carros D-Taxi são homologados digitalmente pela Prefeitura de São Paulo para entrar na área de embarque prioritária de Congonhas.
                   </p>
                 </div>
@@ -115,21 +115,24 @@ export function DTaxiSection() {
                 </div>
                 <div>
                   <h4 className="text-base font-extrabold text-slate-800 mb-1">Passageiros de Alta Renda (Corporativo)</h4>
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold">
+                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
                     Transporte executivos de grandes multinacionais, turistas e passageiros frequentes dispostos a pagar por um serviço premium, com gorjetas elevadas.
                   </p>
                 </div>
               </div>
-
               {/* Item 3 */}
               <div className="flex gap-4">
                 <div className="bg-amber-50 text-amber-600 border border-amber-100 p-3 rounded-2xl h-fit shrink-0">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
+
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-800 mb-1">Tecnologia Híbrida & GNV Integrado</h4>
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold">
-                    Opere com consumo inteligente. Nossos veículos Toyota Corolla e Corolla Cross combinam motores híbridos elétricos com sistemas GNV homologados.
+                  <h4 className="text-base font-extrabold text-slate-800 mb-1">
+                    Tecnologia de Alta Eficiência Operacional
+                  </h4>
+
+                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
+                    A operação D-Taxi oferece veículos híbridos, elétricos e modelos GNV altamente eficientes, incluindo Corolla Cross, Toyota Corolla, Prius e BYD, proporcionando mais autonomia operacional, conforto executivo e redução de custos no dia a dia.
                   </p>
                 </div>
               </div>
@@ -141,7 +144,7 @@ export function DTaxiSection() {
                 </div>
                 <div>
                   <h4 className="text-base font-extrabold text-slate-800 mb-1">Isenções de Rodízio e Benefícios Fiscais</h4>
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold">
+                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
                     Aproveite isenção total de rodízio municipal de São Paulo e circulação livre nas faixas e corredores de ônibus exclusivos a qualquer hora.
                   </p>
                 </div>

@@ -105,7 +105,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
           initial={{ opacity: 0, y: 20 }}
           animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-base sm:text-xl text-slate-600 mb-10 leading-relaxed max-w-3xl mx-auto font-medium"
+          className="text-base sm:text-xl text-slate-600 mb-10 leading-relaxed max-w-3xl mx-auto font-medium text-justify"
         >
           {slide.subtitle}
         </motion.p>

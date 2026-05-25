@@ -15,7 +15,7 @@ export function Footer() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-gradient-to-r from-sky-50 to-indigo-50/50 border border-sky-100/60 p-8 rounded-3xl shadow-sm">
             <div className="space-y-1.5">
               <h3 className="text-lg md:text-xl font-black text-slate-900">Pronto para transformar sua rentabilidade como taxista?</h3>
-              <p className="text-xs text-slate-600 font-medium">Garanta seu veículo premium homologado com suporte completo e acesso à fila rápida de Congonhas.</p>
+              <p className="text-xs text-slate-600 font-medium text-justify">Garanta seu veículo premium homologado com suporte completo e acesso à fila rápida de Congonhas.</p>
             </div>
             <Link href="/cadastro" className="shrink-0 w-full lg:w-auto">
               <Button className="w-full lg:w-auto bg-sky-600 hover:bg-sky-500 text-white rounded-2xl px-6 h-11 text-xs font-bold shadow-sm hover:shadow transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2">
@@ -37,7 +37,7 @@ export function Footer() {
               height={50} 
               className="h-9 w-auto opacity-100" 
             />
-            <p className="text-xs leading-relaxed text-slate-500 font-semibold">
+            <p className="text-xs leading-relaxed text-slate-500 font-semibold text-justify">
               Grupo Micheline's: há mais de 45 anos impulsionando a carreira de motoristas em São Paulo. Especialistas em frotas de táxi premium com suporte total e rentabilidade superior.
             </p>
             <p className="text-sky-700 font-extrabold text-xs tracking-wider uppercase">

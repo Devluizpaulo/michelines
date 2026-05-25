@@ -34,6 +34,7 @@ const TAB_LABELS: Record<TabId, string> = {
   analytics:     "Analytics",
   configuracoes: "Configurações",
   usuarios:      "Usuários",
+  operacao:      "Operação & Preços",
 }
 
 export function UserManager() {

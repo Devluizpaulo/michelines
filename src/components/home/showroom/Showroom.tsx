@@ -30,6 +30,21 @@ export function Showroom() {
     const fetchShowroomVehicles = async () => {
       try {
         setLoading(true)
+
+        // Fetch pricing map in parallel
+        const pricingMap: Record<string, any> = {}
+        try {
+          const pricingSnap = await getDocs(collection(db, "vehicle_pricing"))
+          pricingSnap.forEach((doc) => {
+            const data = doc.data()
+            if (data.vehicleId) {
+              pricingMap[data.vehicleId] = { id: doc.id, ...data }
+            }
+          })
+        } catch (pe) {
+          console.warn("Erro ao buscar tabela vehicle_pricing:", pe)
+        }
+
         const q = query(
           collection(db, "vehicles"),
           where("status", "==", "active"),
@@ -41,7 +56,21 @@ export function Showroom() {
         if (!snap.empty) {
           const list: Vehicle[] = []
           snap.forEach((doc) => {
-            list.push({ id: doc.id, ...doc.data() } as Vehicle)
+            const carData = doc.data() as Vehicle
+            const carId = doc.id
+            list.push({ 
+              id: carId, 
+              ...carData,
+              pricing: pricingMap[carId] || {
+                vehicleId: carId,
+                dailyRate: carData.dailyPrice || Math.round((carData.monthlyPrice || 2400) / 30),
+                weeklyRate: Math.round((carData.monthlyPrice || 2400) / 4),
+                monthlyRate: carData.monthlyPrice || 2400,
+                weekendExempt: true,
+                acceptedPayments: ["pix", "debito", "credito"],
+                active: true
+              }
+            } as any)
           })
           setVehicles(list)
         } else {
@@ -50,8 +79,9 @@ export function Showroom() {
           staticCategories.forEach(cat => {
             cat.vehicles.forEach((v, idx) => {
               const numPrice = Number(v.price!.replace(/\D/g, "")) || 2000
+              const vehicleId = `${cat.id}-${idx}`
               fallbackList.push({
-                id: `${cat.id}-${idx}`,
+                id: vehicleId,
                 name: v.name,
                 slug: `${cat.id}-${idx}`,
                 category: cat.id,
@@ -76,7 +106,16 @@ export function Showroom() {
                 specs: v.specs,
                 tags: [v.tag!],
                 positivePoints: ["Isenção total de rodízio", "Baixo consumo", "Garantia de substituição imediata"],
-                highlights: ["Super porta-malas", "Bancos ergonômicos", "Multimídia completo"]
+                highlights: ["Super porta-malas", "Bancos ergonômicos", "Multimídia completo"],
+                pricing: {
+                  vehicleId: vehicleId,
+                  dailyRate: Math.round(numPrice / 30),
+                  weeklyRate: Math.round(numPrice / 4),
+                  monthlyRate: numPrice,
+                  weekendExempt: true,
+                  acceptedPayments: ["pix", "debito", "credito"],
+                  active: true
+                }
               })
             })
           })
@@ -89,8 +128,9 @@ export function Showroom() {
         staticCategories.forEach(cat => {
           cat.vehicles.forEach((v, idx) => {
             const numPrice = Number(v.price!.replace(/\D/g, "")) || 2000
+            const vehicleId = `${cat.id}-${idx}`
             fallbackList.push({
-              id: `${cat.id}-${idx}`,
+              id: vehicleId,
               name: v.name,
               slug: `${cat.id}-${idx}`,
               category: cat.id,
@@ -115,7 +155,16 @@ export function Showroom() {
               specs: v.specs,
               tags: [v.tag!],
               positivePoints: ["Isenção total de rodízio"],
-              highlights: ["Direção hidráulica"]
+              highlights: ["Direção hidráulica"],
+              pricing: {
+                vehicleId: vehicleId,
+                dailyRate: Math.round(numPrice / 30),
+                weeklyRate: Math.round(numPrice / 4),
+                monthlyRate: numPrice,
+                weekendExempt: true,
+                acceptedPayments: ["pix", "debito", "credito"],
+                active: true
+              }
             })
           })
         })
@@ -135,15 +184,15 @@ export function Showroom() {
   const featuredVehicle = vehicles.find(v => v.featured) || vehicles[0] || null
 
   const activeCategoryName = 
-    activeTab === "dtaxi" ? "D-TAXI (Congonhas)" :
-    activeTab === "hibridos" ? "Híbridos" :
-    activeTab === "sedans" ? "Sedans Executivos" : "Compactos Urbanos"
+    activeTab === "dtaxi" ? "Operação Executiva (Fila Rápida)" :
+    activeTab === "hibridos" ? "Híbridos & Elétricos" :
+    activeTab === "sedans" ? "Sedans Corporativos" : "Compactos Urbanos"
 
   const activeCategoryDesc = 
-    activeTab === "dtaxi" ? "Veículos executivos autorizados a operar na fila rápida de Congonhas." :
-    activeTab === "hibridos" ? "Tecnologia autossustentável para máxima rentabilidade e menor consumo." :
-    activeTab === "sedans" ? "Amplo espaço de bagagem e alto conforto para passageiros executivos." :
-    "Modelos ágeis, práticos e econômicos perfeitos para o trânsito da cidade."
+    activeTab === "dtaxi" ? "Veículos selecionados autorizados para acesso preferencial nas áreas de alta demanda de passageiros." :
+    activeTab === "hibridos" ? "Tecnologia de alta eficiência integrada para menor custo de rodagem e sustentabilidade." :
+    activeTab === "sedans" ? "Porta-malas estendido e alto nível de conforto para corridas corporativas e viagens." :
+    "Modelos práticos e econômicos ideais para o fluxo urbano diário."
 
   return (
     <section id="showroom" className="w-full py-20 lg:py-32 bg-[#F8FAFC] relative overflow-hidden select-none">
@@ -154,15 +203,15 @@ export function Showroom() {
       <div className="container mx-auto px-6 relative z-10 space-y-16">
         
         {/* Title Block */}
-        <div className="text-center max-w-3xl mx-auto">
-          <Badge className="bg-sky-50 text-sky-700 border-sky-200 px-3 py-1 rounded-full text-xs font-semibold mb-4 border">
-            Nosso Showroom
+        <div className="text-center max-w-3xl mx-auto space-y-4">
+          <Badge className="bg-sky-50 text-sky-700 border-sky-200 px-3.5 py-1 rounded-full text-xs font-semibold border">
+            Operações Premium
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
-            Escolha sua máquina de trabalho
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+            Estrutura automotiva para alta performance
           </h2>
-          <p className="text-lg text-slate-600 leading-relaxed font-medium">
-            Frota nova e revisada, equipada com GNV/Híbridos, homologada para Congonhas e pronta para maximizar seu faturamento diário.
+          <p className="text-base md:text-lg text-slate-600 leading-relaxed font-medium text-justify">
+            Frota moderna e inspecionada, com tecnologia híbrida e elétrica integrada. Homologação simplificada para atuação executiva e acesso à fila rápida corporativa nas áreas de maior ticket da cidade.
           </p>
         </div>
 
@@ -186,10 +235,10 @@ export function Showroom() {
           {/* Category Tabs */}
           <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
             {[
-              { id: "dtaxi", name: "D-TAXI Congonhas" },
-              { id: "hibridos", name: "Híbridos Eco" },
-              { id: "sedans", name: "Sedans Premium" },
-              { id: "hatches", name: "Compactos" }
+              { id: "dtaxi", name: "Fila Rápida Executiva" },
+              { id: "hibridos", name: "Híbridos & Elétricos" },
+              { id: "sedans", name: "Sedans Corporativos" },
+              { id: "hatches", name: "Compactos Urbanos" }
             ].map((category) => (
               <button
                 key={category.id}
@@ -208,7 +257,7 @@ export function Showroom() {
           {/* Category Intro */}
           <div className="text-center">
             <h3 className="text-sm font-extrabold text-slate-800">{activeCategoryName}</h3>
-            <p className="text-xs text-slate-550 mt-1 font-semibold italic">
+            <p className="text-xs text-slate-550 mt-1 font-semibold italic text-justify">
               &ldquo;{activeCategoryDesc}&rdquo;
             </p>
           </div>
@@ -247,7 +296,7 @@ export function Showroom() {
           <div className="pt-4">
             <div className="text-center max-w-xl mx-auto mb-8 space-y-2">
               <h3 className="text-xl md:text-2xl font-black text-slate-900">Dúvida na escolha?</h3>
-              <p className="text-xs text-slate-650 leading-relaxed font-semibold">
+              <p className="text-xs text-slate-650 leading-relaxed font-semibold text-justify">
                 Fizemos um Match Inteligente para ajudar você a decidir de forma rápida e segura.
               </p>
             </div>

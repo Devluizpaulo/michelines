@@ -78,6 +78,11 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                         🔋 Híbrido
                       </Badge>
                     )}
+                    {car.pricing?.weekendExempt && (
+                      <Badge className="bg-amber-50 text-amber-700 border border-amber-250 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
+                        📅 Domingos & Feriados Isentos
+                      </Badge>
+                    )}
                   </div>
 
                   {car.tags && car.tags[0] && (
@@ -114,15 +119,35 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                       <span className="text-xs text-slate-400 font-bold">{car.year}</span>
                     </div>
 
-                    <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2 h-8">
+                    <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2 h-8 text-justify">
                       {car.shortDescription}
                     </p>
 
+                    {/* Operational Badges Row */}
+                    <div className="flex flex-wrap gap-1.5 pt-1.5">
+                      {(car.isHybrid || car.hasGNV) && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md">
+                          🚦 Isento de Rodízio
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1 text-[9px] font-extrabold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md">
+                        🔧 Revisado
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[9px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
+                        ☕ Suporte & Café
+                      </span>
+                      {car.pricing?.weekendExempt && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-md">
+                          📅 Domingos Isentos
+                        </span>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Investimento Mensal</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Diária a partir de</span>
                       <span className="text-lg font-black text-emerald-600 flex items-center gap-1">
                         <Tag className="h-4 w-4 text-emerald-500" />
-                        R$ {car.monthlyPrice}
+                        R$ {car.pricing?.dailyRate || car.dailyPrice || 150}/dia
                       </span>
                     </div>
                   </div>

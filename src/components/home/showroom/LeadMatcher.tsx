@@ -104,7 +104,7 @@ export function LeadMatcher({ vehicles, onSelectVehicle }: LeadMatcherProps) {
 
             <div className="space-y-2">
               <h3 className="text-xl md:text-2xl font-black text-slate-900">Recomendador Inteligente de Locação</h3>
-              <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
+              <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed font-medium text-justify">
                 Responda a 3 perguntas rápidas e nosso algoritmo analisará o portfólio da Micheline's para indicar o táxi mais lucrativo para o seu perfil.
               </p>
             </div>
@@ -160,7 +160,7 @@ export function LeadMatcher({ vehicles, onSelectVehicle }: LeadMatcherProps) {
                   className="bg-slate-50 hover:bg-white border border-slate-200/80 hover:border-sky-500/50 p-5 rounded-2xl text-left transition-all duration-300 group flex flex-col justify-between h-44 shadow-sm"
                 >
                   <span className="text-xs font-black text-sky-700 uppercase">{opt.title}</span>
-                  <p className="text-xs text-slate-500 mt-2 leading-relaxed font-semibold">{opt.desc}</p>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed font-semibold text-justify">{opt.desc}</p>
                   <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-sky-600 mt-4 transition-colors" />
                 </button>
               ))}
@@ -201,7 +201,7 @@ export function LeadMatcher({ vehicles, onSelectVehicle }: LeadMatcherProps) {
                 { 
                   id: "cheap", 
                   title: "Baixo Custo Inicial", 
-                  desc: "Menor preço de aluguel mensal possível para iniciar sem comprometer o bolso." 
+                  desc: "Menor preço de diária possível para iniciar sem comprometer o bolso." 
                 }
               ].map(opt => (
                 <button
@@ -210,7 +210,7 @@ export function LeadMatcher({ vehicles, onSelectVehicle }: LeadMatcherProps) {
                   className="bg-slate-50 hover:bg-white border border-slate-200/80 hover:border-sky-500/50 p-5 rounded-2xl text-left transition-all duration-300 group flex flex-col justify-between h-44 shadow-sm"
                 >
                   <span className="text-xs font-black text-sky-700 uppercase">{opt.title}</span>
-                  <p className="text-xs text-slate-500 mt-2 leading-relaxed font-semibold">{opt.desc}</p>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed font-semibold text-justify">{opt.desc}</p>
                   <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-sky-600 mt-4 transition-colors" />
                 </button>
               ))}
@@ -255,7 +255,7 @@ export function LeadMatcher({ vehicles, onSelectVehicle }: LeadMatcherProps) {
                   className="bg-slate-50 hover:bg-white border border-slate-200/80 hover:border-sky-500/50 p-5 rounded-2xl text-left transition-all duration-300 group flex flex-col justify-between h-40 shadow-sm"
                 >
                   <span className="text-xs font-black text-sky-700 uppercase">{opt.title}</span>
-                  <p className="text-xs text-slate-500 mt-2 leading-relaxed font-semibold">{opt.desc}</p>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed font-semibold text-justify">{opt.desc}</p>
                   <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-sky-600 mt-4 transition-colors" />
                 </button>
               ))}
@@ -287,7 +287,7 @@ export function LeadMatcher({ vehicles, onSelectVehicle }: LeadMatcherProps) {
               <div className="min-w-0">
                 <span className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">{recommended.brand}</span>
                 <h4 className="text-base font-extrabold text-slate-800 truncate mt-0.5">{recommended.name}</h4>
-                <p className="text-xs text-emerald-600 font-bold mt-1">Plano mensal: R$ {recommended.monthlyPrice}</p>
+                <p className="text-xs text-emerald-600 font-bold mt-1">Diária a partir de: R$ {recommended.pricing?.dailyRate || recommended.dailyPrice || 150}/dia</p>
               </div>
 
               {recommended.thumbnail && (

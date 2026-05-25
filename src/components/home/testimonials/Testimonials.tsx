@@ -40,7 +40,7 @@ export function Testimonials() {
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
             Quem mudou, não se arrepende
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium">
+          <p className="text-base md:text-lg text-slate-600 font-medium text-justify">
             Histórias reais de motoristas que saíram do aperto dos aplicativos e mudaram de patamar de vida com a Micheline's.
           </p>
         </div>
@@ -57,7 +57,7 @@ export function Testimonials() {
                   {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-yellow-500 stroke-yellow-500" />)}
                 </div>
 
-                <p className="text-slate-600 text-xs md:text-sm leading-relaxed font-semibold italic">
+                <p className="text-slate-600 text-xs md:text-sm leading-relaxed font-semibold italic text-justify">
                   "{item.testimony}"
                 </p>
 

@@ -21,6 +21,7 @@ import { LeadBoard } from "@/components/admin/leads/LeadBoard"
 import { CampaignManager } from "@/components/admin/campaigns/CampaignManager"
 import { LandingConfig } from "@/components/admin/landing/LandingConfig"
 import { VehicleManager } from "@/components/admin/vehicles/VehicleManager"
+import { OperationManager } from "@/components/admin/vehicles/OperationManager"
 import { AnalyticsDashboard } from "@/components/admin/analytics/AnalyticsDashboard"
 import { BulkImageUploader } from "@/components/admin/shared/BulkImageUploader"
 import { UserManager } from "@/components/admin/users/UserManager"
@@ -216,6 +217,10 @@ function AdminContent() {
 
               {activeTab === "frota" && (
                 <VehicleManager leads={leads} />
+              )}
+
+              {activeTab === "operacao" && (
+                <OperationManager />
               )}
 
               {activeTab === "analytics" && (

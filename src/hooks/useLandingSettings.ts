@@ -4,8 +4,8 @@ import { db } from "@/app/firebase/config"
 import { LandingSettings } from "@/types/landing"
 
 const DEFAULT_SETTINGS: LandingSettings = {
-  heroTitle: "Ganhe mais. Trabalhe com liberdade.",
-  heroGlowText: "Dirija com propósito.",
+  heroTitle: "Mobilidade profissional urbana.",
+  heroGlowText: "Sua jornada executiva.",
   liveBannerText: "Oportunidade da semana: Diárias especiais para híbridos com GNV! Cadastro rápido sem comprovação de score.",
   congonhasStatus: "Fila rápida D-TAXI liberada (média 15 min de espera)",
   showCampaignBanner: false,
