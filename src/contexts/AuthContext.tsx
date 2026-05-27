@@ -2,9 +2,9 @@
 
 import { useState, useEffect, createContext, useContext } from "react"
 import { onAuthStateChanged, User } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
+import { doc, getDoc, onSnapshot } from "firebase/firestore"
 import { auth, db } from "@/app/firebase/config"
-import { AdminUser, UserRole, canAccess, TabId } from "@/lib/permissions"
+import { AdminUser, UserRole, canAccess, TabId, ROLE_PERMISSIONS } from "@/lib/permissions"
 
 interface AuthContextType {
   firebaseUser: User | null
@@ -12,6 +12,7 @@ interface AuthContextType {
   role: UserRole | null
   loading: boolean
   canAccess: (tab: TabId) => boolean
+  customPermissions: Record<UserRole, TabId[]>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,12 +21,32 @@ const AuthContext = createContext<AuthContextType>({
   role: null,
   loading: true,
   canAccess: () => false,
+  customPermissions: ROLE_PERMISSIONS,
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null)
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
+  const [customPermissions, setCustomPermissions] = useState<Record<UserRole, TabId[]>>(ROLE_PERMISSIONS)
   const [loading, setLoading] = useState(true)
+
+  // Carrega configurações de permissões customizadas do Firestore em tempo real
+  useEffect(() => {
+    const permissionsRef = doc(db, "role_permissions", "config")
+    const unsubPermissions = onSnapshot(
+      permissionsRef,
+      (snap) => {
+        if (snap.exists()) {
+          setCustomPermissions(snap.data() as Record<UserRole, TabId[]>)
+        }
+      },
+      (err) => {
+        console.warn("Erro ao carregar permissões dinâmicas do Firestore, usando fallback estático:", err)
+      }
+    )
+
+    return () => unsubPermissions()
+  }, [])
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -55,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAdminUser({
             uid: user.uid,
             email: user.email || "",
-            displayName: user.email || "Admin",
+            displayName: user.displayName || user.email || "Admin",
             role: "super_admin",
             active: true,
             createdAt: new Date().toISOString(),
@@ -73,7 +94,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAccess = (tab: TabId): boolean => {
     if (!adminUser) return false
-    return canAccess(adminUser.role, tab)
+    // Super admin sempre tem acesso total
+    if (adminUser.role === "super_admin") return true
+    
+    const permissions = customPermissions[adminUser.role] || ROLE_PERMISSIONS[adminUser.role]
+    return permissions?.includes(tab) ?? false
   }
 
   return (
@@ -84,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: adminUser?.role ?? null,
         loading,
         canAccess: checkAccess,
+        customPermissions,
       }}
     >
       {children}

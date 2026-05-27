@@ -38,7 +38,7 @@ const TAB_LABELS: Record<TabId, string> = {
 }
 
 export function UserManager() {
-  const { adminUser } = useAuth()
+  const { adminUser, customPermissions } = useAuth()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
@@ -46,6 +46,42 @@ export function UserManager() {
   const [saving, setSaving] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [resetSent, setResetSent] = useState<string | null>(null)
+
+  // Configuração local de permissões dinâmicas
+  const [permissionsConfig, setPermissionsConfig] = useState<Record<UserRole, TabId[]>>(ROLE_PERMISSIONS)
+  const [savingPermissions, setSavingPermissions] = useState(false)
+
+  // Sincroniza estado local com as permissões do contexto/Firestore
+  useEffect(() => {
+    if (customPermissions) {
+      setPermissionsConfig(customPermissions)
+    }
+  }, [customPermissions])
+
+  // Modifica permissão localmente
+  const handleTogglePermission = (role: UserRole, tab: TabId) => {
+    setPermissionsConfig(prev => {
+      const current = prev[role] || []
+      const updated = current.includes(tab)
+        ? current.filter(t => t !== tab)
+        : [...current, tab]
+      return { ...prev, [role]: updated }
+    })
+  }
+
+  // Grava permissões atualizadas no Firestore
+  const handleSavePermissions = async () => {
+    setSavingPermissions(true)
+    try {
+      await setDoc(doc(db, "role_permissions", "config"), permissionsConfig)
+      alert("Níveis de acesso e permissões salvos com sucesso!")
+    } catch (e: any) {
+      console.error(e)
+      alert(`Erro ao salvar permissões: ${e.message || "Tente novamente."}`)
+    } finally {
+      setSavingPermissions(false)
+    }
+  }
 
   // Form state
   const [form, setForm] = useState({
@@ -183,7 +219,7 @@ export function UserManager() {
             </span>
             <p className="text-[11px] text-slate-500 leading-snug">{info.description}</p>
             <div className="flex flex-wrap gap-1 pt-1">
-              {ROLE_PERMISSIONS[role].map(tab => (
+              {(permissionsConfig[role] || ROLE_PERMISSIONS[role] || []).map(tab => (
                 <span key={tab} className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold">
                   {TAB_LABELS[tab]}
                 </span>
@@ -192,6 +228,97 @@ export function UserManager() {
           </div>
         ))}
       </div>
+
+      {/* Painel de Permissões (Apenas para Super Admin) */}
+      {adminUser?.role === "super_admin" && (
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-5 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Lock className="h-4 w-4 text-sky-600" />
+              Matriz de Permissões de Acesso (RBAC)
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-semibold">
+              Gerencie dinamicamente as permissões de cada perfil. Perfis ativos terão as telas atualizadas em tempo real.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto border border-slate-105 rounded-xl">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
+                  <th className="p-4 font-black">Perfil / Cargo</th>
+                  {Object.entries(TAB_LABELS).map(([id, label]) => (
+                    <th key={id} className="p-4 text-center font-black">{label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                {(["gerente", "vendedor", "marketing"] as UserRole[]).map((r) => (
+                  <tr key={r} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ROLE_LABELS[r].color}`}>
+                        {ROLE_LABELS[r].label}
+                      </span>
+                    </td>
+                    {(Object.keys(TAB_LABELS) as TabId[]).map((tab) => {
+                      const isAllowed = permissionsConfig[r]?.includes(tab) || false
+                      return (
+                        <td key={tab} className="p-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isAllowed}
+                            onChange={() => handleTogglePermission(r, tab)}
+                            className="h-4 w-4 rounded border-slate-350 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+                          />
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+                {/* Super Admin - Visualização bloqueada (sempre habilitado) */}
+                <tr className="bg-slate-50/30">
+                  <td className="p-4">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ROLE_LABELS.super_admin.color}`}>
+                      {ROLE_LABELS.super_admin.label}
+                    </span>
+                  </td>
+                  {(Object.keys(TAB_LABELS) as TabId[]).map((tab) => (
+                    <td key={tab} className="p-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled={true}
+                        className="h-4 w-4 rounded border-slate-350 bg-slate-200 text-slate-400 cursor-not-allowed"
+                      />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex justify-between items-center pt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirm("Deseja restaurar as permissões padrão do sistema?")) {
+                  setPermissionsConfig(ROLE_PERMISSIONS)
+                }
+              }}
+              className="border-slate-200 hover:border-slate-350 text-slate-500 hover:text-slate-700 h-9 font-bold text-xs shadow-sm bg-white"
+            >
+              Restaurar Padrões
+            </Button>
+            <Button
+              disabled={savingPermissions}
+              onClick={handleSavePermissions}
+              className="bg-sky-600 hover:bg-sky-500 text-white font-bold h-9 px-4 text-xs shadow-sm"
+            >
+              {savingPermissions ? "Salvando..." : "Salvar Permissões de Acesso"}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* User Table */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

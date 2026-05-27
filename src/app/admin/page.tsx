@@ -26,9 +26,8 @@ import { LandingConfig } from "@/components/admin/landing/LandingConfig"
 import { VehicleManager } from "@/components/admin/vehicles/VehicleManager"
 import { OperationManager } from "@/components/admin/vehicles/OperationManager"
 import { AnalyticsDashboard } from "@/components/admin/analytics/AnalyticsDashboard"
-import { BulkImageUploader } from "@/components/admin/shared/BulkImageUploader"
+import { SupabaseMediaCenter } from "@/components/admin/shared/SupabaseMediaCenter"
 import { UserManager } from "@/components/admin/users/UserManager"
-import { BUCKETS } from "@/lib/supabase"
 import { Shield } from "lucide-react"
 
 // Inner component that uses auth context
@@ -110,9 +109,18 @@ function AdminContent() {
       const qDrivers = query(collection(db, "drivers"), orderBy("createdAt", "desc"))
       const driversSnap = await getDocs(qDrivers)
 
+      // Otmização de performance: usa Set para busca O(1) em vez de array.some O(N)
+      const leadPhones = new Set(
+        leadsList
+          .map((l) => l.phone)
+          .filter(Boolean)
+          .map((p) => p.replace(/\D/g, ""))
+      )
+
       driversSnap.forEach((doc) => {
         const dData = doc.data()
-        const exists = leadsList.some(l => l.phone === dData.phone)
+        const rawPhone = (dData.phone || "").replace(/\D/g, "")
+        const exists = leadPhones.has(rawPhone)
         if (!exists) {
           let leadStatus: Lead["status"] = "new"
           if (dData.status === "active") leadStatus = "converted"
@@ -241,20 +249,16 @@ function AdminContent() {
               )}
 
               {activeTab === "configuracoes" && (
-                <div className="space-y-6 max-w-4xl">
+                <div className="space-y-6 max-w-6xl">
                   <div>
                     <h2 className="text-xl font-bold text-slate-900">Configurações & Mídia</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Gerencie uploads de imagens para o Supabase Storage e integrações do painel comercial.</p>
+                    <p className="text-xs text-slate-500 mt-0.5 font-semibold">Gerencie arquivos, imagens e mídias do site Michelines, além de integrações do painel comercial.</p>
                   </div>
 
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Upload de Imagens — Supabase Storage</h3>
-                    <p className="text-xs text-slate-500 mb-4">Faça upload das fotos dos veículos diretamente para o Supabase. As URLs geradas podem ser usadas no cadastro da frota.</p>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <BulkImageUploader bucket={BUCKETS.vehicles} label="Fotos de Veículos" />
-                      <BulkImageUploader bucket={BUCKETS.banners} label="Banners da Landing" />
-                      <BulkImageUploader bucket={BUCKETS.logos} label="Logos & Marcas" />
-                    </div>
+                  <div className="space-y-2.5">
+                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Central de Mídia Integrada (Supabase Storage)</h3>
+                    <p className="text-xs text-slate-500 mb-4">Gerencie as imagens armazenadas no Supabase Storage. Você pode fazer upload de novas imagens, copiar as URLs públicas geradas com um clique para usar nos cadastros de carros ou banners, visualizar detalhes de tamanho e modificação, ou excluir arquivos permanentemente.</p>
+                    <SupabaseMediaCenter />
                   </div>
 
                   <div className="p-6 bg-white border border-slate-200 rounded-2xl text-xs text-slate-600 leading-relaxed shadow-sm">

@@ -10,7 +10,8 @@ interface HeroProps {
 }
 
 export function Hero({ landingSettings, isMobile }: HeroProps) {
-  const { slides } = useHeroSlides()
+  // Pass landingSettings so the default slide respects heroTitle/heroGlowText
+  const { slides } = useHeroSlides(landingSettings)
 
   return (
     <section className="relative min-h-[90vh] md:min-h-[100vh] w-full bg-[#F8FAFC]">
