@@ -31,6 +31,21 @@ export function getSupabaseImageUrl(bucket: string, filename: string): string {
 }
 
 /**
+ * Gera URL otimizada com transformação de imagem (redimensionamento + qualidade)
+ * Requer que a feature de transformação esteja ativa no projeto Supabase.
+ * Fallback automático para URL pública direta se não disponível.
+ */
+export function getOptimizedImageUrl(
+  bucket: string,
+  filename: string,
+  width = 800,
+  quality = 80
+): string {
+  const base = `${supabaseUrl}/storage/v1/render/image/public/${bucket}/${filename}`
+  return `${base}?width=${width}&quality=${quality}&resize=contain`
+}
+
+/**
  * URLs diretas das imagens de veículos já enviadas ao Supabase
  * (geradas após o upload via scripts/upload-images-to-supabase.mjs)
  */

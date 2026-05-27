@@ -12,12 +12,14 @@ import { Plus, Car, RefreshCw, Flame, TrendingUp, DollarSign, Target, Clock, Dat
 import { motion } from "framer-motion"
 import { THEME_TOKENS } from "@/theme/design-system"
 import { MetricCard } from "@/components/ui/card-variants"
+import { useToast } from "@/components/ui/toast-simple"
 
 interface VehicleManagerProps {
   leads: Lead[]
 }
 
 export function VehicleManager({ leads }: VehicleManagerProps) {
+  const { success, error: showError, warning } = useToast()
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<"list" | "form">("list")
@@ -25,7 +27,7 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
   const [seeding, setSeeding] = useState(false)
 
   const handleSeedVehicles = async () => {
-    if (!confirm("Deseja semear o catálogo com os 10 veículos padrão da Michelines?")) return
+    if (!window.confirm("Deseja semear o catálogo com os 10 veículos padrão da Michelines?")) return
     try {
       setSeeding(true)
       
@@ -346,11 +348,11 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
         await setDoc(doc(db, "vehicle_pricing", vehicle.slug), pricing)
       }
 
-      alert("Catálogo de veículos semeado com sucesso!")
+      success("Catálogo semeado!", "10 veículos padrão da Michelines foram adicionados ao Firestore.")
       await fetchVehicles()
     } catch (err: any) {
       console.error("Erro ao semear veículos:", err)
-      alert("Erro ao semear veículos: " + err.message)
+      showError("Erro ao semear veículos", err.message)
     } finally {
       setSeeding(false)
     }
@@ -435,13 +437,14 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
 
   // Delete vehicle doc
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este veículo do showroom?")) return
+    if (!window.confirm("Tem certeza que deseja excluir este veículo do showroom?")) return
     try {
       await deleteDoc(doc(db, "vehicles", id))
+      success("Veículo excluído!", "O veículo foi removido do showroom.")
       fetchVehicles()
-    } catch (e) {
+    } catch (e: any) {
       console.error("Erro ao excluir veículo:", e)
-      alert("Erro ao excluir veículo.")
+      showError("Erro ao excluir veículo", e?.message || "Tente novamente.")
     }
   }
 
@@ -456,6 +459,7 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
           updatedAt: new Date().toISOString()
         }
         await updateDoc(ref, payload)
+        success("Veículo atualizado!", `"${vehicleData.name}" foi salvo com sucesso.`)
       } else {
         // Create new
         const payload = {
@@ -464,12 +468,13 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
           updatedAt: new Date().toISOString()
         }
         await addDoc(collection(db, "vehicles"), payload)
+        success("Veículo criado!", `"${vehicleData.name}" foi adicionado ao showroom.`)
       }
       setView("list")
       fetchVehicles()
-    } catch (e) {
+    } catch (e: any) {
       console.error("Erro ao salvar veículo:", e)
-      alert("Erro ao salvar dados do veículo.")
+      showError("Erro ao salvar veículo", e?.message || "Tente novamente.")
     }
   }
 

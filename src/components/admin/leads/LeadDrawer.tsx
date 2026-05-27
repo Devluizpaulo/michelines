@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Phone, MessageSquare, Save, User, MapPin, Globe, CheckSquare, Square, Clock, Send, Sparkles } from "lucide-react"
 import { calculateLeadScore } from "@/lib/lead-score"
+import { useToast } from "@/components/ui/toast-simple"
 
 interface LeadDrawerProps {
   lead: Lead | null
@@ -44,6 +45,7 @@ const WHATSAPP_TEMPLATES = [
 ]
 
 export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerProps) {
+  const { success, error: showError } = useToast()
   const [notes, setNotes] = useState("")
   const [status, setStatus] = useState<Lead["status"]>("new")
   const [contacted, setContacted] = useState(false)
@@ -95,10 +97,11 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         ...payload
       })
 
+      success("Lead atualizado!", `Status de ${lead.fullName} foi salvo com sucesso.`)
       onClose()
-    } catch (e) {
+    } catch (e: any) {
       console.error("Erro ao atualizar lead:", e)
-      alert("Erro ao atualizar lead.")
+      showError("Erro ao salvar lead", e?.message || "Verifique sua conexão e tente novamente.")
     } finally {
       setSaving(false)
     }

@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash, Edit3, Settings, Play, Image as ImageIcon, CheckCircle, AlertCircle, Save } from "lucide-react"
+import { Plus, Trash, Edit3, Settings, Save } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import Image from "next/image"
+import { CampaignExporter } from "./CampaignExporter"
+import { useToast } from "@/components/ui/toast-simple"
 
 interface CampaignManagerProps {
   landingSettings: LandingSettings
@@ -27,6 +29,8 @@ interface CampaignManagerProps {
 }
 
 export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignManagerProps) {
+  const { success, error: showError } = useToast()
+
   // Campaign Banner States
   const [showCampaignBanner, setShowCampaignBanner] = useState(false)
   const [campaignText, setCampaignText] = useState("")
@@ -112,10 +116,10 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
 
       await setDoc(doc(db, "landing", "settings"), payload, { merge: true })
       onSettingsSaved(payload)
-      alert("Configurações do banner de campanha salvas na nuvem!")
-    } catch (error) {
+      success("Banner salvo!", "Configurações do banner de campanha gravadas na nuvem.")
+    } catch (error: any) {
       console.error("Erro ao salvar campanha:", error)
-      alert("Erro ao salvar campanha.")
+      showError("Erro ao salvar campanha", error?.message || "Tente novamente.")
     } finally {
       setSavingCampaign(false)
     }
@@ -156,17 +160,23 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
       if (selectedSlide?.id) {
         // Edit existing slide
         const slideRef = doc(db, "hero_slides", selectedSlide.id)
-        await updateDoc(slideRef, slideForm)
+        await updateDoc(slideRef, { ...slideForm, updatedAt: new Date().toISOString() })
+        success("Slide atualizado!", `"${slideForm.title}" foi salvo com sucesso.`)
       } else {
         // Create new slide
-        await addDoc(collection(db, "hero_slides"), slideForm)
+        await addDoc(collection(db, "hero_slides"), {
+          ...slideForm,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
+        success("Slide criado!", `"${slideForm.title}" foi adicionado ao carrossel.`)
       }
 
       setSlideDialogOpen(false)
       fetchSlides()
-    } catch (e) {
+    } catch (e: any) {
       console.error("Erro ao salvar slide:", e)
-      alert("Erro ao salvar slide.")
+      showError("Erro ao salvar slide", e?.message || "Tente novamente.")
     } finally {
       setSavingSlide(false)
     }
@@ -174,13 +184,14 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
 
   // Delete Hero Slide
   const handleDeleteSlide = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este slide?")) return
+    if (!window.confirm("Tem certeza que deseja excluir este slide?")) return
     try {
       await deleteDoc(doc(db, "hero_slides", id))
+      success("Slide excluído!", "O slide foi removido do carrossel.")
       fetchSlides()
-    } catch (e) {
+    } catch (e: any) {
       console.error("Erro ao excluir slide:", e)
-      alert("Erro ao excluir slide.")
+      showError("Erro ao excluir slide", e?.message || "Tente novamente.")
     }
   }
 
@@ -356,7 +367,15 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
               </div>
             )}
 
-            <div className="flex justify-end pt-2">
+            <div className="flex flex-wrap justify-end gap-3 pt-2">
+              <CampaignExporter landingSettings={{
+                ...landingSettings,
+                showCampaignBanner,
+                campaignText,
+                campaignSubtitle,
+                campaignBtnText,
+                campaignBtnUrl,
+              }} />
               <Button 
                 type="submit" 
                 disabled={savingCampaign}

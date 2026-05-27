@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { collection, query, orderBy, getDocs, doc, getDoc } from "firebase/firestore"
 import { signOut } from "firebase/auth"
@@ -12,6 +12,9 @@ import { TabId } from "@/lib/permissions"
 
 // Auth context
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
+
+// Toast
+import { ToastProvider } from "@/components/ui/toast-simple"
 
 // Admin components
 import { AdminHeader } from "@/components/admin/shared/AdminHeader"
@@ -73,76 +76,82 @@ function AdminContent() {
     }
   }, [role, activeTab, canAccess])
 
-  // Fetch landing settings
+  // Fetch landing settings — apenas quando a tab relevante é ativada
+  const fetchLandingSettings = useCallback(async () => {
+    try {
+      const docRef = doc(db, "landing", "settings")
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        setLandingSettings(docSnap.data() as LandingSettings)
+      }
+    } catch (e) {
+      console.warn("Firestore offline ao carregar configurações:", e)
+    }
+  }, [])
+
   useEffect(() => {
-    const fetchLandingSettings = async () => {
-      try {
-        const docRef = doc(db, "landing", "settings")
-        const docSnap = await getDoc(docRef)
-        if (docSnap.exists()) {
-          setLandingSettings(docSnap.data() as LandingSettings)
+    if (activeTab === "campanhas" || activeTab === "landing") {
+      fetchLandingSettings()
+    }
+  }, [activeTab, fetchLandingSettings])
+
+  // Carrega leads sob demanda — apenas quando tab de leads ou dashboard é ativa
+  const loadCRMData = useCallback(async () => {
+    if (leads.length > 0) return // já carregado, não buscar novamente
+    try {
+      setLoading(true)
+      const qLeads = query(collection(db, "leads"), orderBy("createdAt", "desc"))
+      const leadsSnap = await getDocs(qLeads)
+      const leadsList: Lead[] = []
+      leadsSnap.forEach((doc) => {
+        leadsList.push({ id: doc.id, ...doc.data() } as Lead)
+      })
+
+      const qDrivers = query(collection(db, "drivers"), orderBy("createdAt", "desc"))
+      const driversSnap = await getDocs(qDrivers)
+
+      driversSnap.forEach((doc) => {
+        const dData = doc.data()
+        const exists = leadsList.some(l => l.phone === dData.phone)
+        if (!exists) {
+          let leadStatus: Lead["status"] = "new"
+          if (dData.status === "active") leadStatus = "converted"
+          if (dData.status === "inactive") leadStatus = "lost"
+
+          leadsList.push({
+            id: doc.id,
+            fullName: dData.fullName || `${dData.firstName} ${dData.lastName}`,
+            phone: dData.phone,
+            source: "Cadastro Site (Legado)",
+            vehicleInterest: dData.carModel || "Não especificado",
+            status: leadStatus,
+            notes: `Cadastro importado da frota legada. CPF: ${dData.cpf || "Não informado"}.`,
+            createdAt: dData.createdAt || new Date().toISOString(),
+            contacted: dData.status !== "pending",
+            whatsappSent: false
+          } as Lead)
         }
-      } catch (e) {
-        console.warn("Firestore offline ao carregar configurações:", e)
-      }
-    }
-    fetchLandingSettings()
-  }, [])
+      })
 
-  // Load Leads
+      leadsList.sort((a: any, b: any) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+        return dateB.getTime() - dateA.getTime()
+      })
+
+      setLeads(leadsList)
+    } catch (e) {
+      console.error("Erro ao buscar dados do CRM:", e)
+    } finally {
+      setLoading(false)
+    }
+  }, [leads.length])
+
   useEffect(() => {
-    const loadCRMData = async () => {
-      try {
-        setLoading(true)
-        const qLeads = query(collection(db, "leads"), orderBy("createdAt", "desc"))
-        const leadsSnap = await getDocs(qLeads)
-        const leadsList: Lead[] = []
-        leadsSnap.forEach((doc) => {
-          leadsList.push({ id: doc.id, ...doc.data() } as Lead)
-        })
-
-        const qDrivers = query(collection(db, "drivers"), orderBy("createdAt", "desc"))
-        const driversSnap = await getDocs(qDrivers)
-
-        driversSnap.forEach((doc) => {
-          const dData = doc.data()
-          const exists = leadsList.some(l => l.phone === dData.phone)
-          if (!exists) {
-            let leadStatus: Lead["status"] = "new"
-            if (dData.status === "active") leadStatus = "converted"
-            if (dData.status === "inactive") leadStatus = "lost"
-
-            leadsList.push({
-              id: doc.id,
-              fullName: dData.fullName || `${dData.firstName} ${dData.lastName}`,
-              phone: dData.phone,
-              source: "Cadastro Site (Legado)",
-              vehicleInterest: dData.carModel || "Não especificado",
-              status: leadStatus,
-              notes: `Cadastro importado da frota legada. CPF: ${dData.cpf || "Não informado"}.`,
-              createdAt: dData.createdAt || new Date().toISOString(),
-              contacted: dData.status !== "pending",
-              whatsappSent: false
-            } as Lead)
-          }
-        })
-
-        leadsList.sort((a: any, b: any) => {
-          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
-          return dateB.getTime() - dateA.getTime()
-        })
-
-        setLeads(leadsList)
-      } catch (e) {
-        console.error("Erro ao buscar dados do CRM:", e)
-      } finally {
-        setLoading(false)
-      }
+    if (activeTab === "leads" || activeTab === "dashboard" || activeTab === "analytics" || activeTab === "frota") {
+      loadCRMData()
     }
-
-    loadCRMData()
-  }, [])
+  }, [activeTab, loadCRMData])
 
   if (authLoading) {
     return (
@@ -262,11 +271,13 @@ function AdminContent() {
   )
 }
 
-// Wrap with AuthProvider
+// Wrap with AuthProvider and ToastProvider
 export default function AdminPage() {
   return (
     <AuthProvider>
-      <AdminContent />
+      <ToastProvider>
+        <AdminContent />
+      </ToastProvider>
     </AuthProvider>
   )
 }

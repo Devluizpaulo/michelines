@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore"
+import { collection, addDoc, doc, updateDoc } from "firebase/firestore"
 import { db } from "@/app/firebase/config"
 import { Lead } from "@/types/lead"
 import { LeadFilters } from "./LeadFilters"
@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/toast-simple"
 
 interface LeadBoardProps {
   leads: Lead[]
@@ -31,6 +32,7 @@ interface LeadBoardProps {
 }
 
 export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
+  const { success, error: showError, warning } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [sourceFilter, setSourceFilter] = useState("all")
   const [vehicleFilter, setVehicleFilter] = useState("all")
@@ -85,7 +87,7 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
   const handleCreateLead = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newLeadData.fullName || !newLeadData.phone) {
-      alert("Por favor, preencha o Nome e o Celular.")
+      warning("Campos obrigatórios", "Preencha o Nome e o Celular antes de continuar.")
       return
     }
 
@@ -115,9 +117,10 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
         status: "new",
         notes: ""
       })
-    } catch (e) {
+      success("Lead criado!", `${newLeadData.fullName} foi adicionado ao funil comercial.`)
+    } catch (e: any) {
       console.error("Erro ao criar lead:", e)
-      alert("Erro ao criar lead. Tente novamente.")
+      showError("Erro ao criar lead", e?.message || "Tente novamente.")
     } finally {
       setCreatingLead(false)
     }
