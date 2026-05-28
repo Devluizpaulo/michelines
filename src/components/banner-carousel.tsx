@@ -13,7 +13,7 @@ const banners = [
     id: 1,
     title: "45 Anos de Tradição",
     description: "Celebrando quase meio século de excelência no serviço de táxi em São Paulo.",
-    image: "/images/logos/logo-grupo-michelines-banner.png",
+    image: "/images/logos/logo-grupo-michelines.png",
     buttonText: "Conheça nossa história",
     buttonLink: "#sobre",
     color: "from-blue-900 to-blue-700",

@@ -3,87 +3,181 @@ import { Badge } from "@/components/ui/badge"
 
 export function Advantages() {
   return (
-    <section id="vantagens" className="w-full py-20 lg:py-32 bg-slate-50 border-t border-slate-200 relative select-none">
+    <section
+      id="vantagens"
+      className="relative w-full border-t border-slate-200 bg-slate-50 py-20 lg:py-32 select-none"
+    >
       <div className="container mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <Badge className="bg-sky-50 text-sky-700 px-3.5 py-1 rounded-full text-xs font-bold mb-4 border border-sky-200 shadow-xs hover:bg-sky-100/50">
-            Mobilidade Profissional
+        
+        {/* HEADER */}
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <Badge className="mb-4 rounded-full border border-sky-200 bg-sky-50 px-3.5 py-1 text-xs font-bold text-sky-700 shadow-xs">
+            Benefícios da Operação Táxi
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
-            Por que muitos profissionais escolhem o táxi?
+
+          <h2 className="mb-4 text-3xl font-black tracking-tight text-slate-900 md:text-5xl">
+            Por que muitos motoristas
+            <br />
+            estão voltando para o táxi?
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium text-justify">
-            Vantagens operacionais tangíveis que proporcionam tráfego livre, previsibilidade contratual e total autonomia nas ruas de São Paulo.
+
+          <p className="text-base font-medium text-slate-600 md:text-lg">
+            O táxi oferece vantagens reais no dia a dia de quem
+            trabalha nas ruas de São Paulo, com mais mobilidade,
+            menos limitações e maior autonomia operacional.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 items-center max-w-6xl mx-auto">
+        {/* GRID */}
+        <div className="mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-2">
           
-          {/* Tabela de Comparação Visual */}
-          <div className="bg-white border border-slate-250 rounded-3xl p-6 md:p-8 shadow-sm">
-            <h3 className="text-lg font-black text-slate-800 mb-6">Comparação no trânsito de São Paulo</h3>
+          {/* COMPARISON */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
             
+            <h3 className="mb-6 text-lg font-black text-slate-800">
+              Comparativo na prática
+            </h3>
+
             <div className="space-y-4">
               {[
-                { item: "Uso do Corredor de Ônibus", taxi: true, app: false },
-                { item: "Acesso a Terminais de Embarque Rápido", taxi: true, app: false },
-                { item: "Isenção Completa de Rodízio SP", taxi: true, app: false },
-                { item: "Fidelização de Passageiros Físicos", taxi: true, app: false },
-                { item: "Taxa de Intermediação por Corrida", taxi: "0% (100% seu)", app: "Até 40%" },
-                { item: "Cancelamentos arbitrários de conta", taxi: "Não ocorre", app: "Frequente" }
+                {
+                  item: "Uso de corredores de ônibus",
+                  taxi: true,
+                  app: false,
+                },
+
+                {
+                  item: "Acesso a áreas de embarque",
+                  taxi: true,
+                  app: false,
+                },
+
+                {
+                  item: "Isenção de rodízio em São Paulo",
+                  taxi: true,
+                  app: false,
+                },
+
+                {
+                  item: "Passageiros recorrentes",
+                  taxi: true,
+                  app: false,
+                },
+
+                {
+                  item: "Comissão por corrida",
+                  taxi: "100% da corrida",
+                  app: "Até 40%",
+                },
+
+                {
+                  item: "Risco de bloqueio de conta",
+                  taxi: "Não ocorre",
+                  app: "Frequente",
+                },
               ].map((row, idx) => (
-                <div key={idx} className="grid grid-cols-12 gap-3 py-3 border-b border-slate-100 text-xs md:text-sm items-center font-semibold">
-                  <div className="col-span-6 text-slate-600 font-bold">{row.item}</div>
-                  <div className="col-span-3 text-center font-extrabold text-sky-600 flex justify-center">
-                    {typeof row.taxi === "boolean" ? (row.taxi ? <Check className="h-5 w-5 text-emerald-500 font-black" /> : <X className="h-5 w-5 text-red-500" />) : row.taxi}
+                <div
+                  key={idx}
+                  className="grid grid-cols-12 items-center gap-3 border-b border-slate-100 py-3 text-xs md:text-sm"
+                >
+                  {/* ITEM */}
+                  <div className="col-span-6 font-bold text-slate-600">
+                    {row.item}
                   </div>
-                  <div className="col-span-3 text-center font-semibold text-slate-400 flex justify-center">
-                    {typeof row.app === "boolean" ? (row.app ? <Check className="h-5 w-5 text-emerald-500" /> : <X className="h-5 w-5 text-red-500" />) : row.app}
+
+                  {/* TAXI */}
+                  <div className="col-span-3 flex justify-center text-center font-extrabold text-sky-600">
+                    {typeof row.taxi === "boolean" ? (
+                      row.taxi ? (
+                        <Check className="h-5 w-5 text-emerald-500" />
+                      ) : (
+                        <X className="h-5 w-5 text-red-500" />
+                      )
+                    ) : (
+                      row.taxi
+                    )}
+                  </div>
+
+                  {/* APP */}
+                  <div className="col-span-3 flex justify-center text-center font-semibold text-slate-400">
+                    {typeof row.app === "boolean" ? (
+                      row.app ? (
+                        <Check className="h-5 w-5 text-emerald-500" />
+                      ) : (
+                        <X className="h-5 w-5 text-red-500" />
+                      )
+                    ) : (
+                      row.app
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Detalhes de Alto Valor */}
+          {/* BENEFITS */}
           <div className="space-y-6">
-            <div className="bg-white border border-slate-200 p-6 rounded-3xl flex gap-4 hover:border-sky-500/20 transition-all shadow-xs">
-              <div className="bg-sky-50 text-sky-600 border border-sky-100 p-3 rounded-2xl h-fit">
+            
+            {/* CARD 1 */}
+            <div className="flex gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-sky-500/20">
+              
+              <div className="h-fit rounded-2xl border border-sky-100 bg-sky-50 p-3 text-sky-600">
                 <Zap className="h-6 w-6" />
               </div>
+
               <div>
-                <h4 className="text-base md:text-lg font-black text-slate-800 mb-1">Tráfego em faixas e corredores exclusivos</h4>
-                <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
-                  Redução de até 45% do tempo no trânsito urbano, otimizando o consumo de combustível e aumentando o faturamento da hora trabalhada.
+                <h4 className="mb-1 text-base font-black text-slate-800 md:text-lg">
+                  Mais mobilidade no trânsito
+                </h4>
+
+                <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
+                  Utilize corredores e faixas exclusivas para fazer
+                  mais corridas em menos tempo e reduzir o desgaste
+                  no trânsito diário.
                 </p>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 p-6 rounded-3xl flex gap-4 hover:border-emerald-500/20 transition-all shadow-xs">
-              <div className="bg-emerald-50 text-emerald-600 border border-emerald-100 p-3 rounded-2xl h-fit">
+            {/* CARD 2 */}
+            <div className="flex gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-emerald-500/20">
+              
+              <div className="h-fit rounded-2xl border border-emerald-100 bg-emerald-50 p-3 text-emerald-600">
                 <Award className="h-6 w-6" />
               </div>
+
               <div>
-                <h4 className="text-base md:text-lg font-black text-slate-800 mb-1">Acesso preferencial em áreas corporativas</h4>
-                <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
-                  Conexão direta com a demanda de passageiros executivos de alto ticket em polos hoteleiros e terminais aeroportuários preferenciais.
+                <h4 className="mb-1 text-base font-black text-slate-800 md:text-lg">
+                  Corridas de maior ticket
+                </h4>
+
+                <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
+                  Maior presença em regiões corporativas, hotéis e
+                  aeroportos com passageiros executivos e corridas
+                  mais rentáveis.
                 </p>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-250 p-6 rounded-3xl flex gap-4 hover:border-amber-500/20 transition-all shadow-xs">
-              <div className="bg-amber-50 text-amber-600 border border-amber-100 p-3 rounded-2xl h-fit">
+            {/* CARD 3 */}
+            <div className="flex gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-amber-500/20">
+              
+              <div className="h-fit rounded-2xl border border-amber-100 bg-amber-50 p-3 text-amber-600">
                 <Shield className="h-6 w-6" />
               </div>
+
               <div>
-                <h4 className="text-base md:text-lg font-black text-slate-800 mb-1">Estrutura e suporte integrado de frota</h4>
-                <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
-                  Mecânica preventiva rápida em oficina própria integrada, licenciamento e suporte integral inclusos para sua total tranquilidade.
+                <h4 className="mb-1 text-base font-black text-slate-800 md:text-lg">
+                  Suporte e manutenção da frota
+                </h4>
+
+                <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
+                  Conte com oficina próxima, manutenção preventiva e
+                  suporte operacional para reduzir o tempo do carro
+                  parado.
                 </p>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>

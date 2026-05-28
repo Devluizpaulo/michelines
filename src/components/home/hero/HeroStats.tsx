@@ -11,7 +11,7 @@ interface HeroStatsProps {
 export function HeroStats({ theme = "navy" }: HeroStatsProps) {
   const stats = [
     { label: "Ganhos Médios", val: "R$ 11.200/mês", detail: "Faturamento líquido superior", icon: TrendingUp },
-    { label: "Veículo Pronto", val: "Liberação em 24h", detail: "Sem burocracia de score", icon: Car },
+    { label: "Veículo Pronto", val: "Liberação em 24h", detail: "Sem burocracia", icon: Car },
     { label: "Aeroporto", val: "Fila Rápida D-Taxi", detail: "Acesso direto em Congonhas", icon: MapPin },
     { label: "Suporte 24h/7", val: "45 Anos de Tradição", detail: "Segurança e estabilidade", icon: Shield }
   ]
