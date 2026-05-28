@@ -282,7 +282,7 @@ export function Simulator() {
               className="w-full sm:w-auto shrink-0"
             >
               <Button className="w-full sm:w-auto bg-slate-50 border border-slate-200 hover:bg-slate-100 text-emerald-600 hover:text-emerald-700 font-bold h-11 px-5 flex items-center justify-center gap-2 rounded-xl text-xs shadow-sm transition-all">
-                <MessageSquare className="h-4 w-4" /> Consultar Consultor Operacional
+                <MessageSquare className="h-4 w-4" /> Falar com Consultor Operacional
               </Button>
             </a>
           </div>
