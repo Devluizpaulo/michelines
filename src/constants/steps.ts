@@ -8,32 +8,46 @@ export interface Step {
 export const stepsData: Step[] = [
   {
     number: "01",
-    title: "Cadastro Rápido",
-    description: "Envie seus documentos básicos (CNH com EAR) via formulário ou WhatsApp em apenas 2 minutos.",
-    details: "Requisitos fundamentais: Ter mais de 18 anos, CNH ativa na categoria B com EAR e certidão negativa de antecedentes criminais."
+    title: "Cadastro Inicial",
+    description:
+      "Envie seus documentos básicos pelo formulário ou WhatsApp de forma rápida e prática.",
+    details:
+      "Requisitos principais: CNH categoria B com EAR, documentação pessoal regularizada e disponibilidade para atuação na operação táxi."
   },
+
   {
     number: "02",
-    title: "Análise Descomplicada",
-    description: "Nossa equipe faz uma análise ágil e humanizada, sem burocracia excessiva e sem travas de score de crédito.",
-    details: "Valorizamos seu esforço de trabalhar. Nosso foco é validar a CNH e a documentação básica para te colocar na rua rápido."
+    title: "Análise de Cadastro",
+    description:
+      "Nossa equipe realiza uma análise simples e humanizada, focada no perfil operacional do motorista.",
+    details:
+      "Buscamos reduzir burocracias desnecessárias para agilizar sua entrada na operação."
   },
+
   {
     number: "03",
     title: "Escolha do Veículo",
-    description: "Escolha o modelo ideal no nosso showroom — de sedans econômicos a híbridos premium equipados com GNV.",
-    details: "Você escolhe a categoria de acordo com seu orçamento de diária, perfil de passageiro e meta de faturamento diário."
+    description:
+      "Escolha o modelo ideal para sua rotina entre veículos executivos, híbridos, econômicos e opções com GNV.",
+    details:
+      "Nossa equipe auxilia na escolha do veículo mais adequado ao seu perfil de operação e objetivo de faturamento."
   },
+
   {
     number: "04",
-    title: "Retirada em 24 Horas",
-    description: "Assine o contrato digital transparente e retire o carro revisado, higienizado, segurado e pronto para faturar.",
-    details: "Veículos com IPVA pago, seguro completo e manutenção preventiva programada inclusa para você rodar sem dor de cabeça."
+    title: "Assinatura e Retirada",
+    description:
+      "Após aprovação do cadastro, você assina o contrato e retira o veículo pronto para operação.",
+    details:
+      "Os veículos são entregues revisados, higienizados e com suporte operacional da frota."
   },
+
   {
     number: "05",
-    title: "Fature com Liberdade",
-    description: "Acesse corredores de ônibus, ganhe fila prioritária D-Taxi nos aeroportos e fique com 100% do seu lucro líquido.",
-    details: "Suporte 24h físico e jurídico grátis. Participe do nosso ecossistema de motoristas com consultoria de rotas lucrativas."
+    title: "Comece sua Operação",
+    description:
+      "Inicie sua rotina com suporte da frota, assistência 24h e estrutura preparada para o dia a dia da operação táxi.",
+    details:
+      "A frota oferece manutenção própria, suporte operacional, assistência com guincho e acompanhamento em caso de necessidade."
   }
 ]

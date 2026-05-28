@@ -440,6 +440,11 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
     if (!window.confirm("Tem certeza que deseja excluir este veículo do showroom?")) return
     try {
       await deleteDoc(doc(db, "vehicles", id))
+      try {
+        await deleteDoc(doc(db, "vehicle_pricing", id))
+      } catch (pe) {
+        console.warn("Nenhum preço encontrado para deletar:", pe)
+      }
       success("Veículo excluído!", "O veículo foi removido do showroom.")
       fetchVehicles()
     } catch (e: any) {
@@ -451,23 +456,76 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
   // Save vehicle data
   const handleSave = async (vehicleData: Partial<Vehicle>) => {
     try {
+      const slug = vehicleData.slug?.trim()
+      if (!slug) {
+        showError("Erro ao salvar", "O slug do veículo é obrigatório.")
+        return
+      }
+
+      const now = new Date().toISOString()
+
       if (editingVehicle?.id) {
         // Edit existing
-        const ref = doc(db, "vehicles", editingVehicle.id)
+        const oldId = editingVehicle.id
+
+        // If slug changed, delete the old documents
+        if (oldId !== slug) {
+          await deleteDoc(doc(db, "vehicles", oldId))
+          try {
+            await deleteDoc(doc(db, "vehicle_pricing", oldId))
+          } catch (pe) {
+            console.warn("Nenhum preço antigo encontrado para deletar:", pe)
+          }
+        }
+
+        // Set/update the new document
+        const ref = doc(db, "vehicles", slug)
         const payload = {
           ...vehicleData,
-          updatedAt: new Date().toISOString()
+          updatedAt: now
         }
-        await updateDoc(ref, payload)
+        await setDoc(ref, payload, { merge: true })
+
+        // Save pricing document as well
+        const pricingRef = doc(db, "vehicle_pricing", slug)
+        const pricingPayload = {
+          vehicleId: slug,
+          dailyRate: vehicleData.dailyPrice || 0,
+          weeklyRate: Math.round((vehicleData.monthlyPrice || 0) / 4),
+          monthlyRate: vehicleData.monthlyPrice || 0,
+          weekendExempt: true,
+          acceptedPayments: ["pix", "debito", "credito"],
+          active: true,
+          updatedAt: now
+        }
+        await setDoc(pricingRef, pricingPayload, { merge: true })
+
         success("Veículo atualizado!", `"${vehicleData.name}" foi salvo com sucesso.`)
       } else {
         // Create new
+        const ref = doc(db, "vehicles", slug)
         const payload = {
           ...vehicleData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: now,
+          updatedAt: now
         }
-        await addDoc(collection(db, "vehicles"), payload)
+        await setDoc(ref, payload)
+
+        // Create new pricing document
+        const pricingRef = doc(db, "vehicle_pricing", slug)
+        const pricingPayload = {
+          vehicleId: slug,
+          dailyRate: vehicleData.dailyPrice || 0,
+          weeklyRate: Math.round((vehicleData.monthlyPrice || 0) / 4),
+          monthlyRate: vehicleData.monthlyPrice || 0,
+          weekendExempt: true,
+          acceptedPayments: ["pix", "debito", "credito"],
+          active: true,
+          createdAt: now,
+          updatedAt: now
+        }
+        await setDoc(pricingRef, pricingPayload)
+
         success("Veículo criado!", `"${vehicleData.name}" foi adicionado ao showroom.`)
       }
       setView("list")
