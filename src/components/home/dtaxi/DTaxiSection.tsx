@@ -2,172 +2,233 @@
 
 import Link from "next/link"
 import Image from "next/image"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ShieldCheck, TrendingUp, Compass, Award, ArrowRight } from "lucide-react"
+
+import {
+  ShieldCheck,
+  TrendingUp,
+  Compass,
+  Award,
+  ArrowRight,
+} from "lucide-react"
 
 export function DTaxiSection() {
   return (
-    <section id="dtaxi-section" className="w-full py-20 lg:py-32 bg-white relative overflow-hidden select-none border-t border-slate-200">
-      {/* Subtle corporate background glow */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-sky-500/[0.02] rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute left-10 top-10 w-[300px] h-[300px] bg-indigo-500/[0.01] rounded-full blur-[100px] pointer-events-none" />
+    <section
+      id="dtaxi-section"
+      className="relative w-full overflow-hidden border-t border-slate-200 bg-white py-20 lg:py-32 select-none"
+    >
+      {/* Background glow */}
+      <div className="pointer-events-none absolute right-0 top-1/2 h-[400px] w-[600px] -translate-y-1/2 rounded-full bg-sky-500/[0.02] blur-[120px]" />
+      <div className="pointer-events-none absolute left-10 top-10 h-[300px] w-[300px] rounded-full bg-indigo-500/[0.01] blur-[100px]" />
 
-      <div className="container mx-auto px-6 relative z-10">
-
-        {/* Header Block */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <Badge className="bg-sky-50 text-sky-700 border border-sky-200 px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-xs">
+      <div className="container relative z-10 mx-auto px-6">
+        {/* HEADER */}
+        <div className="mx-auto mb-16 max-w-3xl space-y-4 text-center">
+          <Badge className="rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-sky-700 shadow-xs">
             ✈️ Divisão Premium Executiva
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            Não é só uma vaga. É o acesso à demanda mais qualificada de São Paulo.
+
+          <h2 className="text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl">
+            Muito mais que uma locação.
+            <br />
+            Uma operação executiva pronta para faturar.
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium text-justify">
-            Opere na divisão **D-Taxi Congonhas**. Esqueça as corridas comuns e atenda o mercado executivo corporativo de alto ticket.
+
+          <p className="text-base font-medium text-slate-600 md:text-lg">
+            Trabalhe na operação D-Taxi Congonhas utilizando veículos premium já
+            credenciados para atuação no aeroporto e voltados ao atendimento do
+            mercado corporativo executivo.
           </p>
         </div>
 
-        {/* Content Grid */}
-        <div className="grid lg:grid-cols-12 gap-12 items-center max-w-6xl mx-auto">
-
-          {/* Left Column: Visual Showcase Card */}
-          <div className="lg:col-span-6 bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[480px]">
-            {/* Spotlight overlay */}
-            <div className="absolute top-0 right-0 w-[300px] h-[200px] bg-sky-500/[0.03] rounded-full blur-[60px]" />
+        {/* GRID */}
+        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-12">
+          {/* LEFT CARD */}
+          <div className="relative flex min-h-[480px] flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm md:p-10 lg:col-span-6">
+            {/* Spotlight */}
+            <div className="absolute right-0 top-0 h-[200px] w-[300px] rounded-full bg-sky-500/[0.03] blur-[60px]" />
 
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Homologação Oficial</span>
-                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[9px] uppercase tracking-wide">Fila Rápida Ativa</Badge>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Frota Executiva Disponível
+                </span>
+
+                <Badge className="border border-emerald-200 bg-emerald-50 text-[9px] font-bold uppercase tracking-wide text-emerald-700">
+                  Operação Ativa
+                </Badge>
               </div>
 
-              <div className="relative w-full h-[220px] md:h-[250px] transition-transform duration-500 hover:scale-[1.02]">
+              {/* CAR IMAGE */}
+              <div className="relative h-[220px] w-full transition-transform duration-500 hover:scale-[1.02] md:h-[250px]">
                 <Image
                   src="/images/cars/corolla-cross.png"
-                  alt="D-Taxi Corolla Cross"
+                  alt="Toyota Corolla Cross D-Taxi"
                   fill
-                  className="object-contain filter drop-shadow-[0_15px_15px_rgba(15,23,42,0.12)]"
                   priority
+                  className="object-contain drop-shadow-[0_15px_15px_rgba(15,23,42,0.12)]"
                 />
               </div>
 
-              {/* Core Badges Row */}
-              <div className="flex flex-wrap gap-2 justify-center pt-2">
-                <span className="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
-                  ✈️ Homologado Congonhas
+              {/* TAGS */}
+              <div className="flex flex-wrap justify-center gap-2 pt-2">
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-700 shadow-xs">
+                  ✈️ Credenciado D-Taxi
                 </span>
-                <span className="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
+
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-700 shadow-xs">
                   💼 Operação Executiva
                 </span>
-                <span className="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
+
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-700 shadow-xs">
                   🔋 Híbrido Premium
                 </span>
-                <span className="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
+
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-700 shadow-xs">
                   ⛽ GNV Econômico
                 </span>
               </div>
             </div>
 
-            <div className="border-t border-slate-200 pt-6 mt-6 flex justify-between items-center">
+            {/* FOOTER */}
+            <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-6">
               <div>
-                <p className="text-[10px] text-slate-450 uppercase font-black tracking-wider">Faturamento Médio</p>
-                <p className="text-xl md:text-2xl font-black text-slate-900">
-                  R$ 12.000 <span className="text-xs text-slate-500 font-bold">a R$ 15.000 /mês</span>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Faturamento Médio
+                </p>
+
+                <p className="text-xl font-black text-slate-900 md:text-2xl">
+                  R$ 12.000
+                  <span className="text-xs font-bold text-slate-500">
+                    {" "}
+                    a R$ 15.000 /mês
+                  </span>
                 </p>
               </div>
+
               <Link href="/d-taxi-congonhas">
-                <Button variant="outline" className="border-slate-200 hover:border-sky-350 hover:bg-sky-50 text-sky-700 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs">
-                  Saiba mais <ArrowRight className="h-4 w-4" />
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-1.5 rounded-xl border-slate-200 text-xs font-bold text-sky-700 shadow-xs hover:border-sky-300 hover:bg-sky-50"
+                >
+                  Saiba mais
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Right Column: Strategic Advantages list */}
-          <div className="lg:col-span-6 space-y-6">
+          {/* RIGHT */}
+          <div className="space-y-6 lg:col-span-6">
             <div className="space-y-2">
-              <span className="text-xs font-black text-sky-600 uppercase tracking-wider">Por que D-Taxi?</span>
-              <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                A melhor praça de táxi do país a sua inteira disposição
+              <span className="text-xs font-black uppercase tracking-wider text-sky-600">
+                Por que escolher a D-Taxi?
+              </span>
+
+              <h3 className="text-2xl font-black leading-tight tracking-tight text-slate-900 md:text-3xl">
+                Uma operação preparada para alta rentabilidade
               </h3>
             </div>
 
             <div className="space-y-5 pt-4">
-
-              {/* Item 1 */}
+              {/* ITEM 1 */}
               <div className="flex gap-4">
-                <div className="bg-sky-50 text-sky-600 border border-sky-100 p-3 rounded-2xl h-fit shrink-0">
+                <div className="h-fit shrink-0 rounded-2xl border border-sky-100 bg-sky-50 p-3 text-sky-600">
                   <Compass className="h-5 w-5" />
                 </div>
+
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-800 mb-1">Acesso à Fila Digital de Congonhas</h4>
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
-                    Evite o tempo ocioso. Os carros D-Taxi são homologados digitalmente pela Prefeitura de São Paulo para entrar na área de embarque prioritária de Congonhas.
+                  <h4 className="mb-1 text-base font-extrabold text-slate-800">
+                    Acesso à Operação de Congonhas
+                  </h4>
+
+                  <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
+                    Trabalhe em uma das operações mais movimentadas e rentáveis
+                    do país, atendendo passageiros executivos e corporativos no
+                    Aeroporto de Congonhas.
                   </p>
                 </div>
               </div>
 
-              {/* Item 2 */}
+              {/* ITEM 2 */}
               <div className="flex gap-4">
-                <div className="bg-emerald-50 text-emerald-600 border border-emerald-100 p-3 rounded-2xl h-fit shrink-0">
+                <div className="h-fit shrink-0 rounded-2xl border border-emerald-100 bg-emerald-50 p-3 text-emerald-600">
                   <TrendingUp className="h-5 w-5" />
                 </div>
+
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-800 mb-1">Passageiros de Alta Renda (Corporativo)</h4>
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
-                    Transporte executivos de grandes multinacionais, turistas e passageiros frequentes dispostos a pagar por um serviço premium, com gorjetas elevadas.
+                  <h4 className="mb-1 text-base font-extrabold text-slate-800">
+                    Público Corporativo Premium
+                  </h4>
+
+                  <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
+                    Atenda executivos, turistas e passageiros frequentes que
+                    priorizam conforto, qualidade e atendimento diferenciado.
                   </p>
                 </div>
               </div>
-              {/* Item 3 */}
+
+              {/* ITEM 3 */}
               <div className="flex gap-4">
-                <div className="bg-amber-50 text-amber-600 border border-amber-100 p-3 rounded-2xl h-fit shrink-0">
+                <div className="h-fit shrink-0 rounded-2xl border border-amber-100 bg-amber-50 p-3 text-amber-600">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-800 mb-1">
-                    Tecnologia de Alta Eficiência Operacional
+                  <h4 className="mb-1 text-base font-extrabold text-slate-800">
+                    Veículos Econômicos e Modernos
                   </h4>
 
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
-                    A operação D-Taxi oferece veículos híbridos, elétricos e modelos GNV altamente eficientes, incluindo Corolla Cross, Toyota Corolla, Prius e BYD, proporcionando mais autonomia operacional, conforto executivo e redução de custos no dia a dia.
+                  <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
+                    A frota conta com veículos híbridos, elétricos e modelos
+                    GNV preparados para reduzir custos operacionais e elevar a
+                    experiência do passageiro.
                   </p>
                 </div>
               </div>
 
-              {/* Item 4 */}
+              {/* ITEM 4 */}
               <div className="flex gap-4">
-                <div className="bg-indigo-50 text-indigo-600 border border-indigo-100 p-3 rounded-2xl h-fit shrink-0">
+                <div className="h-fit shrink-0 rounded-2xl border border-indigo-100 bg-indigo-50 p-3 text-indigo-600">
                   <Award className="h-5 w-5" />
                 </div>
+
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-800 mb-1">Isenções de Rodízio e Benefícios Fiscais</h4>
-                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed font-semibold text-justify">
-                    Aproveite isenção total de rodízio municipal de São Paulo e circulação livre nas faixas e corredores de ônibus exclusivos a qualquer hora.
+                  <h4 className="mb-1 text-base font-extrabold text-slate-800">
+                    Benefícios Exclusivos da Categoria
+                  </h4>
+
+                  <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
+                    Aproveite benefícios operacionais como isenção de rodízio,
+                    circulação em corredores autorizados e estrutura voltada ao
+                    transporte executivo.
                   </p>
                 </div>
               </div>
-
             </div>
 
-            <div className="pt-6 flex flex-col sm:flex-row gap-4">
+            {/* BUTTONS */}
+            <div className="flex flex-col gap-4 pt-6 sm:flex-row">
               <Link href="/cadastro">
-                <Button className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white font-bold h-12 px-8 rounded-2xl shadow-sm hover:shadow">
-                  Garantir Vaga D-Taxi
+                <Button className="h-12 w-full rounded-2xl bg-sky-600 px-8 font-bold text-white shadow-sm hover:bg-sky-500 hover:shadow sm:w-auto">
+                  Solicitar Pré-Cadastro
                 </Button>
               </Link>
+
               <Link href="/d-taxi-congonhas">
-                <Button variant="ghost" className="w-full sm:w-auto text-slate-700 hover:text-sky-600 hover:bg-slate-50 font-bold h-12 px-6 rounded-2xl border border-slate-200">
-                  Ver Requisitos e Detalhes
+                <Button
+                  variant="ghost"
+                  className="h-12 w-full rounded-2xl border border-slate-200 px-6 font-bold text-slate-700 hover:bg-slate-50 hover:text-sky-600 sm:w-auto"
+                >
+                  Ver Detalhes da Operação
                 </Button>
               </Link>
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
   )
