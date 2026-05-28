@@ -130,7 +130,7 @@ export default function DTaxiCongonhasPage() {
 
                 <div className="relative h-[180px] w-full">
                   <Image
-                    src="/images/cars/corolla-cross.png"
+                    src="/images/cars/Cross Dtaxi.png"
                     alt="Toyota Corolla Cross Hybrid"
                     fill
                     className="object-contain drop-shadow-[0_15px_15px_rgba(15,23,42,0.1)]"

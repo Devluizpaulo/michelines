@@ -65,7 +65,7 @@ export function DTaxiSection() {
               {/* CAR IMAGE */}
               <div className="relative h-[220px] w-full transition-transform duration-500 hover:scale-[1.02] md:h-[250px]">
                 <Image
-                  src="/images/cars/corolla-cross.png"
+                  src="/images/cars/Cross Dtaxi.png"
                   alt="Toyota Corolla Cross D-Taxi"
                   fill
                   priority

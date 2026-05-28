@@ -149,7 +149,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Toyota Corolla Cross Híbrido",
         year: "2023",
-        image: "/images/cars/corolla-cross.png",
+        image: "/images/cars/cross.png",
         available: true,
         price: "R$ 2.900/mês",
         features: ["SUV espaçoso", "Consumo de até 18km/l", "Câmera 360°"],
@@ -174,7 +174,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Chevrolet Spin",
         year: "2023",
-        image: "/images/cars/spin-big.png",
+        image: "/images/cars/spin.png",
         available: true,
         price: "R$ 2.300/mês",
         features: ["7 lugares", "Porta-malas espaçoso", "Ideal para aeroporto"],
@@ -182,7 +182,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Chevrolet Spin D-TAXI",
         year: "2023",
-        image: "/images/cars/dtaxi-spin.png",
+        image: "/images/cars/Spin Dtaxi.png",
         available: true,
         price: "R$ 2.400/mês",
         features: ["Acesso ao Aeroporto", "7 lugares", "Corridas exclusivas"],
@@ -191,7 +191,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Citroën C3 Aircross",
         year: "2025",
-        image: "/images/cars/c3-aircross.png",
+        image: "/images/cars/C3 Aircross.png",
         available: true,
         price: "R$ 2.600/mês",
         features: ["7 lugares", "Central multimídia 10''", "Câmera de ré"],
@@ -206,7 +206,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Chevrolet Spin",
         year: "2023",
-        image: "/images/cars/spin-big.png",
+        image: "/images/cars/spin.png",
         available: true,
         price: "R$ 2.300/mês",
         features: ["7 lugares", "Porta-malas espaçoso", "Ideal para aeroporto"],
@@ -221,7 +221,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Chevrolet Spin D-TAXI",
         year: "2023",
-        image: "/images/cars/dtaxi-spin.png",
+        image: "/images/cars/Spin Dtaxi.png",
         available: true,
         price: "R$ 2.300/mês",
         features: ["Acesso ao Aeroporto", "7 lugares", "Corridas exclusivas"],
@@ -231,7 +231,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Toyota Corolla D-TAXI",
         year: "2023",
-        image: "/images/cars/corolla.png",
+        image: "/images/cars/corolla Dtaxi.png",
         available: true,
         price: "R$ 2.400/mês",
         features: ["Acesso ao Aeroporto", "Conforto premium", "Corridas exclusivas"],
@@ -249,7 +249,7 @@ const vehicleCategories: VehicleCategory[] = [
       {
         name: "Toyota Corolla Cross D-TAXI",
         year: "2023",
-        image: "/images/cars/corolla-cross.png",
+        image: "/images/cars/Cross Dtaxi.png",
         available: true,
         price: "R$ 2.600/mês",
         features: ["Acesso ao Aeroporto", "SUV espaçoso", "Corridas exclusivas"],
