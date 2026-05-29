@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from "react"
 import { onAuthStateChanged, User } from "firebase/auth"
-import { doc, getDoc, onSnapshot } from "firebase/firestore"
+import { doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
 import { auth, db } from "@/app/firebase/config"
 import { AdminUser, UserRole, canAccess, TabId, ROLE_PERMISSIONS } from "@/lib/permissions"
 
@@ -68,23 +68,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (snap && snap.exists()) {
             setAdminUser({ uid: user.uid, ...snap.data() } as AdminUser)
           } else {
-            // Usuário autenticado mas sem perfil no Firestore → super_admin por retrocompatibilidade
-            setAdminUser({
-              uid: user.uid,
+            // Usuário autenticado mas sem perfil no Firestore → auto-criar como super_admin
+            const newAdminData = {
               email: user.email || "",
-              displayName: user.displayName || user.email || "Admin",
-              role: "super_admin",
+              displayName: user.displayName || user.email?.split("@")[0] || "Admin",
+              role: "super_admin" as UserRole,
               active: true,
               createdAt: new Date().toISOString(),
+            }
+            
+            try {
+              await setDoc(ref, newAdminData)
+            } catch (err) {
+              console.warn("Erro ao auto-criar perfil do admin no Firestore:", err)
+            }
+
+            setAdminUser({
+              uid: user.uid,
+              ...newAdminData,
             })
           }
         } catch (e) {
           console.warn("Erro ao buscar perfil do admin:", e)
-          // Fallback: mantém acesso como super_admin para não bloquear
+          // Fallback local caso dê timeout ou falhe a conexão
           setAdminUser({
             uid: user.uid,
             email: user.email || "",
-            displayName: user.displayName || user.email || "Admin",
+            displayName: user.displayName || user.email?.split("@")[0] || "Admin",
             role: "super_admin",
             active: true,
             createdAt: new Date().toISOString(),
