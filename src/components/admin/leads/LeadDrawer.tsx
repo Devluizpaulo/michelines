@@ -15,7 +15,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Phone, MessageSquare, Save, User, MapPin, Globe, CheckSquare, Square, Clock, Send, Sparkles } from "lucide-react"
+import { 
+  Phone, MessageSquare, Save, User, MapPin, Globe, CheckSquare, Square, Clock, Send, Sparkles,
+  ShieldCheck, ShieldAlert, FileText, CheckCircle, XCircle, Info, Map, Check, Eye 
+} from "lucide-react"
 import { calculateLeadScore } from "@/lib/lead-score"
 import { useToast } from "@/components/ui/toast-simple"
 
@@ -48,6 +51,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
   const { success, error: showError } = useToast()
   const [notes, setNotes] = useState("")
   const [status, setStatus] = useState<Lead["status"]>("new")
+  const [approvalStatus, setApprovalStatus] = useState<Lead["approvalStatus"]>("pending")
   const [contacted, setContacted] = useState(false)
   const [whatsappSent, setWhatsappSent] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -61,6 +65,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
     if (lead) {
       setNotes(lead.notes || "")
       setStatus(lead.status)
+      setApprovalStatus(lead.approvalStatus || "pending")
       setContacted(lead.contacted || false)
       setWhatsappSent(lead.whatsappSent || false)
       
@@ -87,6 +92,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         status,
         contacted,
         whatsappSent,
+        approvalStatus,
         updatedAt: new Date().toISOString()
       }
       
@@ -102,6 +108,63 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
     } catch (e: any) {
       console.error("Erro ao atualizar lead:", e)
       showError("Erro ao salvar lead", e?.message || "Verifique sua conexão e tente novamente.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleApprove = async () => {
+    try {
+      setSaving(true)
+      const leadRef = doc(db, "leads", lead.id)
+      const payload = {
+        notes,
+        status: "converted" as const, // Automatically map funnel state to Converted (Alugado)
+        contacted: true,
+        approvalStatus: "approved" as const,
+        updatedAt: new Date().toISOString()
+      }
+      
+      await updateDoc(leadRef, payload)
+      
+      onLeadUpdated({
+        ...lead,
+        ...payload
+      })
+
+      success("Cadastro Aprovado! 🏆", `O cadastro de ${lead.fullName} foi aprovado com sucesso.`)
+      onClose()
+    } catch (e: any) {
+      console.error("Erro ao aprovar cadastro:", e)
+      showError("Erro ao aprovar cadastro", e?.message || "Erro desconhecido.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleReject = async () => {
+    try {
+      setSaving(true)
+      const leadRef = doc(db, "leads", lead.id)
+      const payload = {
+        notes,
+        status: "lost" as const, // Automatically map funnel state to Lost (Perdido)
+        approvalStatus: "rejected" as const,
+        updatedAt: new Date().toISOString()
+      }
+      
+      await updateDoc(leadRef, payload)
+      
+      onLeadUpdated({
+        ...lead,
+        ...payload
+      })
+
+      success("Cadastro Rejeitado ❌", `O cadastro de ${lead.fullName} foi rejeitado.`)
+      onClose()
+    } catch (e: any) {
+      console.error("Erro ao rejeitar cadastro:", e)
+      showError("Erro ao rejeitar cadastro", e?.message || "Erro desconhecido.")
     } finally {
       setSaving(false)
     }
@@ -145,12 +208,48 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
             </span>
           </SheetTitle>
           <SheetDescription className="text-slate-500">
-            Gerencie o pipeline comercial, templates de mensagem e histórico de contato.
+            Gerencie o pipeline comercial, analise o cadastro de motorista e configure templates de mensagem.
           </SheetDescription>
         </SheetHeader>
 
         <div className="py-6 space-y-6">
-          
+          {/* FLOW DE APROVAÇÃO COMERCIAL */}
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-sky-600" />
+                Análise Cadastral
+              </h4>
+              <Badge 
+                className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${
+                  approvalStatus === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                  approvalStatus === "rejected" ? "bg-red-50 text-red-750 border-red-200" :
+                  "bg-amber-50 text-amber-700 border-amber-200 animate-pulse"
+                }`}
+              >
+                {approvalStatus === "approved" ? "Aprovado" :
+                 approvalStatus === "rejected" ? "Rejeitado" : "Pendente"}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <Button
+                onClick={handleApprove}
+                disabled={saving}
+                className="bg-emerald-600 hover:bg-emerald-500 hover:shadow text-white font-bold text-xs flex items-center justify-center gap-1.5 h-9 rounded-xl transition-all"
+              >
+                <CheckCircle className="h-3.5 w-3.5" /> Aprovar
+              </Button>
+              <Button
+                onClick={handleReject}
+                disabled={saving}
+                className="bg-red-650 hover:bg-red-600 hover:shadow text-white font-bold text-xs flex items-center justify-center gap-1.5 h-9 rounded-xl transition-all"
+              >
+                <XCircle className="h-3.5 w-3.5" /> Rejeitar
+              </Button>
+            </div>
+          </div>
+
           {/* 1. DADOS CADASTRAIS DO CLIENTE */}
           <div className="space-y-4">
             <div>
@@ -160,7 +259,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">Celular / WhatsApp</label>
+                <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">Celular de Contato</label>
                 <p className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mt-0.5">
                   <Phone className="h-3.5 w-3.5 text-slate-400" />
                   {lead.phone}
@@ -175,6 +274,135 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                 </div>
               </div>
             </div>
+
+            {/* NOVOS CAMPOS EXIBIDOS ESTRUTURADAMENTE */}
+            {lead.cpf && (
+              <div className="grid grid-cols-2 gap-4 pt-1 border-t border-slate-50">
+                <div>
+                  <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">CPF</label>
+                  <p className="text-xs font-semibold text-slate-700 mt-0.5">{lead.cpf}</p>
+                </div>
+                {lead.rg && (
+                  <div>
+                    <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">RG</label>
+                    <p className="text-xs font-semibold text-slate-700 mt-0.5">{lead.rg}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {lead.whatsapp && (
+              <div className="grid grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">WhatsApp</label>
+                  <p className="text-xs font-semibold text-slate-750 flex items-center gap-1 mt-0.5">
+                    <MessageSquare className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    {lead.whatsapp}
+                  </p>
+                </div>
+                {lead.email && (
+                  <div>
+                    <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">E-mail</label>
+                    <p className="text-xs font-semibold text-slate-700 truncate mt-0.5" title={lead.email}>{lead.email}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Endereço */}
+            {lead.address && (
+              <div className="pt-2 border-t border-slate-50">
+                <label className="text-[9px] uppercase font-black tracking-widest text-slate-450 flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-sky-500" /> Endereço Completo
+                </label>
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 leading-relaxed">
+                  {lead.address} {lead.cep && `- CEP: ${lead.cep}`}
+                </p>
+              </div>
+            )}
+
+            {/* Referências de Recado */}
+            {lead.messagePhone1 && (
+              <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
+                <p className="text-[9px] uppercase font-black text-slate-500 flex items-center gap-1">
+                  <Phone className="h-3.5 w-3.5 text-amber-500" /> Referências de Recado
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold">Contato 1</p>
+                    <p className="font-bold text-slate-700 mt-0.5">{lead.messageName1}</p>
+                    <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{lead.messagePhone1}</p>
+                  </div>
+                  {lead.messagePhone2 && (
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold">Contato 2</p>
+                      <p className="font-bold text-slate-700 mt-0.5">{lead.messageName2}</p>
+                      <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{lead.messagePhone2}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Perfil Profissional */}
+            {lead.cnhNumber && (
+              <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
+                <p className="text-[9px] uppercase font-black text-slate-500 flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-sky-600" /> Habilitação & Profissional
+                </p>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold">Número da CNH</p>
+                    <p className="font-bold text-slate-700 mt-0.5">{lead.cnhNumber}</p>
+                    <p className="text-[10px] font-semibold text-sky-700 bg-sky-50 border border-sky-100 px-1.5 py-0.2 rounded mt-1 inline-block">
+                      Cat. {lead.cnhCategory}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold">Já trabalhou de táxi?</p>
+                    <p className="font-bold text-slate-700 mt-0.5">{lead.isTaxiDriver ? "Sim" : "Não"}</p>
+                    {lead.isTaxiDriver && lead.condutaxNumber && (
+                      <p className="text-[10px] text-slate-500 font-medium mt-0.5">Condutax: {lead.condutaxNumber}</p>
+                    )}
+                  </div>
+                </div>
+
+                {lead.isTaxiDriver && lead.hasLicense && (
+                  <div className="pt-2 border-t border-slate-200/60 text-xs">
+                    <p className="text-[10px] text-slate-400 font-bold">Vínculo com Licença / Alvará</p>
+                    <p className="font-bold text-slate-700 mt-0.5">Sim</p>
+                    {lead.licenseDetails && (
+                      <p className="text-[10px] text-slate-500 font-medium mt-0.5">Detalhes: {lead.licenseDetails}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Documentos Enviados */}
+            {lead.fileUrls && Object.keys(lead.fileUrls).length > 0 && (
+              <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+                <p className="text-[9px] uppercase font-black text-slate-500 flex items-center gap-1">
+                  <FileText className="h-3.5 w-3.5 text-sky-600" /> Documentos Anexados
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {lead.fileUrls.cnh && (
+                    <a href={lead.fileUrls.cnh} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                      <Button size="sm" variant="outline" className="h-8 border-slate-250 hover:bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center gap-1 rounded-lg">
+                        <Eye className="h-3.5 w-3.5" /> Visualizar CNH
+                      </Button>
+                    </a>
+                  )}
+                  {lead.fileUrls.profilePhoto && (
+                    <a href={lead.fileUrls.profilePhoto} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                      <Button size="sm" variant="outline" className="h-8 border-slate-250 hover:bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center gap-1 rounded-lg">
+                        <Eye className="h-3.5 w-3.5" /> Foto de Perfil
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Segmentação Comercial */}
             <div className="space-y-1.5 pt-1">
@@ -210,7 +438,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                 )}
               </div>
             </div>
-
 
             {/* UTM Tracking Params */}
             {lead.utm && (lead.utm.source || lead.utm.campaign) && (
@@ -303,7 +530,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                 <SelectTrigger className="bg-white border-slate-200 text-slate-700 h-9">
                   <SelectValue placeholder="Selecione o template" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-slate-200 text-slate-700">
+                <SelectContent className="bg-white border-slate-200 text-slate-755">
                   {WHATSAPP_TEMPLATES.map(t => (
                     <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
                   ))}

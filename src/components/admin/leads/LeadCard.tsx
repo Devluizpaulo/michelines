@@ -100,6 +100,17 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
         </span>
 
         <div className="flex items-center gap-2">
+          {lead.approvalStatus && lead.approvalStatus !== "pending" && (
+            <Badge className={cn(
+              "text-[9px] font-bold px-1.5 py-0.2",
+              lead.approvalStatus === "approved" 
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                : "bg-red-50 text-red-700 border-red-200"
+            )}>
+              {lead.approvalStatus === "approved" ? "APROVADO" : "REJEITADO"}
+            </Badge>
+          )}
+
           {lead.whatsappSent && (
             <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[9px] font-bold">
               WA
