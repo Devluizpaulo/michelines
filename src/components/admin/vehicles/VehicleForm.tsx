@@ -31,6 +31,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
     shortDescription: "",
     fullDescription: "",
     monthlyPrice: 0,
+    weeklyPrice: 0,
     dailyPrice: 0,
     status: "active",
     available: true,
@@ -52,6 +53,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
     if (vehicle) {
       setFormData({
         ...vehicle,
+        weeklyPrice: vehicle.weeklyPrice || (vehicle.monthlyPrice ? Math.round(vehicle.monthlyPrice / 4) : 0),
         images: vehicle.images || [],
         specs: vehicle.specs || [],
         tags: vehicle.tags || [],
@@ -60,6 +62,46 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
       })
     }
   }, [vehicle])
+
+  // Dynamic price calculation handlers
+  const handleDailyPriceChange = (val: number) => {
+    setFormData(prev => {
+      const weekly = val * 6
+      const monthly = weekly * 4 // Equivalência para 4 semanas (24 diárias)
+      return {
+        ...prev,
+        dailyPrice: val,
+        weeklyPrice: weekly,
+        monthlyPrice: monthly
+      }
+    })
+  }
+
+  const handleWeeklyPriceChange = (val: number) => {
+    setFormData(prev => {
+      const daily = Math.round(val / 6)
+      const monthly = val * 4
+      return {
+        ...prev,
+        dailyPrice: daily,
+        weeklyPrice: val,
+        monthlyPrice: monthly
+      }
+    })
+  }
+
+  const handleMonthlyPriceChange = (val: number) => {
+    setFormData(prev => {
+      const weekly = Math.round(val / 4)
+      const daily = Math.round(weekly / 6)
+      return {
+        ...prev,
+        dailyPrice: daily,
+        weeklyPrice: weekly,
+        monthlyPrice: val
+      }
+    })
+  }
 
   // Automatically compute slug on name change
   const handleNameChange = (val: string) => {
@@ -232,15 +274,27 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
         <div className="h-px bg-slate-100" />
 
         {/* PARTE DE PRECIFICAÇÃO E ORDENAÇÃO */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="space-y-1.5">
             <Label htmlFor="dailyPrice" className="text-xs font-bold text-slate-700">Preço Diário Médio (R$)</Label>
             <Input 
               id="dailyPrice" 
               type="number"
               value={formData.dailyPrice || 0} 
-              onChange={(e) => setFormData(prev => ({ ...prev, dailyPrice: Number(e.target.value) }))}
+              onChange={(e) => handleDailyPriceChange(Number(e.target.value))}
               placeholder="Ex: 85"
+              className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="weeklyPrice" className="text-xs font-bold text-slate-700">Preço Semanal (R$)</Label>
+            <Input 
+              id="weeklyPrice" 
+              type="number"
+              value={formData.weeklyPrice || 0} 
+              onChange={(e) => handleWeeklyPriceChange(Number(e.target.value))}
+              placeholder="Ex: 510"
               className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500"
             />
           </div>
@@ -251,7 +305,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               id="monthlyPrice" 
               type="number"
               value={formData.monthlyPrice || 0} 
-              onChange={(e) => setFormData(prev => ({ ...prev, monthlyPrice: Number(e.target.value) }))}
+              onChange={(e) => handleMonthlyPriceChange(Number(e.target.value))}
               placeholder="Ex: 2600"
               className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500"
             />

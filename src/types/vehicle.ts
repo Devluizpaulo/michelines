@@ -15,6 +15,7 @@ export interface Vehicle {
   positivePoints?: string[]
   highlights?: string[]
   monthlyPrice?: number
+  weeklyPrice?: number
   dailyPrice?: number
   status?: "active" | "inactive"
   available?: boolean

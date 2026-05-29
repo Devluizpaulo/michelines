@@ -723,7 +723,7 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
         const pricingPayload = {
           vehicleId: slug,
           dailyRate: vehicleData.dailyPrice || 0,
-          weeklyRate: Math.round((vehicleData.monthlyPrice || 0) / 4),
+          weeklyRate: vehicleData.weeklyPrice || Math.round((vehicleData.monthlyPrice || 0) / 4),
           monthlyRate: vehicleData.monthlyPrice || 0,
           weekendExempt: true,
           acceptedPayments: ["pix", "debito", "credito"],
@@ -748,7 +748,7 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
         const pricingPayload = {
           vehicleId: slug,
           dailyRate: vehicleData.dailyPrice || 0,
-          weeklyRate: Math.round((vehicleData.monthlyPrice || 0) / 4),
+          weeklyRate: vehicleData.weeklyPrice || Math.round((vehicleData.monthlyPrice || 0) / 4),
           monthlyRate: vehicleData.monthlyPrice || 0,
           weekendExempt: true,
           acceptedPayments: ["pix", "debito", "credito"],
