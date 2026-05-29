@@ -41,44 +41,70 @@ export function Showroom() {
 
   // Load vehicles
   useEffect(() => {
+    let hasCache = false
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("showroom_vehicles")
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          if (parsed && parsed.length > 0) {
+            setVehicles(parsed)
+            setLoading(false)
+            hasCache = true
+          }
+        } catch (e) {
+          console.error("Erro ao carregar showroom do cache local:", e)
+        }
+      }
+    }
+
     const fetchShowroomVehicles = async () => {
       try {
-        setLoading(true)
-
-        // Pricing map
-        const pricingMap: Record<string, any> = {}
-
-        try {
-          const pricingSnap = await getDocs(
-            collection(db, "vehicle_pricing")
-          )
-
-          pricingSnap.forEach((doc) => {
-            const data = doc.data()
-
-            if (data.vehicleId) {
-              pricingMap[data.vehicleId] = {
-                id: doc.id,
-                ...data,
-              }
-            }
-          })
-        } catch (pricingError) {
-          console.warn(
-            "Erro ao carregar vehicle_pricing:",
-            pricingError
-          )
+        if (!hasCache) {
+          setLoading(true)
         }
 
-        // Vehicles query
-        const q = query(
-          collection(db, "vehicles"),
-          where("status", "==", "active"),
-          where("available", "==", true),
-          orderBy("showroomOrder", "asc")
-        )
+        const fetchPromise = (async () => {
+          // Pricing map
+          const pricingMap: Record<string, any> = {}
+          try {
+            const pricingSnap = await getDocs(
+              collection(db, "vehicle_pricing")
+            )
+            pricingSnap.forEach((doc) => {
+              const data = doc.data()
+              if (data.vehicleId) {
+                pricingMap[data.vehicleId] = {
+                  id: doc.id,
+                  ...data,
+                }
+              }
+            })
+          } catch (pricingError) {
+            console.warn(
+              "Erro ao carregar vehicle_pricing (será usado fallback individual):",
+              pricingError
+            )
+          }
 
-        const snap = await getDocs(q)
+          // Vehicles query
+          const q = query(
+            collection(db, "vehicles"),
+            where("status", "==", "active"),
+            where("available", "==", true),
+            orderBy("showroomOrder", "asc")
+          )
+          const snap = await getDocs(q)
+          return { pricingMap, snap }
+        })()
+
+        // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
+        const { pricingMap, snap } = await Promise.race([
+          fetchPromise,
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout de rede")), 2500)
+          )
+        ])
 
         if (!snap.empty) {
           const list: Vehicle[] = []
@@ -117,16 +143,29 @@ export function Showroom() {
           })
 
           setVehicles(list)
+          if (typeof window !== "undefined") {
+            localStorage.setItem("showroom_vehicles", JSON.stringify(list))
+          }
         } else {
-          setVehicles(buildFallbackVehicles())
+          const fallback = buildFallbackVehicles()
+          setVehicles(fallback)
+          if (typeof window !== "undefined") {
+            localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
+          }
         }
       } catch (error) {
         console.warn(
-          "Erro ao carregar showroom dinâmico:",
+          "Erro ou timeout ao carregar showroom dinâmico, usando fallbacks:",
           error
         )
-
-        setVehicles(buildFallbackVehicles())
+        // Se falhar e não tivermos cache, mostramos os fallbacks estáticos
+        if (!hasCache) {
+          const fallback = buildFallbackVehicles()
+          setVehicles(fallback)
+          if (typeof window !== "undefined") {
+            localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
+          }
+        }
       } finally {
         setLoading(false)
       }

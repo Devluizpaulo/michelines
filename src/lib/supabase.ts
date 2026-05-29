@@ -1,13 +1,30 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient, SupabaseClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 /**
- * Client público (browser-safe) — usa anon key
- * Use para leitura de imagens públicas e uploads do lado do cliente.
+ * Singleton pattern — garante uma única instância do cliente Supabase no browser.
+ * Resolve o aviso "Multiple GoTrueClient instances detected".
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+let _supabaseInstance: SupabaseClient | null = null
+
+function getSupabaseClient(): SupabaseClient {
+  if (_supabaseInstance) return _supabaseInstance
+  _supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  })
+  return _supabaseInstance
+}
+
+/**
+ * Cliente público (browser-safe) — usa anon key.
+ * Singleton: sempre retorna a mesma instância.
+ */
+export const supabase = getSupabaseClient()
 
 /**
  * Bucket names registrados no Supabase Storage
@@ -33,7 +50,6 @@ export function getSupabaseImageUrl(bucket: string, filename: string): string {
 /**
  * Gera URL otimizada com transformação de imagem (redimensionamento + qualidade)
  * Requer que a feature de transformação esteja ativa no projeto Supabase.
- * Fallback automático para URL pública direta se não disponível.
  */
 export function getOptimizedImageUrl(
   bucket: string,
@@ -51,11 +67,8 @@ export function getOptimizedImageUrl(
  */
 export function optimizeImageUrl(url: string, width = 600, quality = 80): string {
   if (!url) return url
-  // Verifica se a URL contém o host do Supabase deste projeto
   if (url.includes(supabaseUrl) && url.includes("/storage/v1/object/public/")) {
     try {
-      // Extrai o bucket e o caminho do arquivo
-      // Formato: https://.../storage/v1/object/public/[bucket]/[caminho]
       const parts = url.split("/storage/v1/object/public/")
       if (parts.length === 2) {
         const bucketAndPath = parts[1]
@@ -75,7 +88,6 @@ export function optimizeImageUrl(url: string, width = 600, quality = 80): string
 
 /**
  * URLs diretas das imagens de veículos já enviadas ao Supabase
- * (geradas após o upload via scripts/upload-images-to-supabase.mjs)
  */
 export const VEHICLE_IMAGES: Record<string, string> = {
   "corolla-cross":    getSupabaseImageUrl("vehicles", "corolla-cross.png"),

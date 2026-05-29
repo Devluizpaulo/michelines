@@ -64,7 +64,15 @@ export function useHeroSlides(landingSettings?: Partial<LandingSettings>) {
           where("active", "==", true),
           orderBy("order", "asc")
         )
-        const snap = await getDocs(q)
+        
+        // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
+        const snap = await Promise.race([
+          getDocs(q),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout de rede")), 2500)
+          )
+        ])
+
         const list: HeroSlideType[] = []
         snap.forEach((doc) => {
           list.push({ id: doc.id, ...doc.data() } as HeroSlideType)

@@ -45,8 +45,16 @@ export function useLandingSettings() {
     const fetchSettings = async () => {
       try {
         const docRef = doc(db, "landing", "settings")
-        const docSnap = await getDoc(docRef)
-        if (docSnap.exists()) {
+        
+        // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
+        const docSnap = await Promise.race([
+          getDoc(docRef),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout de rede")), 2500)
+          )
+        ])
+
+        if (docSnap && docSnap.exists()) {
           const data = docSnap.data()
           const updated: LandingSettings = {
             heroTitle: data.heroTitle || DEFAULT_SETTINGS.heroTitle,
@@ -64,7 +72,7 @@ export function useLandingSettings() {
           localStorage.setItem("landing_settings", JSON.stringify(updated))
         }
       } catch (e) {
-        console.warn("Firestore offline, usando configurações locais:", e)
+        console.warn("Firestore offline ou lento, usando configurações locais:", e)
       }
     }
     fetchSettings()

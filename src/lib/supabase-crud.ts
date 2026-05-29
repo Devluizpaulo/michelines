@@ -2,14 +2,13 @@
  * supabase-crud.ts
  * Wrapper centralizado para operações no Supabase Storage e (futuramente) Supabase DB.
  * Retorna { data, error } em vez de lançar exceções.
+ *
+ * Usa o cliente singleton de supabase.ts para evitar múltiplas instâncias GoTrueClient.
  */
 
-import { createClient } from "@supabase/supabase-js"
+import { supabase, supabaseUrl } from "@/lib/supabase"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export { supabase, supabaseUrl }
 
 export interface StorageResult<T> {
   data: T | null
