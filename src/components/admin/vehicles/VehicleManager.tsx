@@ -8,6 +8,8 @@ import { Lead } from "@/types/lead"
 import { VehicleCard } from "./VehicleCard"
 import { VehicleForm } from "./VehicleForm"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Plus, Car, RefreshCw, Flame, TrendingUp, DollarSign, Target, Clock, Database } from "lucide-react"
 import { motion } from "framer-motion"
 import { THEME_TOKENS } from "@/theme/design-system"
@@ -24,6 +26,7 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<"list" | "form">("list")
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
+  const [viewingVehicle, setViewingVehicle] = useState<Vehicle | null>(null)
   const [seeding, setSeeding] = useState(false)
 
   const handleSeedVehicles = async () => {
@@ -856,6 +859,7 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
                   <div key={car.id} className="relative group">
                     <VehicleCard 
                       vehicle={car} 
+                      onView={setViewingVehicle}
                       onEdit={handleEdit} 
                       onDelete={handleDelete} 
                     />
@@ -877,6 +881,185 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
           onCancel={() => setView("list")} 
         />
       )}
+
+      {/* Read-only details dialog */}
+      <Dialog open={viewingVehicle !== null} onOpenChange={(open) => !open && setViewingVehicle(null)}>
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl p-0">
+          {viewingVehicle && (
+            <div className="flex flex-col">
+              
+              {/* Cover Banner */}
+              <div className="relative h-64 bg-slate-900 overflow-hidden flex items-center justify-center">
+                {/* Gradient Ambient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
+                {viewingVehicle.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img 
+                    src={viewingVehicle.thumbnail} 
+                    alt={viewingVehicle.name} 
+                    className="w-full h-full object-cover opacity-90"
+                  />
+                ) : (
+                  <span className="text-slate-400 text-sm font-bold uppercase z-10">Sem Capa Comercial</span>
+                )}
+                
+                {/* Floating tags */}
+                <div className="absolute bottom-4 left-6 z-20 space-y-1 text-left">
+                  <span className="text-[10px] text-sky-400 font-extrabold uppercase tracking-widest block">{viewingVehicle.brand} • Ano {viewingVehicle.year}</span>
+                  <h2 className="text-2xl font-black text-white">{viewingVehicle.name}</h2>
+                </div>
+
+                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                  {viewingVehicle.isDTaxiApproved && (
+                    <Badge className="bg-sky-500 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
+                      ✈️ D-TAXI
+                    </Badge>
+                  )}
+                  {viewingVehicle.isHybrid && (
+                    <Badge className="bg-emerald-500 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
+                      🔋 Híbrido
+                    </Badge>
+                  )}
+                  {viewingVehicle.hasGNV && (
+                    <Badge className="bg-orange-500 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
+                      ⛽ Kit GNV
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid content */}
+              <div className="p-6 md:p-8 space-y-6">
+                
+                {/* Planos de Precificação */}
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-black tracking-widest text-slate-450 uppercase text-left">Tabela Comercial de Planos</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-slate-50 border border-slate-200/70 p-4 rounded-xl text-center">
+                      <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block mb-1">Por Diária</span>
+                      <span className="text-base font-black text-slate-800">R$ {viewingVehicle.dailyPrice || 0}</span>
+                      <span className="text-[8px] text-slate-500 font-semibold block mt-1">Faturamento diário</span>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200/70 p-4 rounded-xl text-center">
+                      <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block mb-1">Semanal</span>
+                      <span className="text-base font-black text-slate-800">R$ {viewingVehicle.weeklyPrice || Math.round((viewingVehicle.monthlyPrice || 0) / 4)}</span>
+                      <span className="text-[8px] text-slate-500 font-semibold block mt-1">Ajuste de 6 diárias</span>
+                    </div>
+                    <div className="bg-sky-50 border border-sky-100 p-4 rounded-xl text-center relative overflow-hidden">
+                      <span className="text-[9px] text-sky-700 font-black uppercase tracking-wider block mb-1">Mensal Premium</span>
+                      <span className="text-base font-black text-emerald-600">R$ {viewingVehicle.monthlyPrice || 0}</span>
+                      <span className="text-[8px] text-sky-600 font-semibold block mt-1">Contrato corporativo</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Descrição */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 text-left">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Resumo do Showroom</span>
+                    <p className="text-xs text-slate-600 font-semibold leading-relaxed bg-slate-50 p-3.5 border border-slate-200/60 rounded-xl text-justify">
+                      {viewingVehicle.shortDescription || "Nenhum resumo comercial preenchido."}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Ficha Técnica Completa</span>
+                    <p className="text-xs text-slate-600 font-semibold leading-relaxed bg-slate-50 p-3.5 border border-slate-200/60 rounded-xl text-justify">
+                      {viewingVehicle.fullDescription || "Nenhuma descrição detalhada preenchida."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Diferenciais e Pontos Fortes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 text-left">
+                  
+                  {/* Pontos Positivos */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Pontos Positivos (Vantagens)</span>
+                    {viewingVehicle.positivePoints && viewingVehicle.positivePoints.length > 0 ? (
+                      <ul className="space-y-1.5">
+                        {viewingVehicle.positivePoints.map((pt, idx) => (
+                          <li key={idx} className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                            {pt}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">Nenhum ponto registrado.</p>
+                    )}
+                  </div>
+
+                  {/* Highlights Premium */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Diferenciais Premium</span>
+                    {viewingVehicle.highlights && viewingVehicle.highlights.length > 0 ? (
+                      <ul className="space-y-1.5">
+                        {viewingVehicle.highlights.map((h, idx) => (
+                          <li key={idx} className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+                            {h}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">Nenhum diferencial registrado.</p>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Tags, Specs & SEO */}
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 pt-4 text-left">
+                  <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Metadados e SEO</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
+                    <div className="space-y-1">
+                      <span className="text-[9px] text-slate-400 font-bold uppercase block">Tags do Showroom</span>
+                      <p className="truncate">{viewingVehicle.tags?.join(", ") || "—"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] text-slate-400 font-bold uppercase block">Especificações Rápidas</span>
+                      <p className="truncate">{viewingVehicle.specs?.join(", ") || "—"}</p>
+                    </div>
+                    <div className="space-y-1 md:col-span-2 border-t border-slate-150 pt-2">
+                      <span className="text-[9px] text-slate-400 font-bold uppercase block">Google Meta Title (SEO)</span>
+                      <p className="text-slate-800 font-extrabold">{viewingVehicle.seoTitle || "—"}</p>
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <span className="text-[9px] text-slate-400 font-bold uppercase block">Google Meta Description</span>
+                      <p className="text-slate-500 font-medium text-justify">{viewingVehicle.seoDescription || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions Footer */}
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setViewingVehicle(null)}
+                    className="border-slate-250 hover:border-slate-350 text-slate-700 hover:bg-slate-50 text-xs font-bold shadow-sm"
+                  >
+                    Fechar
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={() => {
+                      const temp = viewingVehicle
+                      setViewingVehicle(null)
+                      handleEdit(temp)
+                    }}
+                    className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-sm"
+                  >
+                    Editar Veículo
+                  </Button>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   )

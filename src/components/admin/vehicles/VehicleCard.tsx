@@ -3,16 +3,17 @@
 import { Vehicle } from "@/types/vehicle"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Edit3, Trash2 } from "lucide-react"
+import { Edit3, Trash2, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface VehicleCardProps {
   vehicle: Vehicle
+  onView: (vehicle: Vehicle) => void
   onEdit: (vehicle: Vehicle) => void
   onDelete: (id: string) => void
 }
 
-export function VehicleCard({ vehicle, onEdit, onDelete }: VehicleCardProps) {
+export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardProps) {
   return (
     <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden flex flex-col justify-between hover:border-slate-350 hover:shadow-md transition-all duration-300">
       
@@ -75,6 +76,14 @@ export function VehicleCard({ vehicle, onEdit, onDelete }: VehicleCardProps) {
 
       {/* Footer Actions */}
       <div className="bg-slate-50 border-t border-slate-150 p-3 flex justify-end gap-2">
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={() => onView(vehicle)}
+          className="text-slate-600 hover:text-slate-700 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
+        >
+          <Eye className="h-3.5 w-3.5" /> Ver Dados
+        </Button>
         <Button 
           size="sm" 
           variant="ghost" 
