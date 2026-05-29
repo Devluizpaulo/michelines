@@ -26,6 +26,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
   const [campaignSubtitle, setCampaignSubtitle] = useState("")
   const [campaignBtnText, setCampaignBtnText] = useState("")
   const [campaignBtnUrl, setCampaignBtnUrl] = useState("")
+  const [campaignImageUrl, setCampaignImageUrl] = useState("")
   const [savingCampaign, setSavingCampaign] = useState(false)
 
   // Sync props
@@ -37,8 +38,32 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
       setCampaignSubtitle(landingSettings.campaignSubtitle || "")
       setCampaignBtnText(landingSettings.campaignBtnText || "")
       setCampaignBtnUrl(landingSettings.campaignBtnUrl || "")
+      setCampaignImageUrl(landingSettings.campaignImageUrl || "")
     }
   }, [landingSettings])
+
+  // Handle local image upload via Base64 FileReader
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 800000) {
+      showError("Arquivo muito grande", "Por favor, selecione uma imagem com menos de 800KB para otimização.")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        setCampaignImageUrl(reader.result)
+        success("Imagem carregada!", "A imagem foi carregada e convertida com sucesso.")
+      }
+    }
+    reader.onerror = () => {
+      showError("Erro no upload", "Não foi possível ler o arquivo de imagem.")
+    }
+    reader.readAsDataURL(file)
+  }
 
   // Save Campaign Banner
   const handleSaveCampaign = async (e: React.FormEvent) => {
@@ -53,6 +78,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
         campaignSubtitle,
         campaignBtnText,
         campaignBtnUrl,
+        campaignImageUrl,
         updatedAt: new Date().toISOString()
       }
 
@@ -138,6 +164,52 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                       className="bg-white border-slate-200 text-slate-800"
                     />
                   </div>
+
+                  {/* CUSTOM IMAGE UPLOADER & URL SECTION */}
+                  <div className="space-y-2 md:col-span-2 border-t border-slate-200 pt-4">
+                    <label className="text-xs font-bold text-slate-700 block mb-1">Imagem Promocional Personalizada (Opcional)</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* File Upload */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-500 font-bold uppercase block">Fazer Upload de Foto</label>
+                        <div className="relative border-2 border-dashed border-slate-200 hover:border-slate-350 rounded-xl p-4 bg-white flex flex-col items-center justify-center transition-all cursor-pointer group min-h-[96px]">
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          />
+                          <span className="text-xl">📷</span>
+                          <p className="text-[10px] font-bold text-slate-650 group-hover:text-slate-800 mt-1">
+                            Clique para carregar imagem
+                          </p>
+                          <p className="text-[8px] text-slate-400 mt-0.5 font-medium">
+                            PNG, JPG até 800KB
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Custom Image URL */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-500 font-bold uppercase block">Ou colar URL da Imagem</label>
+                        <Input 
+                          value={campaignImageUrl} 
+                          onChange={(e) => setCampaignImageUrl(e.target.value)} 
+                          placeholder="https://exemplo.com/sua-imagem.png"
+                          className="bg-white border-slate-200 text-slate-800 text-xs h-[52px]"
+                        />
+                        {campaignImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setCampaignImageUrl("")}
+                            className="text-[9px] font-black text-rose-500 hover:text-rose-600 flex items-center gap-1 mt-1.5 transition-colors"
+                          >
+                            ❌ Usar Imagem Padrão do Template
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-slate-200">
@@ -189,7 +261,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                       <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-200 bg-white">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
-                          src="/images/banners/banner-1.png" 
+                          src={campaignImageUrl || "/images/banners/banner-1.png"} 
                           alt="Promo Corolla Cross"
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -221,7 +293,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                       <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-amber-200 bg-white">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
-                          src="/images/banners/banner-2.png" 
+                          src={campaignImageUrl || "/images/banners/banner-2.png"} 
                           alt="Promo Taxa Zero"
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -253,7 +325,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                       <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-emerald-200 bg-white">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
-                          src="/images/banners/banner-3.png" 
+                          src={campaignImageUrl || "/images/banners/banner-3.png"} 
                           alt="Promo Híbridos"
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -275,6 +347,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                 campaignSubtitle,
                 campaignBtnText,
                 campaignBtnUrl,
+                campaignImageUrl,
               }} />
               <Button 
                 type="submit" 

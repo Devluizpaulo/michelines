@@ -381,11 +381,11 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
   useEffect(() => {
     if (activePlatform === "banner" && canvasRef.current) {
       const templateId = landingSettings.campaignTemplateId || 1
-      const imgUrl = templateId === 1
+      const imgUrl = landingSettings.campaignImageUrl || (templateId === 1
         ? "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=800&q=80"
         : templateId === 2
         ? "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80"
-        : "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
+        : "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80")
 
       const carImg = new Image()
       carImg.crossOrigin = "anonymous"

@@ -5,4 +5,6 @@ export interface CampaignBannerSettings {
   campaignSubtitle: string
   campaignBtnText: string
   campaignBtnUrl: string
+  campaignImageUrl?: string
 }
+
