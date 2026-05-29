@@ -164,6 +164,61 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
 
             </div>
 
+            {/* LIVE PREVIEW INSTITUCIONAL */}
+            <div className="space-y-4 pt-6 border-t border-slate-200 mt-6">
+              <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Prévia em Tempo Real (Live Preview)</label>
+              
+              <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-slate-900 text-white relative">
+                
+                {/* 1. Scrolling Ticker Preview */}
+                <div className="bg-[#0A192F] border-b border-blue-900/30 py-2 px-4 text-center overflow-hidden relative">
+                  <div className="flex justify-center items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-extrabold tracking-wider uppercase text-blue-100/90 truncate">
+                      {liveBannerText || "Campanha ativa: Oportunidade especial da semana..."}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Hero Slice Mockup */}
+                <div className="p-6 md:p-8 space-y-6 relative overflow-hidden bg-gradient-to-br from-[#0F1E36] to-[#0A1224]">
+                  {/* Ambient light overlay */}
+                  <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-[150px] h-[150px] bg-sky-500/5 rounded-full blur-[60px] pointer-events-none" />
+                  
+                  <div className="space-y-3 relative z-10 max-w-lg">
+                    <span className="text-[9px] font-black text-sky-400 uppercase tracking-widest">
+                      Grupo Michelines • Frota Própria
+                    </span>
+                    <h1 className="text-xl md:text-2xl font-black leading-tight tracking-tight text-white">
+                      {heroTitle || "Ganhe mais. Trabalhe com liberdade."}{" "}
+                      <span className="bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm font-black">
+                        {heroGlowText || "Dirija com propósito."}
+                      </span>
+                    </h1>
+                    <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                      Carros novos, híbridos e sedans executivos com manutenção preventiva inclusa e suporte especializado 24/7.
+                    </p>
+                  </div>
+
+                  {/* 3. Congonhas Fila Status Indicator */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur relative z-10">
+                    <div className="space-y-1">
+                      <span className="text-[8px] text-sky-300 font-black uppercase tracking-wider block">✈️ Fila D-TAXI — Aeroporto Congonhas</span>
+                      <p className="text-xs font-bold text-white leading-tight">
+                        {congonhasStatus || "Carregando status em tempo real..."}
+                      </p>
+                    </div>
+                    <span className="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-black uppercase tracking-wide">
+                      Operacional
+                    </span>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
             <div className="flex justify-end pt-2 border-t border-slate-100 mt-6">
               <Button
                 type="submit"

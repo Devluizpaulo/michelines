@@ -163,6 +163,107 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                     ))}
                   </div>
                 </div>
+
+                {/* LIVE PREVIEW */}
+                <div className="space-y-3 pt-5 border-t border-slate-200">
+                  <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Prévia em Tempo Real (Live Preview)</label>
+                  
+                  {campaignTemplateId === 1 && (
+                    <div className="bg-gradient-to-r from-sky-50/80 to-indigo-50/50 border border-sky-100 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden transition-all duration-300">
+                      <div className="flex-1 space-y-3 text-left relative z-10">
+                        <span className="bg-sky-100 text-sky-700 border border-sky-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                          Campanha D-TAXI
+                        </span>
+                        <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
+                          {campaignText || "Alugue seu Corolla Cross com Fila D-TAXI!"}
+                        </h3>
+                        <p className="text-slate-600 text-xs font-semibold leading-relaxed text-justify">
+                          {campaignSubtitle || "Fature alto no aeroporto de Congonhas. Retirada rápida em 24 horas."}
+                        </p>
+                        <div className="pt-1">
+                          <button type="button" className="bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold px-4 h-9 text-xs transition-all shadow-sm">
+                            {campaignBtnText || "Quero Aproveitar"}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-200 bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src="/images/banners/banner-1.png" 
+                          alt="Promo Corolla Cross"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80"
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {campaignTemplateId === 2 && (
+                    <div className="bg-gradient-to-r from-amber-50/80 to-orange-50/50 border border-amber-100 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden transition-all duration-300">
+                      <div className="flex-1 space-y-3 text-left relative z-10">
+                        <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                          Destaque Exclusivo
+                        </span>
+                        <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
+                          {campaignText || "Taxa Zero: 3 Diárias Grátis para Começar!"}
+                        </h3>
+                        <p className="text-slate-600 text-xs font-semibold leading-relaxed text-justify">
+                          {campaignSubtitle || "Inscreva-se hoje e aproveite as condições especiais sem comprovante de score."}
+                        </p>
+                        <div className="pt-1">
+                          <button type="button" className="bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold px-4 h-9 text-xs transition-all shadow-sm">
+                            {campaignBtnText || "Quero Aproveitar"}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-amber-200 bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src="/images/banners/banner-2.png" 
+                          alt="Promo Taxa Zero"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=400&q=80"
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {campaignTemplateId === 3 && (
+                    <div className="bg-gradient-to-r from-emerald-50/80 to-teal-50/50 border border-emerald-100 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden transition-all duration-300">
+                      <div className="flex-1 space-y-3 text-left relative z-10">
+                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                          Mobilidade Híbrida Eco
+                        </span>
+                        <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
+                          {campaignText || "Economize até R$ 2.000 com Corolla Híbrido + GNV"}
+                        </h3>
+                        <p className="text-slate-600 text-xs font-semibold leading-relaxed text-justify">
+                          {campaignSubtitle || "Tecnologia de ponta para rodar mais gastando muito menos combustível."}
+                        </p>
+                        <div className="pt-1">
+                          <button type="button" className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold px-4 h-9 text-xs transition-all shadow-sm">
+                            {campaignBtnText || "Quero Aproveitar"}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-emerald-200 bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src="/images/banners/banner-3.png" 
+                          alt="Promo Híbridos"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80"
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
