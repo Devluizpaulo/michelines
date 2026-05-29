@@ -85,26 +85,23 @@ export function SupabaseMediaCenter() {
     }
   }
 
-  // Recursive fetch of files from Supabase Storage
+  // Recursive fetch of files from Supabase Storage via our secure API Route
   const loadFiles = useCallback(async () => {
     try {
       setLoading(true)
       
       const fetchFolderContents = async (path = ""): Promise<StorageFile[]> => {
-        const { data, error } = await supabase.storage
-          .from(activeBucket)
-          .list(path, {
-            limit: 100,
-            sortBy: { column: "name", order: "asc" }
-          })
-
-        if (error) {
-          throw error
+        const res = await fetch(`/api/media?bucket=${activeBucket}&folder=${path}`)
+        const json = await res.json()
+        
+        if (!res.ok || json.error) {
+          throw new Error(json.error || "Erro ao consultar a API de mídia.")
         }
 
+        const data = json.data || []
         let accumulatedFiles: StorageFile[] = []
 
-        for (const item of data || []) {
+        for (const item of data) {
           const itemPath = path ? `${path}/${item.name}` : item.name
           const isFolder = !item.metadata
 
@@ -161,7 +158,7 @@ export function SupabaseMediaCenter() {
     setSearchQuery("")
   }, [activeBucket, loadFiles])
 
-  // Handle file upload
+  // Handle file upload via our secure API Route
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files
     if (!fileList || fileList.length === 0) return
@@ -185,16 +182,19 @@ export function SupabaseMediaCenter() {
       const uploadPath = cleanName
 
       try {
-        const { error } = await supabase.storage
-          .from(activeBucket)
-          .upload(uploadPath, file, {
-            contentType: file.type,
-            upsert: true, // Overwrite if it already exists
-            cacheControl: "31536000"
-          })
+        const formData = new FormData()
+        formData.append("bucket", activeBucket)
+        formData.append("path", uploadPath)
+        formData.append("file", file)
 
-        if (error) {
-          console.error(`Erro no upload de ${file.name}:`, error)
+        const res = await fetch("/api/media", {
+          method: "POST",
+          body: formData,
+        })
+        const json = await res.json()
+
+        if (!res.ok || json.error) {
+          console.error(`Erro no upload de ${file.name}:`, json.error)
           failCount++
         } else {
           successCount++

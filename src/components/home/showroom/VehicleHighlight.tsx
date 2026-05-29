@@ -1,6 +1,7 @@
 "use client"
 
 import { Vehicle } from "@/types/vehicle"
+import { optimizeImageUrl } from "@/lib/supabase"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Star, MessageSquare, ArrowRight, TrendingUp, Info } from "lucide-react"
@@ -79,7 +80,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             <div className="relative aspect-[16/9] w-full bg-gradient-to-b from-slate-50 to-slate-100/10 rounded-2xl overflow-hidden flex items-center justify-center p-6 border border-slate-150 shadow-inner">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
-                src={vehicle.thumbnail} 
+                src={optimizeImageUrl(vehicle.thumbnail, 900, 85)} 
                 alt={vehicle.name} 
                 className="w-full h-full object-contain filter drop-shadow-[0_12px_12px_rgba(15,23,42,0.08)]"
               />

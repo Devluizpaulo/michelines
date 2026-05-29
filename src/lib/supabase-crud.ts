@@ -130,15 +130,20 @@ export async function listFiles(
 // ─── DELETE ───────────────────────────────────────────────────────────────────
 
 /**
- * Remove um ou mais arquivos do bucket
+ * Remove um ou mais arquivos do bucket utilizando a API interna para evitar restrições RLS
  */
 export async function deleteFiles(
   bucket: string,
   paths: string[]
 ): Promise<StorageResult<boolean>> {
   try {
-    const { error } = await supabase.storage.from(bucket).remove(paths)
-    if (error) return { data: null, error: error.message }
+    const res = await fetch(`/api/media?bucket=${bucket}&paths=${encodeURIComponent(paths.join(","))}`, {
+      method: "DELETE",
+    })
+    const json = await res.json()
+    if (!res.ok || json.error) {
+      return { data: null, error: json.error || "Erro na API ao excluir arquivos." }
+    }
     return { data: true, error: null }
   } catch (err: any) {
     console.error(`[supabase-crud] deleteFiles(${bucket}):`, err)

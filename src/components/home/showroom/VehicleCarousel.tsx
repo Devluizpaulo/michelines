@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Eye, Tag } from "lucide-react"
 import Image from "next/image"
+import { optimizeImageUrl } from "@/lib/supabase"
 
 interface VehicleCarouselProps {
   vehicles: Vehicle[]
@@ -94,7 +95,7 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                   {/* Vehicle Image */}
                   <div className="relative w-full h-[120px] transition-transform duration-500 group-hover:scale-[1.03]">
                     <Image
-                      src={car.thumbnail || "/images/cars/Cross Dtaxi.png"}
+                      src={optimizeImageUrl(car.thumbnail || "/images/cars/Cross Dtaxi.png", 600, 80)}
                       alt={car.name}
                       fill
                       className="object-contain filter drop-shadow-[0_12px_12px_rgba(15,23,42,0.1)]"

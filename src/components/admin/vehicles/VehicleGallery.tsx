@@ -5,6 +5,7 @@ import { supabase, BUCKETS } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Image as ImageIcon, Trash2, Star, UploadCloud, Badge } from "lucide-react"
+import { MediaSelectorDialog } from "../shared/MediaSelectorDialog"
 
 interface VehicleGalleryProps {
   images: string[]
@@ -17,6 +18,13 @@ export function VehicleGallery({ images, thumbnail, slug, onChange }: VehicleGal
   const [newUrl, setNewUrl] = useState("")
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [selectorOpen, setSelectorOpen] = useState(false)
+
+  const handleSelectFromLibrary = (url: string) => {
+    const updated = [...images, url]
+    const newThumb = thumbnail || url
+    onChange(updated, newThumb)
+  }
 
   // Append a URL manually
   const handleAddUrl = () => {
@@ -27,7 +35,7 @@ export function VehicleGallery({ images, thumbnail, slug, onChange }: VehicleGal
     setNewUrl("")
   }
 
-  // Upload file to Supabase Storage
+  // Upload file to Supabase Storage via our secure API Route
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -49,25 +57,24 @@ export function VehicleGallery({ images, thumbnail, slug, onChange }: VehicleGal
           .toLowerCase()
         const remotePath = `${slug || "geral"}/${Date.now()}_${cleanName}`
 
-        const { data, error } = await supabase.storage
-          .from(BUCKETS.vehicles)
-          .upload(remotePath, file, {
-            contentType: file.type,
-            upsert: false,
-            cacheControl: "31536000",
-          })
+        const formData = new FormData()
+        formData.append("bucket", BUCKETS.vehicles)
+        formData.append("path", remotePath)
+        formData.append("file", file)
 
-        if (error) {
-          setUploadError(`Erro no upload: ${error.message}`)
-          console.error("Supabase upload error:", error)
+        const res = await fetch("/api/media", {
+          method: "POST",
+          body: formData,
+        })
+        const json = await res.json()
+
+        if (!res.ok || json.error) {
+          setUploadError(`Erro no upload: ${json.error || "Erro na API."}`)
+          console.error("Supabase upload error:", json.error)
           continue
         }
 
-        const { data: urlData } = supabase.storage
-          .from(BUCKETS.vehicles)
-          .getPublicUrl(data.path)
-
-        const publicUrl = urlData.publicUrl
+        const publicUrl = json.url
         updatedImages.push(publicUrl)
         if (!firstUrl) firstUrl = publicUrl
       }
@@ -111,6 +118,16 @@ export function VehicleGallery({ images, thumbnail, slug, onChange }: VehicleGal
             Adicionar URL
           </Button>
         </div>
+
+        {/* Media Selector Button */}
+        <Button
+          type="button"
+          onClick={() => setSelectorOpen(true)}
+          className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs h-10 px-4 flex items-center justify-center gap-2 font-bold shadow-sm transition-all shrink-0"
+        >
+          <ImageIcon className="h-4 w-4 text-sky-600" />
+          Selecionar da Galeria
+        </Button>
 
         {/* File Uploader — Supabase */}
         <div className="relative w-full sm:w-auto shrink-0">
@@ -198,6 +215,14 @@ export function VehicleGallery({ images, thumbnail, slug, onChange }: VehicleGal
           })}
         </div>
       )}
+      <MediaSelectorDialog
+        open={selectorOpen}
+        onClose={() => setSelectorOpen(false)}
+        onSelect={handleSelectFromLibrary}
+        bucket={BUCKETS.vehicles}
+        title="Biblioteca de Imagens — Veículos"
+        description="Selecione uma imagem já enviada para o bucket de veículos do Supabase."
+      />
     </div>
   )
 }

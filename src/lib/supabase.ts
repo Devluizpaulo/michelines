@@ -46,6 +46,34 @@ export function getOptimizedImageUrl(
 }
 
 /**
+ * Tenta otimizar uma URL caso ela pertença ao Supabase Storage deste projeto.
+ * Se não for do Supabase, retorna a URL original sem alterações.
+ */
+export function optimizeImageUrl(url: string, width = 600, quality = 80): string {
+  if (!url) return url
+  // Verifica se a URL contém o host do Supabase deste projeto
+  if (url.includes(supabaseUrl) && url.includes("/storage/v1/object/public/")) {
+    try {
+      // Extrai o bucket e o caminho do arquivo
+      // Formato: https://.../storage/v1/object/public/[bucket]/[caminho]
+      const parts = url.split("/storage/v1/object/public/")
+      if (parts.length === 2) {
+        const bucketAndPath = parts[1]
+        const firstSlash = bucketAndPath.indexOf("/")
+        if (firstSlash !== -1) {
+          const bucket = bucketAndPath.substring(0, firstSlash)
+          const path = bucketAndPath.substring(firstSlash + 1)
+          return getOptimizedImageUrl(bucket, path, width, quality)
+        }
+      }
+    } catch (e) {
+      console.warn("[optimizeImageUrl] Erro ao otimizar URL:", e)
+    }
+  }
+  return url
+}
+
+/**
  * URLs diretas das imagens de veículos já enviadas ao Supabase
  * (geradas após o upload via scripts/upload-images-to-supabase.mjs)
  */

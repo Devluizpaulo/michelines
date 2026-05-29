@@ -1,6 +1,7 @@
 "use client"
 
 import { Vehicle } from "@/types/vehicle"
+import { optimizeImageUrl } from "@/lib/supabase"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -169,7 +170,7 @@ export function VehicleHighlightHero({
             <div className="relative h-[220px] w-full transition-transform duration-700 group-hover:-translate-y-1 group-hover:scale-[1.02] md:h-[300px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={vehicle.thumbnail}
+                src={optimizeImageUrl(vehicle.thumbnail, 900, 85)}
                 alt={vehicle.name}
                 className="h-full w-full object-contain drop-shadow-[0_20px_20px_rgba(15,23,42,0.15)]"
               />

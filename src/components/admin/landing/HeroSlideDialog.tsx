@@ -16,7 +16,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/toast-simple"
-import { Eye, EyeOff, Image as ImageIcon, Film } from "lucide-react"
+import { Eye, EyeOff, Image as ImageIcon, Film, UploadCloud, Loader2 } from "lucide-react"
+import { MediaSelectorDialog } from "../shared/MediaSelectorDialog"
 
 interface HeroSlideDialogProps {
   open: boolean
@@ -46,6 +47,58 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
   const { success, error: showError } = useToast()
   const [form, setForm] = useState<Partial<HeroSlideType>>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [uploadingField, setUploadingField] = useState<string | null>(null)
+  const [libraryField, setLibraryField] = useState<"image" | "mobileImage" | null>(null)
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "image" | "mobileImage" | "video") => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    setUploadingField(field)
+
+    try {
+      // Clean filename for storage
+      const cleanName = file.name
+        .replace(/\s+/g, "_")
+        .replace(/[()]/g, "")
+        .toLowerCase()
+      const slug = form.title
+        ? form.title
+            .toLowerCase()
+            .trim()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/[\s-]+/g, "-")
+        : "slide"
+      const remotePath = `${slug}/${Date.now()}_${cleanName}`
+
+      const formData = new FormData()
+      formData.append("bucket", "banners")
+      formData.append("path", remotePath)
+      formData.append("file", file)
+
+      const res = await fetch("/api/media", {
+        method: "POST",
+        body: formData,
+      })
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        showError("Erro no upload", json.error || "Erro na API.")
+      } else {
+        set(field, json.url)
+        success("Upload concluído!", "O arquivo foi enviado para o Supabase e o campo foi atualizado.")
+      }
+    } catch (err: any) {
+      console.error("Erro no upload:", err)
+      showError("Erro no upload", "Ocorreu um erro inesperado ao enviar o arquivo.")
+    } finally {
+      setUploadingField(null)
+      e.target.value = "" // reset input
+    }
+  }
 
   // Sync form when slide prop changes
   useEffect(() => {
@@ -229,25 +282,117 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
               <ImageIcon className="h-3.5 w-3.5" /> Imagens de Fundo
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <label className="text-[10px] font-semibold text-slate-500">Desktop (obrigatório)</label>
-                <Input
-                  value={form.image || ""}
-                  onChange={(e) => set("image", e.target.value)}
-                  placeholder="/images/banners/1.jpg"
-                  className="bg-white border-slate-200 text-slate-800 h-9 text-xs"
-                  required
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={form.image || ""}
+                    onChange={(e) => set("image", e.target.value)}
+                    placeholder="/images/banners/1.jpg"
+                    className="bg-white border-slate-200 text-slate-800 h-9 text-xs flex-1"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setLibraryField("image")}
+                    className="h-9 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all shrink-0"
+                  >
+                    Galeria
+                  </Button>
+                  <div className="relative shrink-0">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleUpload(e, "image")}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      disabled={uploadingField !== null}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={uploadingField !== null}
+                      className="h-9 px-3 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold transition-all flex items-center gap-1"
+                    >
+                      {uploadingField === "image" ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <UploadCloud className="h-3.5 w-3.5" />
+                      )}
+                      {uploadingField === "image" ? "..." : "Upload"}
+                    </Button>
+                  </div>
+                </div>
+                {/* Desktop Image Preview */}
+                {form.image && (
+                  <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-900 shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={form.image}
+                      alt="Preview desktop"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950/80 to-transparent px-2 py-1.5">
+                      <span className="text-[9px] text-white/80 font-bold uppercase tracking-widest">Preview Desktop</span>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <label className="text-[10px] font-semibold text-slate-500">Mobile (opcional)</label>
-                <Input
-                  value={form.mobileImage || ""}
-                  onChange={(e) => set("mobileImage", e.target.value)}
-                  placeholder="/images/banners/1-mobile.jpg"
-                  className="bg-white border-slate-200 text-slate-800 h-9 text-xs"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={form.mobileImage || ""}
+                    onChange={(e) => set("mobileImage", e.target.value)}
+                    placeholder="/images/banners/1-mobile.jpg"
+                    className="bg-white border-slate-200 text-slate-800 h-9 text-xs flex-1"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setLibraryField("mobileImage")}
+                    className="h-9 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all shrink-0"
+                  >
+                    Galeria
+                  </Button>
+                  <div className="relative shrink-0">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleUpload(e, "mobileImage")}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      disabled={uploadingField !== null}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={uploadingField !== null}
+                      className="h-9 px-3 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold transition-all flex items-center gap-1"
+                    >
+                      {uploadingField === "mobileImage" ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <UploadCloud className="h-3.5 w-3.5" />
+                      )}
+                      {uploadingField === "mobileImage" ? "..." : "Upload"}
+                    </Button>
+                  </div>
+                </div>
+                {/* Mobile Image Preview */}
+                {form.mobileImage && (
+                  <div className="relative aspect-[9/16] w-[80px] rounded-lg overflow-hidden border border-slate-200 bg-slate-900 shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={form.mobileImage}
+                      alt="Preview mobile"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950/80 to-transparent px-1 py-1">
+                      <span className="text-[8px] text-white/80 font-bold uppercase tracking-widest">Mobile</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -257,12 +402,36 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
               <Film className="h-3.5 w-3.5" /> Link Vídeo MP4 — Desktop (opcional, substitui imagem)
             </label>
-            <Input
-              value={form.video || ""}
-              onChange={(e) => set("video", e.target.value)}
-              placeholder="https://... .mp4"
-              className="bg-white border-slate-200 text-slate-800 h-9 text-xs"
-            />
+            <div className="flex gap-2">
+              <Input
+                value={form.video || ""}
+                onChange={(e) => set("video", e.target.value)}
+                placeholder="https://... .mp4"
+                className="bg-white border-slate-200 text-slate-800 h-9 text-xs flex-1"
+              />
+              <div className="relative shrink-0">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => handleUpload(e, "video")}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  disabled={uploadingField !== null}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={uploadingField !== null}
+                  className="h-9 px-3 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold transition-all flex items-center gap-1"
+                >
+                  {uploadingField === "video" ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <UploadCloud className="h-3.5 w-3.5" />
+                  )}
+                  {uploadingField === "video" ? "..." : "Upload"}
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Publicar toggle */}
@@ -297,6 +466,18 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
               {saving ? "Salvando..." : slide ? "Salvar Alterações" : "Criar Slide"}
             </Button>
           </DialogFooter>
+          <MediaSelectorDialog
+            open={libraryField !== null}
+            onClose={() => setLibraryField(null)}
+            onSelect={(url) => {
+              if (libraryField) {
+                set(libraryField, url)
+              }
+            }}
+            bucket="banners"
+            title="Biblioteca de Imagens — Banners"
+            description="Selecione um banner já enviado para o seu storage do Supabase."
+          />
         </form>
       </DialogContent>
     </Dialog>
