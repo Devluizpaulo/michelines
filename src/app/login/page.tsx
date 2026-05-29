@@ -162,7 +162,7 @@ export default function LoginPage() {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-gray-700 font-semibold">Senha</Label>
                     {!isRegister && (
-                      <Link href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                      <Link href="/recuperar-senha" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
                         Esqueceu a senha?
                       </Link>
                     )}

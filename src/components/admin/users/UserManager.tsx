@@ -87,7 +87,7 @@ export function UserManager() {
   const [form, setForm] = useState({
     displayName: "",
     email: "",
-    password: "",
+    phone: "",
     role: "vendedor" as UserRole,
   })
 
@@ -107,19 +107,23 @@ export function UserManager() {
 
   useEffect(() => { fetchUsers() }, [])
 
-  // Criar novo usuário
+  // Criar novo usuário por convite
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.email || !form.password || !form.displayName) return
+    if (!form.email || !form.displayName) return
     setSaving(true)
     try {
-      // 1. Cria no Firebase Auth
-      const cred = await createUserWithEmailAndPassword(auth, form.email, form.password)
+      // 1. Gera uma senha temporária aleatória segura
+      const tempPassword = Math.random().toString(36).slice(-10) + "A1!" + Math.random().toString(36).slice(-5).toUpperCase()
 
-      // 2. Cria perfil no Firestore
+      // 2. Cria no Firebase Auth
+      const cred = await createUserWithEmailAndPassword(auth, form.email, tempPassword)
+
+      // 3. Cria perfil no Firestore
       const userDoc: Omit<AdminUser, "uid"> = {
         email: form.email,
         displayName: form.displayName,
+        phone: form.phone,
         role: form.role,
         active: true,
         createdAt: new Date().toISOString(),
@@ -127,13 +131,20 @@ export function UserManager() {
       }
       await setDoc(doc(db, "admin_users", cred.user.uid), userDoc)
 
+      // 4. Envia e-mail de redefinição de senha para que o usuário crie sua senha ao acessar
+      try {
+        await sendPasswordResetEmail(auth, form.email)
+      } catch (emailErr) {
+        console.warn("Erro ao enviar email de redefinição automático:", emailErr)
+      }
+
       setCreateOpen(false)
-      setForm({ displayName: "", email: "", password: "", role: "vendedor" })
+      setForm({ displayName: "", email: "", phone: "", role: "vendedor" })
       await fetchUsers()
+      alert(`Usuário convidado com sucesso! Um e-mail de convite e redefinição de senha foi enviado para ${form.email}.`)
     } catch (err: any) {
       let msg = "Erro ao criar usuário."
       if (err.code === "auth/email-already-in-use") msg = "Este email já está em uso."
-      if (err.code === "auth/weak-password") msg = "Senha fraca. Use pelo menos 6 caracteres."
       alert(msg)
     } finally {
       setSaving(false)
@@ -374,7 +385,15 @@ export function UserManager() {
                         <Crown className="h-3.5 w-3.5 text-amber-500" />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 font-semibold truncate">{user.email}</p>
+                    <p className="text-[11px] text-slate-500 font-semibold truncate flex items-center gap-1.5">
+                      <span>{user.email}</span>
+                      {user.phone && (
+                        <>
+                          <span className="text-slate-300">•</span>
+                          <span>{user.phone}</span>
+                        </>
+                      )}
+                    </p>
                   </div>
 
                   {/* Role Badge */}
@@ -475,7 +494,7 @@ export function UserManager() {
                 Novo Membro da Equipe
               </DialogTitle>
               <DialogDescription className="text-slate-500">
-                Crie uma conta de acesso ao CRM e defina as permissões do usuário.
+                O usuário receberá um convite por e-mail para cadastrar sua própria senha.
               </DialogDescription>
             </DialogHeader>
 
@@ -492,6 +511,17 @@ export function UserManager() {
               </div>
 
               <div className="space-y-1.5">
+                <Label className="text-slate-700 text-xs font-bold">Telefone / WhatsApp</Label>
+                <Input
+                  placeholder="Ex: (11) 99999-9999"
+                  value={form.phone}
+                  onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+                  className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <Label className="text-slate-700 text-xs font-bold">Email corporativo</Label>
                 <Input
                   type="email"
@@ -501,29 +531,6 @@ export function UserManager() {
                   className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500"
                   required
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-bold">Senha inicial</Label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Mínimo 6 caracteres"
-                    value={form.password}
-                    onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                    className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 pr-10"
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <p className="text-[10px] text-slate-400">O usuário poderá alterar a senha após o primeiro login.</p>
               </div>
 
               <div className="space-y-1.5">
