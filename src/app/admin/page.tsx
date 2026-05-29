@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { collection, query, orderBy, getDocs, doc, getDoc } from "firebase/firestore"
+import { collection, query, orderBy, getDocs, doc, getDoc, onSnapshot } from "firebase/firestore"
 import { signOut } from "firebase/auth"
 import { db, auth } from "../firebase/config"
 
@@ -14,7 +14,7 @@ import { TabId } from "@/lib/permissions"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 
 // Toast
-import { ToastProvider } from "@/components/ui/toast-simple"
+import { ToastProvider, useToast } from "@/components/ui/toast-simple"
 
 // Admin components
 import { AdminHeader } from "@/components/admin/shared/AdminHeader"
@@ -33,6 +33,8 @@ import { Shield } from "lucide-react"
 // Inner component that uses auth context
 function AdminContent() {
   const { adminUser, role, canAccess, loading: authLoading } = useAuth()
+  const { success } = useToast()
+  const mountTimeRef = useRef(Date.now())
   const [activeTab, setActiveTab] = useState<TabId>("dashboard")
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
@@ -160,6 +162,97 @@ function AdminContent() {
       loadCRMData()
     }
   }, [activeTab, loadCRMData])
+
+  // Função para reproduzir um som de chime agradável e profissional via Web Audio API (100% autossuficiente)
+  const playNotificationChime = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      
+      // Primeiro tom chime
+      const osc1 = ctx.createOscillator()
+      const gain1 = ctx.createGain()
+      osc1.type = "sine"
+      osc1.frequency.setValueAtTime(587.33, ctx.currentTime) // Nota Ré (D5)
+      gain1.gain.setValueAtTime(0.12, ctx.currentTime)
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+      osc1.connect(gain1)
+      gain1.connect(ctx.destination)
+      osc1.start()
+      osc1.stop(ctx.currentTime + 0.3)
+
+      // Segundo tom chime (mais agudo e harmonioso, logo em seguida)
+      const osc2 = ctx.createOscillator()
+      const gain2 = ctx.createGain()
+      osc2.type = "sine"
+      osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.15) // Nota Lá (A5)
+      gain2.gain.setValueAtTime(0.12, ctx.currentTime + 0.15)
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45)
+      osc2.connect(gain2)
+      gain2.connect(ctx.destination)
+      osc2.start(ctx.currentTime + 0.15)
+      osc2.stop(ctx.currentTime + 0.45)
+    } catch (e) {
+      console.warn("Áudio de notificação bloqueado pelo navegador:", e)
+    }
+  }, [])
+
+  // Listener em tempo real para novos leads + permissão de Notificação Nativa (PWA / Navegador)
+  useEffect(() => {
+    // Solicita permissão para notificações nativas do navegador no desktop e mobile (PWA)
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission()
+      }
+    }
+
+    const q = query(collection(db, "leads"))
+    const unsub = onSnapshot(q, (snapshot) => {
+      let hasNewLead = false
+      let newLeadName = ""
+      let newLeadVehicle = ""
+
+      snapshot.docChanges().forEach((change) => {
+        // Só notifica se for um documento adicionado
+        if (change.type === "added") {
+          const data = change.doc.data()
+          const leadTime = data.createdAt?.seconds 
+            ? data.createdAt.seconds * 1000 
+            : new Date(data.createdAt || Date.now()).getTime()
+
+          // Só notifica se for um lead criado APÓS a inicialização da página
+          if (leadTime > mountTimeRef.current) {
+            hasNewLead = true
+            newLeadName = data.fullName || "Novo Lead"
+            newLeadVehicle = data.vehicleInterest || "Veículo"
+          }
+        }
+      })
+
+      if (hasNewLead) {
+        // 1. Toca chime de notificação
+        playNotificationChime()
+
+        // 2. Dispara Toast flutuante interno do painel
+        success(`Novo Lead Recebido! 🚗`, `${newLeadName} está interessado em ${newLeadVehicle}.`)
+
+        // 3. Dispara Notificação Nativa do Navegador / PWA
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+          new Notification("Novo Lead Recebido! 🚗", {
+            body: `${newLeadName} está interessado em ${newLeadVehicle}.`,
+            icon: "/icon-light-32x32.png"
+          })
+        }
+
+        // 4. Força atualização instantânea da tela/CRM para exibir o novo lead
+        setLeads([]) // Limpa o estado para resetar o cache
+        loadCRMData()
+      }
+    }, (err) => {
+      console.warn("Erro no listener de leads em tempo real:", err)
+    })
+
+    return () => unsub()
+  }, [success, loadCRMData, playNotificationChime])
 
   if (authLoading) {
     return (

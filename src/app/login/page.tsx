@@ -7,8 +7,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "../firebase/config"
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth"
+import { auth, db } from "../firebase/config"
+import { doc, setDoc } from "firebase/firestore"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [isFirebaseReady, setIsFirebaseReady] = useState(false)
+  const [isRegister, setIsRegister] = useState(false)
 
   useEffect(() => {
     // Verificar se o Firebase Auth está pronto
@@ -44,11 +46,32 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      router.push("/admin")
-    } catch (error) {
-      setError("Falha na autenticação. Verifique suas credenciais.")
-      console.error(error)
+      if (isRegister) {
+        // Criar usuário com e-mail e senha
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        const user = userCredential.user
+
+        // Criar perfil do administrador no Firestore
+        await setDoc(doc(db, "admin_users", user.uid), {
+          email: email,
+          displayName: email.split("@")[0].charAt(0).toUpperCase() + email.split("@")[0].slice(1),
+          role: "super_admin",
+          active: true,
+          createdAt: new Date().toISOString()
+        })
+
+        router.push("/admin")
+      } else {
+        await signInWithEmailAndPassword(auth, email, password)
+        router.push("/admin")
+      }
+    } catch (err: any) {
+      if (isRegister) {
+        setError("Erro ao cadastrar administrador. Verifique as credenciais ou se o e-mail já existe.")
+      } else {
+        setError("Falha na autenticação. Verifique suas credenciais.")
+      }
+      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -109,8 +132,14 @@ export default function LoginPage() {
 
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2">
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Bem-vindo de volta</h2>
-            <p className="text-gray-500 font-medium">Insira suas credenciais para acessar o painel administrativo.</p>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+              {isRegister ? "Criar conta administrativa" : "Bem-vindo de volta"}
+            </h2>
+            <p className="text-gray-500 font-medium">
+              {isRegister
+                ? "Cadastre as credenciais do novo administrador do sistema."
+                : "Insira suas credenciais para acessar o painel administrativo."}
+            </p>
           </div>
 
           <Card className="border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white rounded-2xl overflow-hidden">
@@ -132,9 +161,11 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-gray-700 font-semibold">Senha</Label>
-                    <Link href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                      Esqueceu a senha?
-                    </Link>
+                    {!isRegister && (
+                      <Link href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                        Esqueceu a senha?
+                      </Link>
+                    )}
                   </div>
                   <div className="relative">
                     <Input
@@ -177,11 +208,26 @@ export default function LoginPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Autenticando...
+                      {isRegister ? "Cadastrando..." : "Autenticando..."}
                     </span>
-                  ) : "Entrar no Sistema"}
+                  ) : (
+                    isRegister ? "Cadastrar no Sistema" : "Entrar no Sistema"
+                  )}
                 </Button>
               </form>
+
+              <div className="mt-6 text-center border-t border-gray-100 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegister(!isRegister)
+                    setError("")
+                  }}
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                >
+                  {isRegister ? "Já possui uma conta? Entrar" : "Criar uma conta administrativa"}
+                </button>
+              </div>
             </CardContent>
           </Card>
 
