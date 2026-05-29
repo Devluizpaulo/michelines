@@ -27,7 +27,7 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
   const [seeding, setSeeding] = useState(false)
 
   const handleSeedVehicles = async () => {
-    if (!window.confirm("Deseja semear o catálogo com os 10 veículos padrão da Michelines?")) return
+    if (!window.confirm("Deseja semear o catálogo com os 18 veículos padrão da Michelines?")) return
     try {
       setSeeding(true)
       
