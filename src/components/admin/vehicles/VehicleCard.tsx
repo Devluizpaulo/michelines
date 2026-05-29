@@ -66,10 +66,10 @@ export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardPr
         {/* Price & Specs row */}
         <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
           <div className="text-xs text-slate-650 font-bold">
-            Diária: <span className="text-emerald-650 font-extrabold">R$ {vehicle.dailyPrice}</span>
+            Diária: <span className="text-emerald-650 font-extrabold">R$ {vehicle.dailyPrice?.toLocaleString('pt-BR')}</span>
           </div>
           <div className="text-xs text-slate-650 font-bold">
-            Mensal: <span className="text-emerald-650 font-extrabold">R$ {vehicle.monthlyPrice}</span>
+            Mensal: <span className="text-emerald-650 font-extrabold">R$ {vehicle.monthlyPrice?.toLocaleString('pt-BR')}</span>
           </div>
         </div>
       </CardContent>

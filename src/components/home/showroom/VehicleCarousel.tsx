@@ -148,7 +148,7 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Diária a partir de</span>
                       <span className="text-lg font-black text-emerald-600 flex items-center gap-1">
                         <Tag className="h-4 w-4 text-emerald-500" />
-                        R$ {car.pricing?.dailyRate || car.dailyPrice || 150}/dia
+                        R$ {Number(car.dailyPrice || 150).toLocaleString('pt-BR')}/dia
                       </span>
                     </div>
                   </div>

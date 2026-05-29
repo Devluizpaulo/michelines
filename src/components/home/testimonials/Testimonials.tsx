@@ -6,24 +6,18 @@ const testimonialsData = [
   {
     name: "Carlos Santos",
     time: "Taxista há 1 ano",
-    before: "R$ 4.800/mês (Motorista App)",
-    after: "R$ 12.400/mês (Táxi Corolla)",
     testimony: "Trabalhava 12h por dia no aplicativo. Quase metade do ganho ia para a taxa da plataforma e gasolina cara. No táxi da Micheline's com GNV e rodando no corredor, reduzi as horas de trabalho e ganho muito mais.",
     image: "/placeholder-user.jpg"
   },
   {
     name: "Juliana Souza",
     time: "Taxista há 8 meses",
-    before: "R$ 2.800/mês (Ex-Vendedora)",
-    after: "R$ 9.800/mês (Táxi Virtus)",
     testimony: "Não sabia nada sobre táxi, nem tinha Condutax. O time do Grupo Micheline's me encaminhou para o curso, cuidou de toda a burocracia do documento e me deu segurança. Hoje tenho estabilidade financeira.",
     image: "/placeholder-user.jpg"
   },
   {
     name: "Marcos Pereira",
     time: "Taxista há 3 anos",
-    before: "R$ 5.200/mês (Aluguel App)",
-    after: "R$ 13.500/mês (Spin Congonhas)",
     testimony: "A grande sacada é a Spin da Micheline's na fila do aeroporto de Congonhas. Corridas de alto valor para hotéis e centros corporativos. Não fico parado nunca. Suporte mecânico deles é nota 10.",
     image: "/placeholder-user.jpg"
   }
@@ -61,17 +55,7 @@ export function Testimonials() {
                   "{item.testimony}"
                 </p>
 
-                {/* Evolução de Ganhos */}
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
-                  <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-slate-400 uppercase tracking-wider">Como vivia antes:</span>
-                    <span className="text-red-500 line-through">{item.before}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-bold">
-                    <span className="text-slate-600 uppercase tracking-wider">Faturamento atual:</span>
-                    <span className="text-emerald-600 font-black">{item.after}</span>
-                  </div>
-                </div>
+
               </div>
 
               <div className="flex items-center gap-4 pt-6 border-t border-slate-100 mt-6">

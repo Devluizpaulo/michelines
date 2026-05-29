@@ -41,102 +41,52 @@ export function Showroom() {
 
   // Load vehicles
   useEffect(() => {
-    let hasCache = false
     if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("showroom_vehicles")
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached)
-          if (parsed && parsed.length > 0) {
-            setVehicles(parsed)
-            setLoading(false)
-            hasCache = true
-          }
-        } catch (e) {
-          console.error("Erro ao carregar showroom do cache local:", e)
-        }
-      }
+      // Clear legacy cache to force recalculation with correct parsed numbers
+      localStorage.removeItem("showroom_vehicles")
     }
 
     const fetchShowroomVehicles = async () => {
       try {
-        if (!hasCache) {
-          setLoading(true)
-        }
+        setLoading(true)
 
-        const fetchPromise = (async () => {
-          // Pricing map
-          const pricingMap: Record<string, any> = {}
-          try {
-            const pricingSnap = await getDocs(
-              collection(db, "vehicle_pricing")
-            )
-            pricingSnap.forEach((doc) => {
-              const data = doc.data()
-              if (data.vehicleId) {
-                pricingMap[data.vehicleId] = {
-                  id: doc.id,
-                  ...data,
-                }
-              }
-            })
-          } catch (pricingError) {
-            console.warn(
-              "Erro ao carregar vehicle_pricing (será usado fallback individual):",
-              pricingError
-            )
-          }
-
-          // Vehicles query
-          const q = query(
-            collection(db, "vehicles"),
-            where("status", "==", "active"),
-            where("available", "==", true),
-            orderBy("showroomOrder", "asc")
-          )
-          const snap = await getDocs(q)
-          return { pricingMap, snap }
-        })()
-
+        // Vehicles query
+        const q = query(
+          collection(db, "vehicles"),
+          where("status", "==", "active"),
+          where("available", "==", true),
+          orderBy("showroomOrder", "asc")
+        )
+        
         // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
-        const { pricingMap, snap } = await Promise.race([
-          fetchPromise,
+        const snap = await Promise.race([
+          getDocs(q),
           new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error("Timeout de rede")), 2500)
           )
-        ])
+        ]) as any
 
         if (!snap.empty) {
           const list: Vehicle[] = []
 
-          snap.forEach((doc) => {
+          snap.forEach((doc: any) => {
             const carData = doc.data() as Vehicle
             const carId = doc.id
 
             list.push({
               id: carId,
               ...carData,
-
-              pricing: pricingMap[carId] || {
+              pricing: {
                 vehicleId: carId,
-                dailyRate:
-                  carData.dailyPrice ||
-                  Math.round((carData.monthlyPrice || 2400) / 30),
-
-                weeklyRate: Math.round(
-                  (carData.monthlyPrice || 2400) / 4
-                ),
-
+                dailyRate: carData.dailyPrice || Math.round((carData.monthlyPrice || 2400) / 30),
+                weeklyRate: carData.weeklyPrice || Math.round((carData.monthlyPrice || 2400) / 4),
                 monthlyRate: carData.monthlyPrice || 2400,
-
                 weekendExempt: true,
-
                 acceptedPayments: [
                   "pix",
                   "debito",
                   "credito",
                 ],
-
                 active: true,
               },
             } as any)
@@ -158,13 +108,10 @@ export function Showroom() {
           "Erro ou timeout ao carregar showroom dinâmico, usando fallbacks:",
           error
         )
-        // Se falhar e não tivermos cache, mostramos os fallbacks estáticos
-        if (!hasCache) {
-          const fallback = buildFallbackVehicles()
-          setVehicles(fallback)
-          if (typeof window !== "undefined") {
-            localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
-          }
+        const fallback = buildFallbackVehicles()
+        setVehicles(fallback)
+        if (typeof window !== "undefined") {
+          localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
         }
       } finally {
         setLoading(false)
@@ -180,93 +127,67 @@ export function Showroom() {
 
     staticCategories.forEach((cat) => {
       cat.vehicles.forEach((v, idx) => {
-        const numPrice =
-          Number(v.price!.replace(/\D/g, "")) || 2000
+        // Extract raw number from e.g. "R$ 1.620,00/Semana"
+        const cleanPriceStr = v.price!
+          .replace("R$", "")
+          .split("/")[0]
+          .replace(/\./g, "")
+          .replace(",", ".")
+          .trim()
+        
+        const parsedWeekly = parseFloat(cleanPriceStr) || 1500
+        const monthly = parsedWeekly * 4
+        const daily = Math.round(parsedWeekly / 6)
 
         const vehicleId = `${cat.id}-${idx}`
 
         fallbackList.push({
           id: vehicleId,
-
           name: v.name,
-
           slug: `${cat.id}-${idx}`,
-
           category: cat.id,
-
           brand: v.name.split(" ")[0],
-
           year: v.year,
-
           transmission: "automatic",
-
-          fuelType:
-            cat.id === "hibridos" ? "hybrid" : "flex",
-
+          fuelType: cat.id === "hibridos" ? "hybrid" : "flex",
           isHybrid: cat.id === "hibridos",
-
           hasGNV: cat.id === "dtaxi",
-
           isDTaxiApproved: cat.id === "dtaxi",
-
-          shortDescription: `Veículo preparado para operação executiva. ${v.specs!.join(
-            " • "
-          )}`,
-
-          fullDescription:
-            "Veículo revisado, confortável e pronto para operação diária com suporte da frota.",
-
-          monthlyPrice: numPrice,
-
-          dailyPrice: Math.round(numPrice / 30),
-
+          shortDescription: `Veículo preparado para operação executiva. ${v.specs!.join(" • ")}`,
+          fullDescription: "Veículo revisado, confortável e pronto para operação diária com suporte da frota.",
+          monthlyPrice: monthly,
+          weeklyPrice: parsedWeekly,
+          dailyPrice: daily,
           status: "active",
-
           available: true,
-
           featured: v.tag! === "Mais Alugado",
-
           showroomFeatured: true,
-
           showroomOrder: idx,
-
           thumbnail: v.image!,
-
           images: [v.image!],
-
           specs: v.specs,
-
           tags: [v.tag!],
-
           positivePoints: [
             "Baixo consumo",
             "Excelente conforto",
             "Suporte operacional",
           ],
-
           highlights: [
             "Ar-condicionado",
             "Excelente porta-malas",
             "Ótima economia",
           ],
-
           pricing: {
             vehicleId,
-
-            dailyRate: Math.round(numPrice / 30),
-
-            weeklyRate: Math.round(numPrice / 4),
-
-            monthlyRate: numPrice,
-
+            dailyRate: daily,
+            weeklyRate: parsedWeekly,
+            monthlyRate: monthly,
             weekendExempt: true,
-
             acceptedPayments: [
               "pix",
               "debito",
               "credito",
             ],
-
             active: true,
           },
         })

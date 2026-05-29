@@ -121,15 +121,15 @@ export function VehicleHighlightHero({
           {/* PRICE */}
           <div className="flex items-baseline gap-2 border-t border-slate-100 pt-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-              Locação a partir de
+              Diária a partir de
             </span>
 
             <span className="text-3xl font-black text-slate-900">
-              R$ {vehicle.monthlyPrice}
+              R$ {vehicle.dailyPrice?.toLocaleString('pt-BR') || "0"}
             </span>
 
             <span className="text-xs font-bold text-slate-500">
-              /mês
+              /dia
             </span>
           </div>
 

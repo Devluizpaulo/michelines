@@ -39,6 +39,13 @@ export function Advantages() {
             </h3>
 
             <div className="space-y-4">
+              {/* HEADERS */}
+              <div className="grid grid-cols-12 items-center gap-3 border-b border-slate-200 pb-3 text-[10px] md:text-xs font-black uppercase tracking-wider text-slate-400">
+                <div className="col-span-6">Vantagem</div>
+                <div className="col-span-3 text-center text-sky-700 font-extrabold">Táxi Micheline's</div>
+                <div className="col-span-3 text-center text-slate-400 font-bold">App Comum</div>
+              </div>
+
               {[
                 {
                   item: "Uso de corredores de ônibus",

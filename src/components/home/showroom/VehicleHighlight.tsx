@@ -20,16 +20,9 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
   // WhatsApp Link Construction
   const waPhone = "5511944830851" // Michelin's commercial contact
   const waText = encodeURIComponent(
-    `Olá! Tenho interesse em alugar o táxi ${vehicle.name} (Diária a partir de R$ ${vehicle.pricing?.dailyRate || vehicle.dailyPrice || 150}). Vocês têm disponibilidade imediata?`
+    `Olá! Tenho interesse em alugar o táxi ${vehicle.name} (Diária a partir de R$ ${vehicle.dailyPrice || 150}). Vocês têm disponibilidade imediata?`
   )
   const waUrl = `https://wa.me/${waPhone}?text=${waText}`
-
-  // Simulated Commercial Rentability Comparison (based on real operational taxi inputs)
-  const weeklyRevenueMicheline = vehicle.isDTaxiApproved ? 2800 : 2200
-  const weeklyRevenueCommon = 1650
-  
-  const fuelCostMicheline = vehicle.fuelType === "electric" ? 180 : vehicle.isHybrid ? 290 : vehicle.hasGNV ? 340 : 450
-  const fuelCostCommon = 690
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -39,7 +32,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
           <div className="flex flex-wrap gap-2 mb-2">
             {vehicle.isDTaxiApproved && (
               <Badge className="bg-sky-50 text-sky-700 border border-sky-200 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
-                ✈️ Fila Rápida Congonhas
+                ✈️ Credenciado para operação D-Taxi
               </Badge>
             )}
             {vehicle.isHybrid && (
@@ -63,13 +56,13 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
               </Badge>
             ) : (
               <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
-                💰 Alta Rentabilidade
+                🚖 Categoria Econômica
               </Badge>
             )}
           </div>
           <DialogTitle className="text-2xl font-black text-slate-900">{vehicle.name}</DialogTitle>
           <DialogDescription className="text-xs text-slate-400 font-semibold">
-            Ficha técnica corporativa e demonstrativo de rendimento líquido semanal.
+            Informações do veículo e condições de locação.
           </DialogDescription>
         </DialogHeader>
 
@@ -87,57 +80,38 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             </div>
           )}
 
-          {/* Comparativo de Rentabilidade Semanal (Storytelling Comercial) */}
-          <div className="bg-slate-50 border border-slate-200/80 p-4.5 rounded-2xl space-y-3 shadow-sm">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4.5 w-4.5 text-emerald-600" />
-              <h4 className="text-xs uppercase font-black tracking-widest text-slate-500">Demonstrativo de Rendimento Líquido</h4>
+          {/* O QUE ESTÁ INCLUSO NA LOCAÇÃO */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3.5 shadow-sm">
+            <div className="flex items-center gap-2 text-slate-800">
+              <CheckCircle2 className="h-4.5 w-4.5 text-sky-600" />
+              <h4 className="text-xs uppercase font-black tracking-widest text-slate-500">O que está incluso na locação</h4>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-xs font-bold">
-              <div className="space-y-2 p-3 bg-sky-50/50 rounded-xl border border-sky-100/85">
-                <span className="text-[10px] text-sky-700 font-black uppercase tracking-wider block">OPERAÇÃO MICHELINE'S</span>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-650">Ganhos (Semana):</span>
-                    <span className="text-slate-900 font-extrabold">R$ {weeklyRevenueMicheline}</span>
-                  </div>
-                  <div className="flex justify-between text-red-650">
-                    <span>Combustível (Semana):</span>
-                    <span>- R$ {fuelCostMicheline}</span>
-                  </div>
-                  <div className="h-px bg-slate-200/60 my-1" />
-                  <div className="flex justify-between text-emerald-600 font-black text-sm">
-                    <span>Sobra Líquida:</span>
-                    <span>R$ {weeklyRevenueMicheline - fuelCostMicheline}</span>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-xs font-bold text-slate-700">
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-500 text-sm">✅</span>
+                <span>Oficina própria</span>
               </div>
-
-              <div className="space-y-2 p-3 bg-slate-100/40 rounded-xl border border-slate-200/50 opacity-80">
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">CARRO FLEX COMUM APP</span>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Ganhos (Semana):</span>
-                    <span className="text-slate-800 font-extrabold">R$ {weeklyRevenueCommon}</span>
-                  </div>
-                  <div className="flex justify-between text-red-500">
-                    <span>Combustível (Semana):</span>
-                    <span>- R$ {fuelCostCommon}</span>
-                  </div>
-                  <div className="h-px bg-slate-200/60 my-1" />
-                  <div className="flex justify-between text-slate-600 font-black text-sm">
-                    <span>Sobra Líquida:</span>
-                    <span>R$ {weeklyRevenueCommon - fuelCostCommon}</span>
-                  </div>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-500 text-sm">✅</span>
+                <span>Assistência 24h com guincho</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-500 text-sm">✅</span>
+                <span>Suporte operacional</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-500 text-sm">✅</span>
+                <span>Licenciamento em dia</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-500 text-sm">✅</span>
+                <span>Impostos do veículo por conta da frota</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-500 text-sm">✅</span>
+                <span>Orientação em caso de sinistro</span>
               </div>
             </div>
-
-            <p className="text-[10px] text-slate-550 font-semibold leading-relaxed flex items-start gap-1.5 pt-1 text-justify">
-              <Info className="h-3.5 w-3.5 text-sky-600 shrink-0 mt-0.5" />
-              <span>*Cálculo baseado em jornada média de 40h/semana. Os veículos homologados D-TAXI possuem acesso livre à fila rápida do Aeroporto de Congonhas.</span>
-            </p>
           </div>
 
           {/* Description */}
@@ -198,19 +172,19 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-slate-50 border border-slate-200/60 p-3.5 rounded-xl text-center space-y-1">
                 <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block">Por Diária</span>
-                <span className="text-base font-black text-slate-800 block">R$ {vehicle.pricing?.dailyRate || vehicle.dailyPrice}/dia</span>
-                <span className="text-[8px] text-slate-500 font-bold leading-tight block">Faturamento flexível</span>
+                <span className="text-base font-black text-slate-800 block">R$ {Number(vehicle.dailyPrice || 150).toLocaleString('pt-BR')}/dia</span>
+                <span className="text-[8px] text-slate-500 font-bold leading-tight block">Flexibilidade diária</span>
               </div>
               <div className="bg-slate-50 border border-slate-200/60 p-3.5 rounded-xl text-center space-y-1">
                 <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block">Semanal</span>
-                <span className="text-base font-black text-slate-800 block">R$ {vehicle.pricing?.weeklyRate || Math.round((vehicle.monthlyPrice || 2400) / 4)}/sem</span>
+                <span className="text-base font-black text-slate-800 block">R$ {Number(vehicle.weeklyPrice || Math.round((vehicle.monthlyPrice || 2400) / 4)).toLocaleString('pt-BR')}/sem</span>
                 <span className="text-[8px] text-slate-500 font-bold leading-tight block">Ajuste semanal</span>
               </div>
               <div className="bg-sky-50/40 border border-sky-100 p-3.5 rounded-xl text-center space-y-1 relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-sky-500 text-[7px] font-black text-white px-1.5 py-0.5 rounded-bl uppercase">Foco</div>
-                <span className="text-[9px] text-sky-700 font-black uppercase tracking-wider block">Mensal Premium</span>
-                <span className="text-base font-black text-emerald-600 block">R$ {vehicle.pricing?.monthlyRate || vehicle.monthlyPrice}/mês</span>
-                <span className="text-[8px] text-slate-500 font-bold leading-tight block">Melhor rendimento</span>
+                <div className="absolute top-0 right-0 bg-sky-500 text-[7px] font-black text-white px-1.5 py-0.5 rounded-bl uppercase">Mais Escolhido</div>
+                <span className="text-[9px] text-sky-700 font-black uppercase tracking-wider block">Locação Mensal</span>
+                <span className="text-base font-black text-emerald-600 block">R$ {Number(vehicle.monthlyPrice || 3200).toLocaleString('pt-BR')}/mês</span>
+                <span className="text-[8px] text-slate-500 font-bold leading-tight block">Plano mais utilizado</span>
               </div>
             </div>
 
@@ -235,6 +209,14 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
                   Mais controle financeiro. Escolha pagar via Pix ou cartões de débito/crédito sem burocracias extras.
                 </p>
               </div>
+            </div>
+
+            {/* Info Disclaimer */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex gap-2">
+              <Info className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
+              <p className="text-[10px] text-slate-500 font-semibold leading-relaxed text-justify">
+                Os resultados financeiros podem variar de acordo com a rotina de trabalho, região de atuação e demanda diária de cada motorista.
+              </p>
             </div>
           </div>
 
