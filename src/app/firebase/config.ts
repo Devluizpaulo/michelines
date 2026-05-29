@@ -27,6 +27,16 @@ if (!getApps().length) {
 // Inicializar serviços do Firebase
 const auth = getAuth(app)
 
+// Inicializar aplicativo e auth secundários para operações administrativas sem deslogar o admin
+let secondaryApp
+const secondaryAppName = "secondary"
+if (!getApps().some(a => a.name === secondaryAppName)) {
+  secondaryApp = initializeApp(firebaseConfig, secondaryAppName)
+} else {
+  secondaryApp = getApps().find(a => a.name === secondaryAppName)
+}
+const secondaryAuth = getAuth(secondaryApp)
+
 // Garantir persistência local do login para evitar logout ao fechar o PWA
 if (typeof window !== "undefined") {
   setPersistence(auth, browserLocalPersistence)
@@ -56,5 +66,5 @@ try {
 
 const storage = getStorage(app)
 
-export { auth, db, storage }
+export { auth, db, storage, secondaryAuth }
 

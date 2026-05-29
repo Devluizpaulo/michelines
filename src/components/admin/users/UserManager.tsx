@@ -7,7 +7,7 @@ import {
 import {
   createUserWithEmailAndPassword, sendPasswordResetEmail
 } from "firebase/auth"
-import { db, auth } from "@/app/firebase/config"
+import { db, auth, secondaryAuth } from "@/app/firebase/config"
 import { AdminUser, UserRole, ROLE_LABELS, ROLE_PERMISSIONS, TabId } from "@/lib/permissions"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
@@ -127,8 +127,8 @@ export function UserManager() {
       // 1. Gera uma senha temporária aleatória segura
       const tempPassword = Math.random().toString(36).slice(-10) + "A1!" + Math.random().toString(36).slice(-5).toUpperCase()
 
-      // 2. Cria no Firebase Auth
-      const cred = await createUserWithEmailAndPassword(auth, form.email, tempPassword)
+      // 2. Cria no Firebase Auth usando a instância secundária isolada
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email, tempPassword)
 
       // 3. Cria perfil no Firestore
       const userDoc: Omit<AdminUser, "uid"> = {
@@ -142,13 +142,16 @@ export function UserManager() {
       }
       await setDoc(doc(db, "admin_users", cred.user.uid), userDoc)
 
+      // Desloga o usuário da instância secundária imediatamente
+      await secondaryAuth.signOut()
+
       // 4. Constrói uma mensagem humana e solícita de convite de acesso
       const inviteMsg = `Fala, ${form.displayName}! Tudo bem?
 
 Você foi convidado para fazer parte da equipe de gestão comercial do Grupo Michelines! 🚖
 
 Seu acesso já está liberado na nossa plataforma. Para definir sua senha pessoal de primeiro acesso, entre no link abaixo:
-${window.location.origin}/recuperar-senha
+${window.location.origin}/recuperar-senha?email=${encodeURIComponent(form.email)}
 
 Após cadastrar sua nova senha, você poderá acessar o painel de controle pelo link:
 ${window.location.origin}/login

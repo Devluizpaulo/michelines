@@ -28,6 +28,16 @@ export default function RecuperarSenhaPage() {
     }
   }, [])
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const emailParam = params.get("email")
+      if (emailParam) {
+        setEmail(emailParam)
+      }
+    }
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
