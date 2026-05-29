@@ -56,8 +56,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           // Busca perfil do usuário no Firestore
           const ref = doc(db, "admin_users", user.uid)
-          const snap = await getDoc(ref)
-          if (snap.exists()) {
+          
+          // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
+          const snap = await Promise.race([
+            getDoc(ref),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout de rede")), 2500)
+            )
+          ])
+
+          if (snap && snap.exists()) {
             setAdminUser({ uid: user.uid, ...snap.data() } as AdminUser)
           } else {
             // Usuário autenticado mas sem perfil no Firestore → super_admin por retrocompatibilidade
