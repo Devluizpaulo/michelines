@@ -75,7 +75,7 @@ export function DashboardOverview({ leads, onLeadClick }: DashboardOverviewProps
   })
   const topVehicles = Object.entries(vehicleCounts)
     .sort((a, b) => b[1] - a[1])
-  const topVehicleName = topVehicles[0] ? topVehicles[0][0] : "Corolla Cross"
+  const topVehicleName = topVehicles[0] ? topVehicles[0][0] : ""
 
   // Top Sources
   const sourceCounts: Record<string, number> = {}
@@ -106,8 +106,8 @@ export function DashboardOverview({ leads, onLeadClick }: DashboardOverviewProps
         />
         <MetricCard 
           title="Mais Procurado"
-          value={topVehicleName.split(" ")[0]}
-          description={topVehicleName}
+          value={topVehicleName ? topVehicleName.split(" ")[0] : "-"}
+          description={topVehicleName || "Sem dados"}
           icon={<Car className="h-4 w-4 text-slate-400" />}
         />
         <MetricCard 
@@ -124,7 +124,7 @@ export function DashboardOverview({ leads, onLeadClick }: DashboardOverviewProps
         />
         <MetricCard 
           title="Campanhas Ativas"
-          value={activeCampaignsCount || 3}
+          value={activeCampaignsCount}
           description="Banners do Hero"
           icon={<Megaphone className="h-4 w-4 text-slate-400" />}
         />
