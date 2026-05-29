@@ -1,3 +1,11 @@
+export interface LeadInteraction {
+  id: string
+  type: 'whatsapp' | 'note' | 'status_change' | 'credit_check' | 'authorization'
+  agentName: string
+  content: string
+  createdAt: string
+}
+
 export interface Lead {
   id: string
   fullName: string
@@ -28,6 +36,13 @@ export interface Lead {
   cpf?: string
   cep?: string
   address?: string
+  addressStreet?: string
+  addressNumber?: string
+  addressComplement?: string
+  addressNeighborhood?: string
+  addressCity?: string
+  addressState?: string
+  addressNotes?: string
   messagePhone1?: string
   messageName1?: string
   messagePhone2?: string
@@ -40,5 +55,19 @@ export interface Lead {
   cnhCategory?: string
   approvalStatus?: 'pending' | 'approved' | 'rejected'
   fileUrls?: Record<string, string>
+  
+  // New driver registration evaluation fields
+  registrationStatus?: 'complete' | 'incomplete' | 'pending_contact'
+  needsMoreData?: boolean
+  contactedForData?: boolean
+  creditAnalysisStatus?: 'pending' | 'approved' | 'rejected' | 'needs_authorization'
+  authorizedBy?: string
+  authorizationRecordedBy?: string
+  authorizationDate?: string
+  approvedBy?: string
+  approvalDate?: string
+  interactions?: LeadInteraction[]
+  archived?: boolean
 }
+
 

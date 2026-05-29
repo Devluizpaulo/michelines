@@ -20,10 +20,12 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   UserPlus, Shield, RefreshCw, Trash2, MailIcon, KeyRound,
-  CheckCircle2, XCircle, Crown, Eye, EyeOff, Users, Lock
+  CheckCircle2, XCircle, Crown, Eye, EyeOff, Users, Lock,
+  Send
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { THEME_TOKENS } from "@/theme/design-system"
+import { Textarea } from "@/components/ui/textarea"
 
 const TAB_LABELS: Record<TabId, string> = {
   dashboard:     "Dashboard",
@@ -46,6 +48,15 @@ export function UserManager() {
   const [saving, setSaving] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [resetSent, setResetSent] = useState<string | null>(null)
+  
+  // Custom manual invitation share states
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareData, setShareData] = useState({
+    displayName: "",
+    email: "",
+    phone: "",
+    message: ""
+  })
 
   // Configuração local de permissões dinâmicas
   const [permissionsConfig, setPermissionsConfig] = useState<Record<UserRole, TabId[]>>(ROLE_PERMISSIONS)
@@ -131,17 +142,33 @@ export function UserManager() {
       }
       await setDoc(doc(db, "admin_users", cred.user.uid), userDoc)
 
-      // 4. Envia e-mail de redefinição de senha para que o usuário crie sua senha ao acessar
-      try {
-        await sendPasswordResetEmail(auth, form.email)
-      } catch (emailErr) {
-        console.warn("Erro ao enviar email de redefinição automático:", emailErr)
-      }
+      // 4. Constrói uma mensagem humana e solícita de convite de acesso
+      const inviteMsg = `Fala, ${form.displayName}! Tudo bem?
+
+Você foi convidado para fazer parte da equipe de gestão comercial do Grupo Michelines! 🚖
+
+Seu acesso já está liberado na nossa plataforma. Para definir sua senha pessoal de primeiro acesso, entre no link abaixo:
+${window.location.origin}/recuperar-senha
+
+Após cadastrar sua nova senha, você poderá acessar o painel de controle pelo link:
+${window.location.origin}/login
+Login: ${form.email}
+
+Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo junto! 🤝`
+
+      setShareData({
+        displayName: form.displayName,
+        email: form.email,
+        phone: form.phone,
+        message: inviteMsg
+      })
 
       setCreateOpen(false)
       setForm({ displayName: "", email: "", phone: "", role: "vendedor" })
       await fetchUsers()
-      alert(`Usuário convidado com sucesso! Um e-mail de convite e redefinição de senha foi enviado para ${form.email}.`)
+      
+      // Abre o diálogo de compartilhamento customizado
+      setShareOpen(true)
     } catch (err: any) {
       let msg = "Erro ao criar usuário."
       if (err.code === "auth/email-already-in-use") msg = "Este email já está em uso."
@@ -588,7 +615,81 @@ export function UserManager() {
           </form>
         </DialogContent>
       </Dialog>
+ 
+      {/* Dialog de Compartilhamento de Convite Premium (Aesthetics Wow) */}
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md">
+          <div className="space-y-4">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500 animate-bounce" />
+                Usuário Criado com Sucesso! 🎉
+              </DialogTitle>
+              <DialogDescription className="text-slate-500">
+                Encaminhe o convite de primeiro acesso para <span className="text-slate-800 font-bold">{shareData.displayName}</span> usando os canais abaixo.
+              </DialogDescription>
+            </DialogHeader>
 
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black tracking-widest text-slate-450">Mensagem do Convite (Editável)</label>
+              <Textarea
+                value={shareData.message}
+                onChange={(e) => setShareData(prev => ({ ...prev, message: e.target.value }))}
+                className="min-h-[220px] bg-slate-50 border border-slate-200 text-slate-800 text-xs p-3 leading-relaxed focus-visible:ring-sky-500"
+              />
+            </div>
+
+            {/* Actions for Sharing */}
+            <div className="space-y-2 pt-2">
+              <div className="grid grid-cols-2 gap-2">
+                {/* WhatsApp button */}
+                <a
+                  href={`https://wa.me/${(shareData.phone || "").replace(/\D/g, "").startsWith("55") ? (shareData.phone || "").replace(/\D/g, "") : `55${(shareData.phone || "").replace(/\D/g, "")}`}?text=${encodeURIComponent(shareData.message)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1"
+                >
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 h-10 rounded-xl transition-all shadow-sm active:scale-[0.98]">
+                    <Send className="h-3.5 w-3.5" /> WhatsApp
+                  </Button>
+                </a>
+
+                {/* Email (mailto) button */}
+                <a
+                  href={`mailto:${shareData.email}?subject=${encodeURIComponent("Convite de Acesso - Grupo Michelines 🚖")}&body=${encodeURIComponent(shareData.message)}`}
+                  className="flex-1"
+                >
+                  <Button className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 h-10 rounded-xl transition-all shadow-sm active:scale-[0.98]">
+                    <MailIcon className="h-3.5 w-3.5" /> Enviar por E-mail
+                  </Button>
+                </a>
+              </div>
+
+              {/* Copy to Clipboard Button */}
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(shareData.message)
+                  alert("Mensagem copiada para a área de transferência!")
+                }}
+                variant="outline"
+                className="w-full border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs h-10 rounded-xl flex items-center justify-center gap-1.5"
+              >
+                Copiar Texto do Convite
+              </Button>
+            </div>
+
+            <DialogFooter className="pt-2 border-t border-slate-100">
+              <Button
+                type="button"
+                onClick={() => setShareOpen(false)}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs h-9 rounded-lg"
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

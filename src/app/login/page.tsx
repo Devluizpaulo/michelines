@@ -89,7 +89,7 @@ export default function LoginPage() {
         
         <div className="relative z-10 flex flex-col items-center text-center px-12">
           <Image
-            src="/images/logos/logo-grupo-michelines-banner.png"
+            src="/images/logos/logo-grupo-michelines - Copia.png"
             alt="Logo Grupo Michelines"
             width={300}
             height={100}
@@ -149,7 +149,7 @@ export default function LoginPage() {
                   <Label htmlFor="email" className="text-gray-700 font-semibold">Email corporativo</Label>
                   <Input
                     id="email"
-                    placeholder="admin@grupomichelines.com.br"
+                    placeholder="exemplo@grupomichelines.com.br"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

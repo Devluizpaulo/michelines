@@ -21,6 +21,7 @@ import { AdminHeader } from "@/components/admin/shared/AdminHeader"
 import { AdminSidebar } from "@/components/admin/shared/AdminSidebar"
 import { DashboardOverview } from "@/components/admin/dashboard/DashboardOverview"
 import { LeadBoard } from "@/components/admin/leads/LeadBoard"
+import { LeadDrawer } from "@/components/admin/leads/LeadDrawer"
 import { CampaignManager } from "@/components/admin/campaigns/CampaignManager"
 import { LandingConfig } from "@/components/admin/landing/LandingConfig"
 import { VehicleManager } from "@/components/admin/vehicles/VehicleManager"
@@ -38,6 +39,9 @@ function AdminContent() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard")
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [newLeadsQueue, setNewLeadsQueue] = useState<Lead[]>([])
   const [landingSettings, setLandingSettings] = useState<LandingSettings>({
     heroTitle: "",
     heroGlowText: "",
@@ -196,9 +200,37 @@ function AdminContent() {
     }
   }, [])
 
+  // Handle lead update from the global shared drawer
+  const handleLeadUpdated = useCallback((updatedLead: Lead) => {
+    setLeads((prevLeads) => {
+      const index = prevLeads.findIndex((l) => l.id === updatedLead.id)
+      if (index !== -1) {
+        const newList = [...prevLeads]
+        newList[index] = updatedLead
+        return newList
+      }
+      return prevLeads
+    })
+  }, [])
+
+  const handleLeadUpdatedShared = useCallback((updatedLead: Lead) => {
+    handleLeadUpdated(updatedLead)
+    setSelectedLead((current) => current && current.id === updatedLead.id ? updatedLead : current)
+  }, [handleLeadUpdated])
+
+  // Periodic sound chime reminder while there is any unread lead in queue
+  useEffect(() => {
+    if (newLeadsQueue.length === 0) return
+
+    const interval = setInterval(() => {
+      playNotificationChime()
+    }, 15000) // Repeat every 15 seconds
+
+    return () => clearInterval(interval)
+  }, [newLeadsQueue.length, playNotificationChime])
+
   // Listener em tempo real para novos leads + permissão de Notificação Nativa (PWA / Navegador)
   useEffect(() => {
-    // Solicita permissão para notificações nativas do navegador no desktop e mobile (PWA)
     if (typeof window !== "undefined" && "Notification" in window) {
       if (Notification.permission === "default") {
         Notification.requestPermission()
@@ -207,44 +239,37 @@ function AdminContent() {
 
     const q = query(collection(db, "leads"))
     const unsub = onSnapshot(q, (snapshot) => {
-      let hasNewLead = false
-      let newLeadName = ""
-      let newLeadVehicle = ""
+      const newAddedLeads: Lead[] = []
 
       snapshot.docChanges().forEach((change) => {
-        // Só notifica se for um documento adicionado
         if (change.type === "added") {
           const data = change.doc.data()
           const leadTime = data.createdAt?.seconds 
             ? data.createdAt.seconds * 1000 
             : new Date(data.createdAt || Date.now()).getTime()
 
-          // Só notifica se for um lead criado APÓS a inicialização da página
           if (leadTime > mountTimeRef.current) {
-            hasNewLead = true
-            newLeadName = data.fullName || "Novo Lead"
-            newLeadVehicle = data.vehicleInterest || "Veículo"
+            newAddedLeads.push({ id: change.doc.id, ...data } as Lead)
           }
         }
       })
 
-      if (hasNewLead) {
-        // 1. Toca chime de notificação
+      if (newAddedLeads.length > 0) {
         playNotificationChime()
+        setNewLeadsQueue((prev) => [...prev, ...newAddedLeads])
 
-        // 2. Dispara Toast flutuante interno do painel
-        success(`Novo Lead Recebido! 🚗`, `${newLeadName} está interessado em ${newLeadVehicle}.`)
+        newAddedLeads.forEach((lead) => {
+          success(`Novo Lead Recebido! 🚗`, `${lead.fullName} está interessado em ${lead.vehicleInterest}.`)
 
-        // 3. Dispara Notificação Nativa do Navegador / PWA
-        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-          new Notification("Novo Lead Recebido! 🚗", {
-            body: `${newLeadName} está interessado em ${newLeadVehicle}.`,
-            icon: "/icon-light-32x32.png"
-          })
-        }
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            new Notification("Novo Lead Recebido! 🚗", {
+              body: `${lead.fullName} está interessado em ${lead.vehicleInterest}.`,
+              icon: "/icon-light-32x32.png"
+            })
+          }
+        })
 
-        // 4. Força atualização instantânea da tela/CRM para exibir o novo lead
-        setLeads([]) // Limpa o estado para resetar o cache
+        setLeads([])
         loadCRMData()
       }
     }, (err) => {
@@ -308,6 +333,10 @@ function AdminContent() {
                   leads={leads}
                   onLeadsChange={setLeads}
                   loading={loading}
+                  onLeadClick={(lead) => {
+                    setSelectedLead(lead)
+                    setDrawerOpen(true)
+                  }}
                 />
               )}
 
@@ -364,6 +393,107 @@ function AdminContent() {
           )}
         </main>
       </div>
+
+      {/* Drawer do Lead Compartilhado */}
+      <LeadDrawer
+        lead={selectedLead}
+        isOpen={drawerOpen}
+        onClose={() => {
+          setSelectedLead(null)
+          setDrawerOpen(false)
+        }}
+        onLeadUpdated={handleLeadUpdatedShared}
+      />
+
+      {/* Modal de Alerta de Novo Lead Persistente (Aesthetics Wow) */}
+      {newLeadsQueue.length > 0 && (() => {
+        const currentAlertLead = newLeadsQueue[0]
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+            {/* Pulsing screen border for maximum attention */}
+            <div className="absolute inset-0 border-[6px] border-red-500/30 animate-pulse pointer-events-none" />
+
+            <div className="relative w-full max-w-md bg-white border border-red-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center p-6 text-slate-800 animate-slide-up">
+              {/* Top glowing bar */}
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 animate-pulse" />
+
+              {/* Icon alert */}
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-200 mt-2 mb-4 animate-bounce relative">
+                <span className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" />
+                <span className="text-3xl font-bold">🚗</span>
+              </div>
+
+              <span className="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 mb-2">
+                Alerta de Novo Lead
+              </span>
+
+              <h2 className="text-xl font-black text-slate-900 text-center mb-1">
+                {currentAlertLead.fullName}
+              </h2>
+              <p className="text-xs text-slate-500 font-bold mb-5 flex items-center gap-1">
+                <span>Interessado no táxi:</span>
+                <span className="text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-black uppercase">
+                  {currentAlertLead.vehicleInterest}
+                </span>
+              </p>
+
+              {/* Lead info card list */}
+              <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 space-y-3 text-xs leading-relaxed font-semibold text-slate-600">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200/50">
+                  <span className="text-slate-400">Origem:</span>
+                  <span className="text-slate-800 font-bold">{currentAlertLead.source}</span>
+                </div>
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200/50">
+                  <span className="text-slate-400">Celular:</span>
+                  <span className="text-slate-800 font-bold">{currentAlertLead.phone}</span>
+                </div>
+                {currentAlertLead.cpf && (
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-200/50">
+                    <span className="text-slate-400">CPF:</span>
+                    <span className="text-slate-800 font-bold">{currentAlertLead.cpf}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Cadastrado em:</span>
+                  <span className="text-slate-800 font-bold">
+                    {currentAlertLead.createdAt?.toDate
+                      ? currentAlertLead.createdAt.toDate().toLocaleTimeString("pt-BR")
+                      : new Date().toLocaleTimeString("pt-BR")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-[10px] text-red-400 font-bold mb-6 flex items-center gap-1 animate-pulse">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                Aguardando confirmação de recebimento... ({newLeadsQueue.length} na fila)
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => {
+                    setNewLeadsQueue((prev) => prev.slice(1))
+                  }}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs h-11 rounded-xl transition-all border border-slate-200 active:scale-[0.98]"
+                >
+                  OK, Entendido
+                </button>
+                <button
+                  onClick={() => {
+                    setNewLeadsQueue((prev) => prev.slice(1))
+                    setActiveTab("leads")
+                    setSelectedLead(currentAlertLead)
+                    setDrawerOpen(true)
+                  }}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-650 hover:to-orange-600 text-white font-extrabold text-xs h-11 rounded-xl transition-all shadow-md shadow-red-100 active:scale-[0.98]"
+                >
+                  Atender Agora
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

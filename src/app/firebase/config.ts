@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from "firebase/app"
-import { getAuth } from "firebase/auth"
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
@@ -26,6 +26,17 @@ if (!getApps().length) {
 
 // Inicializar serviços do Firebase
 const auth = getAuth(app)
+
+// Garantir persistência local do login para evitar logout ao fechar o PWA
+if (typeof window !== "undefined") {
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => {
+      console.log("Firebase Auth persistence set to local successfully.");
+    })
+    .catch((err) => {
+      console.warn("Failed to set Firebase Auth persistence:", err);
+    });
+}
 
 // Inicializa o Firestore com cache persistente IndexedDB multi-abas moderno
 let db: Firestore

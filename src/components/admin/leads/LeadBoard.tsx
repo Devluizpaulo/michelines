@@ -6,7 +6,6 @@ import { db } from "@/app/firebase/config"
 import { Lead } from "@/types/lead"
 import { LeadFilters } from "./LeadFilters"
 import { LeadPipeline } from "./LeadPipeline"
-import { LeadDrawer } from "./LeadDrawer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, ListFilter, Kanban, ClipboardList } from "lucide-react"
@@ -29,18 +28,18 @@ interface LeadBoardProps {
   leads: Lead[]
   onLeadsChange: (updatedLeads: Lead[]) => void
   loading: boolean
+  onLeadClick: (lead: Lead) => void
 }
 
-export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
+export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBoardProps) {
   const { success, error: showError, warning } = useToast()
+  const [archiveView, setArchiveView] = useState<"active" | "candidates" | "approved_archived" | "rejected_archived">("active")
   const [searchTerm, setSearchTerm] = useState("")
   const [sourceFilter, setSourceFilter] = useState("all")
   const [vehicleFilter, setVehicleFilter] = useState("all")
   const [viewType, setViewType] = useState<"pipeline" | "list">("pipeline")
   
-  // Lead drawer details
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  // Lead dialog state
 
   // New Lead Dialog
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -60,8 +59,25 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
     setVehicleFilter("all")
   }
 
+  // Pre-calculate tab counts for premium dashboard visibility
+  const activeCount = leads.filter((l) => l.archived !== true).length
+  const candidatesCount = leads.filter((l) => l.cnhNumber || l.cpf || l.source === "Site" || l.source === "Organic" || l.source === "Cadastro Site (Legado)").length
+  const approvedArchivedCount = leads.filter((l) => l.archived === true && l.approvalStatus === "approved").length
+  const rejectedArchivedCount = leads.filter((l) => l.archived === true && l.approvalStatus === "rejected").length
+
   // Filter logic
   const filteredLeads = leads.filter((lead) => {
+    // Filter by archive status tab
+    if (archiveView === "active") {
+      if (lead.archived === true) return false
+    } else if (archiveView === "candidates") {
+      if (!lead.cnhNumber && !lead.cpf && lead.source !== "Site" && lead.source !== "Organic" && lead.source !== "Cadastro Site (Legado)") return false
+    } else if (archiveView === "approved_archived") {
+      if (lead.archived !== true || lead.approvalStatus !== "approved") return false
+    } else if (archiveView === "rejected_archived") {
+      if (lead.archived !== true || lead.approvalStatus !== "rejected") return false
+    }
+
     const matchesSearch = 
       lead.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.phone.includes(searchTerm) ||
@@ -73,15 +89,7 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
     return matchesSearch && matchesSource && matchesVehicle
   })
 
-  // Handle lead update (from Drawer)
-  const handleLeadUpdated = (updatedLead: Lead) => {
-    const index = leads.findIndex((l) => l.id === updatedLead.id)
-    if (index !== -1) {
-      const newList = [...leads]
-      newList[index] = updatedLead
-      onLeadsChange(newList)
-    }
-  }
+
 
   // Handle creating a new lead
   const handleCreateLead = async (e: React.FormEvent) => {
@@ -197,6 +205,98 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
         </div>
       </div>
 
+      {/* Sub-abas de Visualização de Arquivo */}
+      <div className="flex border-b border-slate-200 gap-6 mt-1 overflow-x-auto scrollbar-none">
+        <button
+          onClick={() => setArchiveView("active")}
+          className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 shrink-0 ${
+            archiveView === "active"
+              ? "border-sky-500 text-sky-600 font-extrabold"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <span>Leads Ativos</span>
+          <Badge
+            className={`text-[10px] px-1.5 py-0.2 font-black rounded-full ${
+              archiveView === "active"
+                ? "bg-sky-50 text-sky-700 border border-sky-100 hover:bg-sky-50"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            {activeCount}
+          </Badge>
+        </button>
+
+        <button
+          onClick={() => {
+            setArchiveView("candidates")
+            setViewType("list")
+          }}
+          className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 shrink-0 ${
+            archiveView === "candidates"
+              ? "border-sky-500 text-sky-600 font-extrabold"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <span>Candidatos (Fichas)</span>
+          <Badge
+            className={`text-[10px] px-1.5 py-0.2 font-black rounded-full ${
+              archiveView === "candidates"
+                ? "bg-sky-50 text-sky-700 border border-sky-100 hover:bg-sky-50"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            {candidatesCount}
+          </Badge>
+        </button>
+
+        <button
+          onClick={() => {
+            setArchiveView("approved_archived")
+            setViewType("list")
+          }}
+          className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 shrink-0 ${
+            archiveView === "approved_archived"
+              ? "border-emerald-500 text-emerald-600 font-extrabold"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <span>Aprovados & Arquivados</span>
+          <Badge
+            className={`text-[10px] px-1.5 py-0.2 font-black rounded-full ${
+              archiveView === "approved_archived"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-50"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            {approvedArchivedCount}
+          </Badge>
+        </button>
+
+        <button
+          onClick={() => {
+            setArchiveView("rejected_archived")
+            setViewType("list")
+          }}
+          className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 shrink-0 ${
+            archiveView === "rejected_archived"
+              ? "border-red-500 text-red-650 font-extrabold"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <span>Recusados & Arquivados</span>
+          <Badge
+            className={`text-[10px] px-1.5 py-0.2 font-black rounded-full ${
+              archiveView === "rejected_archived"
+                ? "bg-red-50 text-red-750 border border-red-100 hover:bg-red-50"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            {rejectedArchivedCount}
+          </Badge>
+        </button>
+      </div>
+
       {/* Barra de Filtros */}
       <LeadFilters
         searchTerm={searchTerm}
@@ -214,10 +314,7 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
       ) : viewType === "pipeline" ? (
         <LeadPipeline 
           leads={filteredLeads} 
-          onLeadClick={(lead) => {
-            setSelectedLead(lead)
-            setDrawerOpen(true)
-          }} 
+          onLeadClick={onLeadClick} 
           onStatusChange={handleStatusChange}
         />
       ) : (
@@ -246,10 +343,7 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
                   filteredLeads.map((lead) => (
                     <tr 
                       key={lead.id} 
-                      onClick={() => {
-                        setSelectedLead(lead)
-                        setDrawerOpen(true)
-                      }}
+                      onClick={() => onLeadClick(lead)}
                       className="hover:bg-slate-50/80 transition-colors cursor-pointer"
                     >
                       <td className="px-6 py-4 font-bold text-slate-800">{lead.fullName}</td>
@@ -278,10 +372,7 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            setSelectedLead(lead)
-                            setDrawerOpen(true)
-                          }}
+                          onClick={() => onLeadClick(lead)}
                           className="text-sky-600 hover:text-sky-700 hover:bg-slate-50"
                         >
                           Ver Detalhes
@@ -296,16 +387,7 @@ export function LeadBoard({ leads, onLeadsChange, loading }: LeadBoardProps) {
         </div>
       )}
 
-      {/* Drawer do Lead */}
-      <LeadDrawer
-        lead={selectedLead}
-        isOpen={drawerOpen}
-        onClose={() => {
-          setSelectedLead(null)
-          setDrawerOpen(false)
-        }}
-        onLeadUpdated={handleLeadUpdated}
-      />
+
 
       {/* Dialog para Novo Lead */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
