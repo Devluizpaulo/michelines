@@ -5,6 +5,8 @@ interface HeroOverlayProps {
 }
 
 export function HeroOverlay({ overlayType = "gradient" }: HeroOverlayProps) {
+  if (overlayType === "none") return null
+
   return (
     <>
       {/* Dark corporate blue spot overlay */}

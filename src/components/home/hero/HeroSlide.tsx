@@ -89,7 +89,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
         ) : (
           <>
             {/* Blurred ambient glow for contain mode */}
-            {slide.imageFit === "contain" && (
+            {slide.imageFit === "contain" && slide.overlay !== "none" && (
               <Image
                 src={(isMobile && slide.mobileImage) ? slide.mobileImage : slide.image}
                 alt=""

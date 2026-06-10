@@ -48,25 +48,16 @@ export function Navbar({ landingSettings }: NavbarProps) {
           >
             {/* Logo and institutional badge */}
             <Link href="/" className="flex items-center gap-2 group relative transition-transform duration-300 hover:scale-[1.01]">
-              <div className="bg-white p-2 rounded-xl flex items-center justify-center shadow-sm border border-slate-150">
+              <div className="bg-white py-1 px-2.5 rounded-xl flex items-center justify-center shadow-sm border border-slate-150">
                 <Image
                   src="/images/logos/logo-grupo-michelines.png"
                   alt="Logo Grupo Micheline's"
                   width={140}
                   height={40}
-                  className="h-7 sm:h-8 w-auto object-contain"
+                  className="h-9 sm:h-10 w-auto object-contain"
                   priority
                 />
               </div>
-              {/* Institutional 45 Years Badge - Premium gradient styling */}
-              {/* Institutional 45 Years Badge - Premium gradient styling */}
-              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-3 shadow-sm border ${
-                scrolled
-                  ? "text-sky-700 bg-gradient-to-r from-sky-50 to-indigo-50/50 border-sky-200"
-                  : "text-white bg-white/10 border-white/20"
-              }`}>
-                45 Anos
-              </span>
             </Link>
 
             {/* Desktop Navigation - Clean typography */}

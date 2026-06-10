@@ -14,13 +14,13 @@ export function Footer() {
 
           {/* Column 1: Brand Info */}
           <div className="md:col-span-5 lg:col-span-4 space-y-6">
-            <div className="bg-white p-3 rounded-2xl inline-flex items-center justify-center shadow-sm select-none">
+            <div className="bg-white py-1.5 px-3 rounded-2xl inline-flex items-center justify-center shadow-sm select-none">
               <Image
                 src="/images/logos/logo-grupo-michelines.png"
                 alt="Logo Grupo Michelines"
                 width={290}
                 height={55}
-                className="h-11 w-auto opacity-100 object-contain"
+                className="h-14 w-auto opacity-100 object-contain"
               />
             </div>
             <p className="text-xs leading-relaxed text-sky-200/80 font-semibold text-justify">
