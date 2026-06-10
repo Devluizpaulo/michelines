@@ -85,7 +85,7 @@ export default function WhatsAppNotification() {
                 </div>
               </div>
               <div className="flex flex-col">
-                <h3 className="font-semibold text-[15px] leading-tight">Grupo Micheline's</h3>
+                <h3 className="font-semibold text-[15px] leading-tight">Grupo Michelines</h3>
                 <p className="text-xs text-white/90">online</p>
               </div>
             </div>

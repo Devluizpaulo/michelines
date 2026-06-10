@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, ListFilter, Kanban, ClipboardList } from "lucide-react"
 import { KanbanSkeleton, TableSkeleton } from "@/components/ui/skeleton"
+import { getElapsedTime } from "./LeadCard"
 import {
   Dialog,
   DialogContent,
@@ -327,6 +328,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
                   <th className="px-6 py-4">Nome</th>
                   <th className="px-6 py-4">Celular</th>
                   <th className="px-6 py-4">Origem</th>
+                  <th className="px-6 py-4">Cadastro</th>
                   <th className="px-6 py-4">Interesse</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Ação</th>
@@ -335,51 +337,65 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
               <tbody className="divide-y divide-slate-100 text-slate-650">
                 {filteredLeads.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
                       Nenhum lead encontrado com os filtros atuais.
                     </td>
                   </tr>
                 ) : (
-                  filteredLeads.map((lead) => (
-                    <tr 
-                      key={lead.id} 
-                      onClick={() => onLeadClick(lead)}
-                      className="hover:bg-slate-50/80 transition-colors cursor-pointer"
-                    >
-                      <td className="px-6 py-4 font-bold text-slate-800">{lead.fullName}</td>
-                      <td className="px-6 py-4 text-slate-500">{lead.phone}</td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline" className="bg-slate-50 text-slate-500 border-slate-200 text-[10px] font-bold">
-                          {lead.source}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 font-semibold">{lead.vehicleInterest}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
-                          lead.status === "converted" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
-                          lead.status === "lost" ? "bg-red-50 text-red-750 border border-red-200" :
-                          lead.status === "new" ? "bg-sky-50 text-sky-700 border border-sky-200" :
-                          "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}>
-                          {lead.status === "new" ? "Novo" : 
-                           lead.status === "contacted" ? "Contatado" :
-                           lead.status === "negotiating" ? "Em Negociação" :
-                           lead.status === "scheduled" ? "Visita Agendada" :
-                           lead.status === "converted" ? "Alugado" : "Perdido"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onLeadClick(lead)}
-                          className="text-sky-600 hover:text-sky-700 hover:bg-slate-50"
-                        >
-                          Ver Detalhes
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
+                  filteredLeads.map((lead) => {
+                    const dateString = lead.createdAt?.toDate
+                      ? lead.createdAt.toDate().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+                      : typeof lead.createdAt === "string"
+                        ? new Date(lead.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+                        : "Recém criado"
+                    const elapsed = getElapsedTime(lead.createdAt)
+
+                    return (
+                      <tr 
+                        key={lead.id} 
+                        onClick={() => onLeadClick(lead)}
+                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                      >
+                        <td className="px-6 py-4 font-bold text-slate-800">{lead.fullName}</td>
+                        <td className="px-6 py-4 text-slate-500">{lead.phone}</td>
+                        <td className="px-6 py-4">
+                          <Badge variant="outline" className="bg-slate-50 text-slate-500 border-slate-200 text-[10px] font-bold">
+                            {lead.source}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs font-semibold text-slate-600">
+                            {dateString} {elapsed && <span className="text-slate-400 font-normal ml-1">{elapsed}</span>}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-semibold">{lead.vehicleInterest}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
+                            lead.status === "converted" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                            lead.status === "lost" ? "bg-red-50 text-red-750 border border-red-200" :
+                            lead.status === "new" ? "bg-sky-50 text-sky-700 border border-sky-200" :
+                            "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}>
+                            {lead.status === "new" ? "Novo" : 
+                             lead.status === "contacted" ? "Contatado" :
+                             lead.status === "negotiating" ? "Em Negociação" :
+                             lead.status === "scheduled" ? "Visita Agendada" :
+                             lead.status === "converted" ? "Alugado" : "Perdido"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onLeadClick(lead)}
+                            className="text-sky-600 hover:text-sky-700 hover:bg-slate-50"
+                          >
+                            Ver Detalhes
+                          </Button>
+                        </td>
+                      </tr>
+                    )
+                  })
                 )}
               </tbody>
             </table>

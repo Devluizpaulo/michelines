@@ -46,7 +46,7 @@ export const stepsData: Step[] = [
     number: "05",
     title: "Comece sua Operação",
     description:
-      "Inicie sua rotina com suporte da frota, assistência 24h e estrutura preparada para o dia a dia da operação táxi.",
+      "Inicie sua rotina com suporte da frota, assistência 24h e estrutura preparada para o dia a dia da operação de táxi.",
     details:
       "A frota oferece manutenção própria, suporte operacional, assistência com guincho e acompanhamento em caso de necessidade."
   }

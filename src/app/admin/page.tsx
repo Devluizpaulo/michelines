@@ -29,6 +29,7 @@ import { OperationManager } from "@/components/admin/vehicles/OperationManager"
 import { AnalyticsDashboard } from "@/components/admin/analytics/AnalyticsDashboard"
 import { SupabaseMediaCenter } from "@/components/admin/shared/SupabaseMediaCenter"
 import { UserManager } from "@/components/admin/users/UserManager"
+import { TestimonialManager } from "@/components/admin/testimonials/TestimonialManager"
 import { Shield } from "lucide-react"
 
 // Inner component that uses auth context
@@ -372,6 +373,10 @@ function AdminContent() {
 
               {activeTab === "usuarios" && (
                 <UserManager />
+              )}
+
+              {activeTab === "depoimentos" && (
+                <TestimonialManager />
               )}
 
               {activeTab === "configuracoes" && (

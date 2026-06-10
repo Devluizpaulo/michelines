@@ -97,7 +97,7 @@ export default function HeroInstitucional() {
           >
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
               Você já decidiu mudar. <br />
-              <span className="text-yellow-400">A Micheline's te ajuda a transformar.</span>
+              <span className="text-yellow-400">A Michelines te ajuda a transformar.</span>
             </h1>
 
             <p className="text-lg md:text-xl text-blue-100">
@@ -137,7 +137,7 @@ export default function HeroInstitucional() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="bg-white/10 backdrop-blur-sm rounded-xl p-6 space-y-4"
           >
-            <h3 className="text-xl font-semibold text-white">Benefícios exclusivos da Micheline’s:</h3>
+            <h3 className="text-xl font-semibold text-white">Benefícios exclusivos da Michelines:</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               {benefitsEmpresa.map((item, i) => (
                 <motion.div
@@ -161,7 +161,7 @@ export default function HeroInstitucional() {
             transition={{ duration: 0.5, delay: 0.6 }}
             className="flex flex-col sm:flex-row sm:items-center gap-4 mt-6"
           >
-            <Link href="/cadastro" aria-label="Iniciar o cadastro na Micheline's">
+            <Link href="/cadastro" aria-label="Iniciar o cadastro na Michelines">
               <Button
                 size="lg"
                 className="group relative overflow-hidden bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-blue-950 font-extrabold text-lg px-8 py-6 rounded-2xl shadow-[0_0_40px_rgba(234,179,8,0.3)] transition-all duration-300 hover:scale-105"
@@ -174,7 +174,7 @@ export default function HeroInstitucional() {
               </Button>
             </Link>
 
-            <Link href="#contato" aria-label="Falar com um consultor da Micheline's">
+            <Link href="#contato" aria-label="Falar com um consultor da Michelines">
               <Button
                 size="lg"
                 variant="ghost"

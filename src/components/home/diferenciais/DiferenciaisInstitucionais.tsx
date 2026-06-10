@@ -5,11 +5,10 @@ import { useState } from "react"
 import {
   PhoneCall,
   Shield,
-  Coffee,
-  Hammer,
-  RefreshCw,
-  AlertCircle,
   Wrench,
+  Plane,
+  Compass,
+  CreditCard,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -21,22 +20,38 @@ export function DiferenciaisInstitucionais() {
 
   const cards = [
     {
-      icon: PhoneCall,
+      icon: Plane,
       iconBg: "bg-sky-50 text-sky-600 border-sky-100",
 
-      title: "Suporte Operacional Humanizado",
+      title: "Operação Executiva D-TAXI",
 
-      badge: "Atendimento Real",
+      badge: "Congonhas",
 
       badgeColor:
         "bg-sky-50 text-sky-700 border-sky-200",
 
       description:
-        "Atendimento presencial e suporte direto com equipe humana para auxiliar o motorista no dia a dia da operação.",
+        "Possibilidade de atuar em operações executivas e projetos homologados para atendimento à demanda corporativa.",
     },
 
     {
-      icon: Hammer,
+      icon: Compass,
+      iconBg:
+        "bg-indigo-50 text-indigo-600 border-indigo-100",
+
+      title: "Corredores e Faixas Exclusivas",
+
+      badge: "Mobilidade Urbana",
+
+      badgeColor:
+        "bg-indigo-50 text-indigo-700 border-indigo-200",
+
+      description:
+        "Acesso aos corredores e faixas exclusivas autorizadas, reduzindo o tempo perdido no trânsito e aumentando a produtividade diária.",
+    },
+
+    {
+      icon: Wrench,
       iconBg:
         "bg-amber-50 text-amber-600 border-amber-100",
 
@@ -52,67 +67,51 @@ export function DiferenciaisInstitucionais() {
     },
 
     {
+      icon: PhoneCall,
+      iconBg:
+        "bg-teal-50 text-teal-600 border-teal-100",
+
+      title: "Suporte Humanizado",
+
+      badge: "Atendimento Real",
+
+      badgeColor:
+        "bg-teal-50 text-teal-700 border-teal-200",
+
+      description:
+        "Atendimento presencial e suporte direto com equipe humana para auxiliar o motorista no dia a dia da operação.",
+    },
+
+    {
       icon: Shield,
       iconBg:
         "bg-emerald-50 text-emerald-600 border-emerald-100",
 
-      title: "Suporte em Caso de Sinistro",
-
-      badge: "Assistência",
-
-      badgeColor:
-        "bg-emerald-50 text-emerald-700 border-emerald-200",
-
-      description:
-        "Em situações de sinistro, nossa equipe oferece orientação e suporte operacional ao motorista.",
-    },
-
-    {
-      icon: Coffee,
-      iconBg:
-        "bg-indigo-50 text-indigo-600 border-indigo-100",
-
-      title: "Estrutura para o Motorista",
-
-      badge: "Sede Física",
-
-      badgeColor:
-        "bg-indigo-50 text-indigo-700 border-indigo-200",
-
-      description:
-        "Espaço com Wi-Fi, café e área de apoio pensado para oferecer mais conforto durante a rotina operacional.",
-    },
-
-    {
-      icon: AlertCircle,
-      iconBg:
-        "bg-rose-50 text-rose-600 border-rose-100",
-
-      title: "Isenção de Rodízio",
+      title: "Isenção de Rodízio Municipal",
 
       badge: "São Paulo",
 
       badgeColor:
-        "bg-rose-50 text-rose-700 border-rose-200",
+        "bg-emerald-50 text-emerald-700 border-emerald-200",
 
       description:
         "Veículos preparados para operação táxi com isenção de rodízio municipal na cidade de São Paulo.",
     },
 
     {
-      icon: Wrench,
+      icon: CreditCard,
       iconBg:
-        "bg-teal-50 text-teal-600 border-teal-100",
+        "bg-rose-50 text-rose-600 border-rose-100",
 
-      title: "Documentação por Conta da Frota",
+      title: "Pagamento Flexível",
 
-      badge: "Regularização",
+      badge: "Financeiro",
 
       badgeColor:
-        "bg-teal-50 text-teal-700 border-teal-200",
+        "bg-rose-50 text-rose-700 border-rose-200",
 
       description:
-        "Licenciamento, impostos e documentação do veículo ficam sob responsabilidade da frota.",
+        "Diárias configuradas por veículo com opções de pagamento via Pix, débito, crédito e condições adaptadas à rotina do motorista.",
     },
   ]
 
@@ -120,37 +119,37 @@ export function DiferenciaisInstitucionais() {
     {
       src: "/images/real/michelines_driver.png",
 
-      title: "Operação Executiva",
+      title: "🚖 Operação Táxi",
 
       description:
-        "Motoristas e veículos preparados para o dia a dia da operação.",
+        "Frota de táxis modernos e eficientes com todas as vantagens regulamentares da categoria.",
     },
 
     {
       src: "/images/real/michelines_workshop.png",
 
-      title: "Oficina Própria",
+      title: "🛠 Oficina Própria",
 
       description:
-        "Equipe técnica e manutenção preventiva com suporte rápido.",
+        "Estrutura de mecânica interna dedicada para manter os veículos revisados e minimizar tempo parado.",
     },
 
     {
       src: "/images/real/michelines_lounge.png",
 
-      title: "Espaço de Apoio",
+      title: "☕ Espaço do Motorista",
 
       description:
-        "Área de descanso com Wi-Fi e estrutura para o motorista.",
+        "Área de descanso com Wi-Fi, café e suporte presencial para os motoristas parceiros.",
     },
 
     {
       src: "/images/real/michelines_showroom.png",
 
-      title: "Frota Disponível",
+      title: "✈️ Operação D-TAXI",
 
       description:
-        "Veículos revisados e preparados para operação.",
+        "Acesso à divisão executiva homologada para a fila rápida digital do Aeroporto de Congonhas.",
     },
   ]
 
@@ -172,15 +171,13 @@ export function DiferenciaisInstitucionais() {
           </Badge>
 
           <h2 className="text-3xl font-black leading-tight tracking-tight text-white md:text-5xl">
-            Mais tranquilidade
+            Mais do que um veículo.
             <br />
-            para sua operação diária
+            Uma operação completa.
           </h2>
 
           <p className="text-base font-medium leading-relaxed text-sky-100/90 md:text-lg">
-            Trabalhe com suporte operacional, oficina própria,
-            assistência 24h e estrutura preparada para reduzir
-            imprevistos no dia a dia da operação táxi.
+            Da manutenção à documentação, conte com uma estrutura criada para reduzir burocracia, minimizar imprevistos e manter você em operação.
           </p>
         </div>
 
@@ -301,17 +298,30 @@ export function DiferenciaisInstitucionais() {
               </div>
 
               {/* FOOTER */}
-              <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                
-                <p className="flex items-center gap-1.5 text-xs font-extrabold text-slate-800">
-                  🛠️ Estrutura de apoio para o motorista
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4.5">
+                <p className="text-xs font-black text-slate-800 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  💼 Resumo da Estrutura Michelines
                 </p>
-
-                <p className="text-[10px] font-semibold leading-relaxed text-slate-550">
-                  Conte com suporte operacional, assistência 24h,
-                  manutenção própria e acompanhamento em situações
-                  de necessidade durante a operação.
-                </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] font-bold text-slate-600">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-500 font-bold">✓</span> Oficina própria
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-500 font-bold">✓</span> Corredores exclusivos
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-500 font-bold">✓</span> Suporte operacional
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-500 font-bold">✓</span> Isenção de rodízio
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-500 font-bold">✓</span> Assistência em sinistros
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-500 font-bold">✓</span> Operação D-TAXI
+                  </div>
+                </div>
               </div>
             </div>
           </div>

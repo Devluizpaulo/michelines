@@ -32,6 +32,7 @@ const TAB_LABELS: Record<TabId, string> = {
   leads:         "Leads Funil",
   campanhas:     "Campanhas",
   landing:       "Landing Page",
+  depoimentos:   "Depoimentos",
   frota:         "Frota",
   analytics:     "Analytics",
   configuracoes: "Configurações",

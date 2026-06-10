@@ -15,6 +15,7 @@ import {
   Settings,
   Users,
   Sliders,
+  MessageSquare,
   LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -47,6 +48,7 @@ const ALL_MENU_ITEMS: MenuItem[] = [
   { id: "leads",         label: "Leads Funil",   icon: Target },
   { id: "campanhas",     label: "Campanhas",     icon: Megaphone },
   { id: "landing",       label: "Landing Page",  icon: Monitor },
+  { id: "depoimentos",   label: "Depoimentos",   icon: MessageSquare },
   { id: "frota",         label: "Frota",         icon: Car },
   { id: "operacao",      label: "Operação & Preços", icon: Sliders },
   { id: "analytics",     label: "Analytics",     icon: BarChart3 },

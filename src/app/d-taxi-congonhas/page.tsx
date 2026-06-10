@@ -133,7 +133,7 @@ export default function DTaxiCongonhasPage() {
                     src="/images/cars/Cross Dtaxi.png"
                     alt="Toyota Corolla Cross Hybrid"
                     fill
-                    className="object-contain drop-shadow-[0_15px_15px_rgba(15,23,42,0.1)]"
+                    className="object-contain mix-blend-multiply"
                   />
                 </div>
 

@@ -18,7 +18,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         <Link href="/" onClick={onClose}>
           <Image
             src="/images/logos/logo-grupo-michelines.png"
-            alt="Logo Grupo Micheline's"
+            alt="Logo Grupo Michelines"
             width={200}
             height={60}
             className="h-12 w-auto"

@@ -23,6 +23,8 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
       ? new Date(lead.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
       : "Recém criado"
 
+  const elapsed = getElapsedTime(lead.createdAt)
+
   // Source badges styling
   const sourceColor = cn(
     lead.source === "Google" && "bg-blue-50 text-blue-700 border-blue-200",
@@ -96,7 +98,7 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
       <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 mt-1 pl-1">
         <span className="text-[10px] text-slate-450 font-bold flex items-center gap-1">
           <Calendar className="h-3 w-3" />
-          {dateString}
+          {dateString} {elapsed && <span className="text-slate-400 font-medium">{elapsed}</span>}
         </span>
 
         <div className="flex items-center gap-2">
@@ -131,4 +133,33 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
       </div>
     </div>
   )
+}
+
+export function getElapsedTime(createdAt: any): string {
+  if (!createdAt) return ""
+  
+  let date: Date
+  if (typeof createdAt?.toDate === 'function') {
+    date = createdAt.toDate()
+  } else if (createdAt instanceof Date) {
+    date = createdAt
+  } else if (typeof createdAt === 'string' || typeof createdAt === 'number') {
+    date = new Date(createdAt)
+  } else {
+    return ""
+  }
+  
+  if (isNaN(date.getTime())) return ""
+  
+  const diffMs = Date.now() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  
+  if (diffMins < 1) return "(há menos de 1 min)"
+  if (diffMins < 60) return `(há ${diffMins} min)`
+  
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `(há ${diffHours}h)`
+  
+  const diffDays = Math.floor(diffHours / 24)
+  return `(há ${diffDays}d)`
 }

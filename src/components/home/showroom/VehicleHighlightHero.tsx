@@ -172,7 +172,7 @@ export function VehicleHighlightHero({
               <img
                 src={optimizeImageUrl(vehicle.thumbnail, 900, 85)}
                 alt={vehicle.name}
-                className="h-full w-full object-contain drop-shadow-[0_20px_20px_rgba(15,23,42,0.15)]"
+                className="h-full w-full object-contain mix-blend-multiply"
               />
             </div>
           )}

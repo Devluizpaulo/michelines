@@ -163,7 +163,7 @@ export function FAQ() {
 
         <div className="container relative z-10 mx-auto px-6">
           
-          <div className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm md:p-16">
+          <div className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950/45 p-8 text-center shadow-2xl backdrop-blur-md md:p-16">
             
             <div className="pointer-events-none absolute inset-0 rounded-3xl border border-sky-500/[0.02]" />
 
@@ -203,10 +203,10 @@ export function FAQ() {
               >
                 <Button
                   variant="outline"
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-slate-200 bg-slate-50 px-10 text-xs text-slate-700 transition-all duration-300 hover:border-sky-300 hover:bg-slate-100 md:text-sm sm:w-auto"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-white/10 bg-white/5 px-10 text-xs text-white transition-all duration-300 hover:border-white/20 hover:bg-white/10 md:text-sm sm:w-auto"
                 >
                   Falar pelo WhatsApp
-                  <Phone className="h-4 w-4 text-sky-600" />
+                  <Phone className="h-4 w-4 text-sky-400" />
                 </Button>
               </Link>
             </div>

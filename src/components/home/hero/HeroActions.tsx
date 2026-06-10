@@ -46,7 +46,7 @@ export function HeroActions({ ctaText, ctaUrl, theme = "navy", alignment = "cent
           variant="outline" 
           className="w-full sm:w-auto h-15 px-8 text-base rounded-lg border-slate-200 hover:border-sky-500 bg-white hover:bg-slate-50 text-slate-700 transition-all duration-300 flex items-center justify-center gap-2"
         >
-          Falar com Consultor <Phone className="h-4 w-4 text-sky-600" />
+          Falar com a gente <Phone className="h-4 w-4 text-sky-600" />
         </Button>
       </Link>
     </motion.div>

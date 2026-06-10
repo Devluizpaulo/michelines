@@ -17,9 +17,8 @@ export function MapSection() {
           {/* LEFT CONTENT */}
           <motion.div
             initial={{ opacity: 0, x: -25 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.45 }}
-            viewport={{ once: true }}
             className="space-y-6 lg:col-span-5"
           >
             <Badge className="rounded-full border border-white/10 bg-white/10 px-3.5 py-1 text-xs font-bold text-emerald-300">
@@ -71,9 +70,8 @@ export function MapSection() {
           {/* RIGHT MAP */}
           <motion.div
             initial={{ opacity: 0, x: 25 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.45 }}
-            viewport={{ once: true }}
             className="relative aspect-video overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8 lg:col-span-7"
           >
             

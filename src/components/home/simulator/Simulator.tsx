@@ -66,7 +66,7 @@ export function Simulator() {
               fetched[data.category] = data
             }
           })
-          
+
           if (fetched.convencional && fetched.michelines) {
             setScenarios(fetched)
           }
@@ -111,18 +111,25 @@ export function Simulator() {
       highlight: false
     },
     {
-      feature: "Isenção de Rodízio SP",
-      help: "Liberdade para circular todos os dias graças a motorização eficiente.",
-      convencional: scenarios.convencional.rodizioExempt ? "Isenção total" : "Sujeito a bloqueios semanais",
-      michelines: scenarios.michelines.rodizioExempt ? "Isento (Híbridos, Elétricos e GNV)" : "Sujeito a rodízio",
-      highlight: false
+      feature: "Isenção de Rodízio Municipal",
+      help: "Táxis licenciados possuem isenção do rodízio municipal, permitindo operar todos os dias da semana sem restrições de circulação.",
+      convencional: "Sujeito ao rodízio municipal e restrições de circulação",
+      michelines: "Isento de rodízio conforme regulamentação municipal",
+      highlight: true
     },
     {
       feature: "Operação Executiva (Congonhas)",
-      help: "Acesso livre à fila digital rápida de Congonhas (D-TAXI).",
+      help: "Acesso ao aeroporto de Congonhas (D-TAXI).",
       convencional: scenarios.convencional.executiveOperation ? "Homologado" : "Restrito (Fila padrão demorada)",
-      michelines: scenarios.michelines.executiveOperation ? "Homologado (D-TAXI Prioritário)" : "Sem acesso",
+      michelines: scenarios.michelines.executiveOperation ? "Homologado (D-TAXI)" : "Sem acesso",
       highlight: false
+    },
+    {
+      feature: "Corredores e Faixas Exclusivas",
+      help: "Táxis podem utilizar corredores e diversas faixas exclusivas autorizadas pela legislação municipal, reduzindo tempo perdido no trânsito.",
+      convencional: "Sem acesso aos corredores exclusivos",
+      michelines: "Acesso aos corredores e faixas exclusivas de ônibus",
+      highlight: true
     },
     {
       feature: "Suporte Operacional & Oficina",
@@ -135,7 +142,7 @@ export function Simulator() {
       feature: "Previsibilidade e Isenções",
       help: "Estrutura contratual de cobrança das diárias.",
       convencional: "Cobradas todos os dias corridos",
-      michelines: "Segunda a Sábado. Domingos e Feriados Isentos",
+      michelines: "Domingos e Feriados Isentos",
       highlight: true
     },
     {
@@ -156,12 +163,12 @@ export function Simulator() {
 
   return (
     <section id="simulador" className="w-full py-20 lg:py-32 bg-transparent relative select-none">
-      
+
       {/* Background radial spotlight */}
       <div className="absolute right-0 top-1/4 w-[400px] h-[400px] bg-sky-500/[0.015] rounded-full blur-[100px] pointer-events-none" />
-      
+
       <div className="container mx-auto px-6 relative z-10">
-        
+
         {/* Title Block */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <Badge className="bg-white/10 text-sky-200 border-white/10 px-3.5 py-1 rounded-full text-xs font-semibold border shadow-xs">
@@ -177,7 +184,7 @@ export function Simulator() {
 
         {/* Comparison Grid (Stripe / Apple Style) */}
         <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-          
+
           {/* Header Row */}
           <div className="grid grid-cols-12 border-b border-slate-200 bg-slate-50/50 p-6 md:p-8 items-center text-xs md:text-sm font-black uppercase tracking-wider text-slate-700">
             <div className="col-span-5 md:col-span-4 text-left">Parâmetro Operacional</div>
@@ -191,11 +198,10 @@ export function Simulator() {
           {/* Comparison Rows */}
           <div className="divide-y divide-slate-100 text-xs md:text-sm">
             {comparisonRows.map((row, idx) => (
-              <div 
-                key={idx} 
-                className={`grid grid-cols-12 p-6 md:p-8 items-center font-semibold transition-colors hover:bg-slate-50/30 ${
-                  row.highlight ? "bg-sky-50/10" : ""
-                }`}
+              <div
+                key={idx}
+                className={`grid grid-cols-12 p-6 md:p-8 items-center font-semibold transition-colors hover:bg-slate-50/30 ${row.highlight ? "bg-sky-50/10" : ""
+                  }`}
               >
                 {/* Feature Name & Helper tooltip */}
                 <div className="col-span-5 md:col-span-4 text-left flex items-start gap-1.5 pr-2">
@@ -274,10 +280,10 @@ export function Simulator() {
                 O modelo ideal depende da sua rotina, perfil operacional e objetivo profissional.
               </p>
             </div>
-            
-            <a 
-              href={waUrl} 
-              target="_blank" 
+
+            <a
+              href={waUrl}
+              target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto shrink-0"
             >

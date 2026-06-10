@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { TrendingUp, Car, MapPin, Shield } from "lucide-react"
+import { Car, MapPin, Shield, Award } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface HeroStatsProps {
@@ -11,10 +11,10 @@ interface HeroStatsProps {
 
 export function HeroStats({ theme = "navy", alignment = "center" }: HeroStatsProps) {
   const stats = [
-    { label: "Ganhos Médios", val: "R$ 11.200/mês", detail: "Faturamento líquido superior", icon: TrendingUp },
-    { label: "Veículo Pronto", val: "Liberação em 24h", detail: "Sem burocracia", icon: Car },
-    { label: "Aeroporto", val: "Fila Rápida D-Taxi", detail: "Acesso direto em Congonhas", icon: MapPin },
-    { label: "Suporte 24h/7", val: "45 Anos de Tradição", detail: "Segurança e estabilidade", icon: Shield }
+    { label: "Mobilidade", val: "Corredores Exclusivos", detail: "Mais eficiência operacional", icon: MapPin },
+    { label: "Operação", val: "Rodízio Isento", detail: "Táxi regulamentado", icon: Car },
+    { label: "Estrutura", val: "Suporte 24h", detail: "Oficina e assistência", icon: Shield },
+    { label: "Tradição", val: "45 Anos", detail: "Experiência no setor", icon: Award }
   ]
 
   const colorClass = cn(
@@ -45,7 +45,7 @@ export function HeroStats({ theme = "navy", alignment = "center" }: HeroStatsPro
         <div 
           key={idx} 
           className={cn(
-            "bg-white/90 backdrop-blur-md border border-slate-200/70 p-5 rounded-2xl text-left shadow-sm transition-all duration-300 group hover:-translate-y-1 hover:shadow-md",
+            "bg-white/95 backdrop-blur-[2px] border border-slate-200/70 p-5 rounded-2xl text-left shadow-sm transition-all duration-300 group hover:-translate-y-1 hover:shadow-md",
             borderHoverClass
           )}
         >
@@ -56,7 +56,7 @@ export function HeroStats({ theme = "navy", alignment = "center" }: HeroStatsPro
             <badge.icon className="h-5 w-5" />
           </div>
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{badge.label}</h3>
-          <p className="text-lg font-black text-slate-900 mt-1">{badge.val}</p>
+          <p className="text-sm font-black text-slate-900 mt-1.5 leading-snug">{badge.val}</p>
           <p className="text-xs text-slate-400 mt-1 font-medium">{badge.detail}</p>
         </div>
       ))}

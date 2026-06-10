@@ -73,6 +73,30 @@ export interface Lead {
   approvalDate?: string
   interactions?: LeadInteraction[]
   archived?: boolean
+
+  // Smart Funnel fields
+  protocol?: string
+  situation?: string
+  hasCondutax?: string
+  hasOwnAlvara?: string
+  workedInFleet?: string
+  fleetName?: string
+  fleetDuration?: string
+  experienceYears?: string
+  hasCnh?: string
+  hasEar?: string
+  condutaxProcess?: string
+  needsHelpWith?: string[]
+  passengerExperience?: string
+  paymentPreference?: string
+  contractType?: string
+  score?: number
+  attachedDocs?: {
+    name: string
+    url: string
+    path?: string
+    uploadedAt: string
+  }[]
 }
 
 

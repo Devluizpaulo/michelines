@@ -42,7 +42,7 @@ export function Advantages() {
               {/* HEADERS */}
               <div className="grid grid-cols-12 items-center gap-3 border-b border-slate-200 pb-3 text-[10px] md:text-xs font-black uppercase tracking-wider text-slate-400">
                 <div className="col-span-6">Vantagem</div>
-                <div className="col-span-3 text-center text-sky-700 font-extrabold">Táxi Micheline's</div>
+                <div className="col-span-3 text-center text-sky-700 font-extrabold">Táxi Michelines</div>
                 <div className="col-span-3 text-center text-slate-400 font-bold">App Comum</div>
               </div>
 
@@ -134,13 +134,11 @@ export function Advantages() {
 
               <div>
                 <h4 className="mb-1 text-base font-black text-slate-800 md:text-lg">
-                  Mais mobilidade no trânsito
+                  Faturamento Livre de Taxas
                 </h4>
 
                 <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
-                  Utilize corredores e faixas exclusivas para fazer
-                  mais corridas em menos tempo e reduzir o desgaste
-                  no trânsito diário.
+                  O valor total das corridas realizadas no taxímetro ou nos apps de táxi fica com você. Sem repasses de porcentagem abusiva para plataformas.
                 </p>
               </div>
             </div>
@@ -154,13 +152,11 @@ export function Advantages() {
 
               <div>
                 <h4 className="mb-1 text-base font-black text-slate-800 md:text-lg">
-                  Corridas de maior ticket
+                  Pontos e Canais de Embarque
                 </h4>
 
                 <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
-                  Maior presença em regiões corporativas, hotéis e
-                  aeroportos com passageiros executivos e corridas
-                  mais rentáveis.
+                  Atenda passageiros direto na rua, em pontos físicos exclusivos (hotéis, shoppings, hospitais) e áreas restritas de aeroportos.
                 </p>
               </div>
             </div>
@@ -174,13 +170,11 @@ export function Advantages() {
 
               <div>
                 <h4 className="mb-1 text-base font-black text-slate-800 md:text-lg">
-                  Suporte e manutenção da frota
+                  Segurança e Estabilidade
                 </h4>
 
                 <p className="text-xs font-semibold leading-relaxed text-slate-600 md:text-sm">
-                  Conte com oficina próxima, manutenção preventiva e
-                  suporte operacional para reduzir o tempo do carro
-                  parado.
+                  Trabalhe sem o risco de bloqueios automáticos ou suspensões arbitrárias de contas. A categoria táxi é regulamentada e estável.
                 </p>
               </div>
             </div>

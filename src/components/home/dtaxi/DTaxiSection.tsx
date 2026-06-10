@@ -69,7 +69,7 @@ export function DTaxiSection() {
                   alt="Toyota Corolla Cross D-Taxi"
                   fill
                   priority
-                  className="object-contain drop-shadow-[0_15px_15px_rgba(15,23,42,0.12)]"
+                  className="object-contain mix-blend-multiply"
                 />
               </div>
 

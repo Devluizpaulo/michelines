@@ -24,7 +24,7 @@ export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardPr
           <img 
             src={vehicle.thumbnail} 
             alt={vehicle.name} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain mix-blend-multiply p-4"
           />
         ) : (
           <div className="text-slate-400 text-xs font-bold uppercase">Sem Imagem</div>

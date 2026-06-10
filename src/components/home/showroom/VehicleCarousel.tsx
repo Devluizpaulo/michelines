@@ -65,7 +65,7 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                 {/* Photo Header */}
                 <div 
                   onClick={() => onOpenGallery(car)}
-                  className="relative aspect-[16/10] w-full bg-gradient-to-b from-slate-50 to-slate-100/20 p-6 flex items-center justify-center overflow-hidden border-b border-slate-150 cursor-pointer"
+                  className="relative aspect-[16/10] w-full bg-gradient-to-b from-slate-50 to-slate-100/20 p-4 pb-1 flex flex-col justify-end overflow-hidden border-b border-slate-150 cursor-pointer"
                 >
                   {/* Floating Tags */}
                   <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
@@ -80,7 +80,7 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                       </Badge>
                     )}
                     {car.pricing?.weekendExempt && (
-                      <Badge className="bg-amber-50 text-amber-700 border border-amber-250 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
+                      <Badge className="bg-amber-50 text-amber-700 border border-amber-255 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
                         📅 Domingos & Feriados Isentos
                       </Badge>
                     )}
@@ -93,12 +93,12 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                   )}
 
                   {/* Vehicle Image */}
-                  <div className="relative w-full h-[120px] transition-transform duration-500 group-hover:scale-[1.03]">
+                  <div className="relative w-full h-[100px] transition-transform duration-500 group-hover:scale-[1.03]">
                     <Image
                       src={optimizeImageUrl(car.thumbnail || "/images/cars/Cross Dtaxi.png", 600, 80)}
                       alt={car.name}
                       fill
-                      className="object-contain filter drop-shadow-[0_12px_12px_rgba(15,23,42,0.1)]"
+                      className="object-contain mix-blend-multiply"
                       sizes="(max-width: 768px) 100vw, 33vw"
                       quality={90}
                     />

@@ -7,6 +7,7 @@ import { CampaignBanner } from "@/components/home/campaign-banner/CampaignBanner
 import { Simulator } from "@/components/home/simulator/Simulator"
 import { Timeline } from "@/components/home/timeline/Timeline"
 import { Showroom } from "@/components/home/showroom/Showroom"
+import { Acessivel } from "@/components/home/acessivel/Acessivel"
 import { DiferenciaisInstitucionais } from "@/components/home/diferenciais/DiferenciaisInstitucionais"
 import { Advantages } from "@/components/home/advantages/Advantages"
 import { MapSection } from "@/components/home/maps/MapSection"
@@ -27,6 +28,7 @@ export default function Home() {
         <Simulator />
         <Timeline />
         <Showroom />
+        <Acessivel />
         <DiferenciaisInstitucionais />
         <Advantages />
         <MapSection />

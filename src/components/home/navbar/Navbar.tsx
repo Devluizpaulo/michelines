@@ -48,14 +48,16 @@ export function Navbar({ landingSettings }: NavbarProps) {
           >
             {/* Logo and institutional badge */}
             <Link href="/" className="flex items-center gap-2 group relative transition-transform duration-300 hover:scale-[1.01]">
-              <Image
-                src="/images/logos/logo-grupo-michelines.png"
-                alt="Logo Grupo Micheline's"
-                width={190}
-                height={55}
-                className="h-9 sm:h-10 w-auto"
-                priority
-              />
+              <div className="bg-white p-2 rounded-xl flex items-center justify-center shadow-sm border border-slate-150">
+                <Image
+                  src="/images/logos/logo-grupo-michelines.png"
+                  alt="Logo Grupo Micheline's"
+                  width={140}
+                  height={40}
+                  className="h-7 sm:h-8 w-auto object-contain"
+                  priority
+                />
+              </div>
               {/* Institutional 45 Years Badge - Premium gradient styling */}
               {/* Institutional 45 Years Badge - Premium gradient styling */}
               <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-3 shadow-sm border ${
@@ -74,6 +76,7 @@ export function Navbar({ landingSettings }: NavbarProps) {
                 { label: "Simulador", href: "/#simulador" },
                 { label: "Como Funciona", href: "/#como-funciona" },
                 { label: "Showroom", href: "/#showroom" },
+                { label: "Acessível", href: "/#acessivel" },
                 { label: "Vantagens", href: "/#vantagens" },
                 { label: "Cases", href: "/#cases" },
                 { label: "FAQ", href: "/#faq" }
@@ -138,6 +141,7 @@ export function Navbar({ landingSettings }: NavbarProps) {
                       { label: "Simulador de Ganhos", href: "/#simulador" },
                       { label: "Como Funciona", href: "/#como-funciona" },
                       { label: "Showroom da Frota", href: "/#showroom" },
+                      { label: "Táxi Acessível ♿", href: "/#acessivel" },
                       { label: "Benefícios do Táxi", href: "/#vantagens" },
                       { label: "Cases Reais", href: "/#cases" },
                       { label: "FAQ", href: "/#faq" }

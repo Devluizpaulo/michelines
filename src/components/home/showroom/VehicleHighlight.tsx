@@ -52,7 +52,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             )}
             {(vehicle.monthlyPrice && vehicle.monthlyPrice > 2500) ? (
               <Badge className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
-                💼 Executivo Black
+                💼 Executivo Premium
               </Badge>
             ) : (
               <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
@@ -75,7 +75,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
               <img 
                 src={optimizeImageUrl(vehicle.thumbnail, 900, 85)} 
                 alt={vehicle.name} 
-                className="w-full h-full object-contain filter drop-shadow-[0_12px_12px_rgba(15,23,42,0.08)]"
+                className="w-full h-full object-contain mix-blend-multiply"
               />
             </div>
           )}
