@@ -447,10 +447,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
 
       {/* Read-only details dialog */}
       <Dialog open={viewingVehicle !== null} onOpenChange={(open) => !open && setViewingVehicle(null)}>
-        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl p-0" descriptionId="vehicle-manager-dialog-description">
-          <DialogDescription id="vehicle-manager-dialog-description" className="sr-only">
-            Detalhes do veículo selecionado
-          </DialogDescription>
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl p-0">
           {viewingVehicle && (
             <div className="flex flex-col">
               
@@ -475,7 +472,17 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
                   <h2 className="text-2xl font-black text-white">{viewingVehicle.name}</h2>
                 </div>
 
-                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2 max-w-[80%]">
+                  {viewingVehicle.isAccessible && (
+                    <Badge className="bg-violet-600 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
+                      ♿ Acessível
+                    </Badge>
+                  )}
+                  {viewingVehicle.isAtendeApproved && (
+                    <Badge className="bg-purple-600 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
+                      ♿ ATENDE
+                    </Badge>
+                  )}
                   {viewingVehicle.isDTaxiApproved && (
                     <Badge className="bg-sky-500 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
                       ✈️ D-TAXI
@@ -489,6 +496,16 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
                   {viewingVehicle.hasGNV && (
                     <Badge className="bg-orange-500 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
                       ⛽ Kit GNV
+                    </Badge>
+                  )}
+                  {viewingVehicle.isDTPApproved && (
+                    <Badge className="bg-blue-600 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
+                      🏢 Credenciado DTP
+                    </Badge>
+                  )}
+                  {viewingVehicle.hasDTPCourseSupport && (
+                    <Badge className="bg-indigo-600 text-white border-0 text-[9px] font-black uppercase py-0.5 px-2.5 shadow-md rounded-md">
+                      🎓 Curso Mobilidade
                     </Badge>
                   )}
                 </div>

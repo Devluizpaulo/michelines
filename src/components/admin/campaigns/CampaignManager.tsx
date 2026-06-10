@@ -30,6 +30,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import { SupabaseMediaCenter } from "../shared/SupabaseMediaCenter"
 
 // Standard compression helper
 const compressAndLoadImage = (file: File): Promise<string> => {
@@ -254,103 +255,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
     }
   }, [landingSettings])
 
-  // Marketing assets states (Biblioteca Central de Mídia)
-  const [assets, setAssets] = useState<any[]>([])
-  const [assetsLoading, setAssetsLoading] = useState(true)
-  const [activeAssetTab, setActiveAssetTab] = useState("veiculos")
-  const [assetCreateOpen, setAssetCreateOpen] = useState(false)
-  const [assetForm, setAssetForm] = useState({
-    name: "",
-    category: "veiculos",
-    description: "",
-    url: ""
-  })
-  const [savingAsset, setSavingAsset] = useState(false)
 
-  // Supabase files dropdown helper
-  const [supabaseFiles, setSupabaseFiles] = useState<{name: string, url: string}[]>([])
-  const [loadingSupabaseFiles, setLoadingSupabaseFiles] = useState(false)
-
-  // Load marketing_assets in real-time
-  useEffect(() => {
-    const q = query(collection(db, "marketing_assets"), orderBy("createdAt", "desc"))
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const list: any[] = []
-      snap.forEach(d => list.push({ id: d.id, ...d.data() }))
-      setAssets(list)
-      setAssetsLoading(false)
-    }, (err) => {
-      console.warn("Erro ao carregar biblioteca de mídia:", err)
-      setAssetsLoading(false)
-    })
-    return () => unsubscribe()
-  }, [])
-
-  const fetchSupabaseFiles = async () => {
-    try {
-      setLoadingSupabaseFiles(true)
-      const allFiles: {name: string, url: string}[] = []
-      const buckets = ["vehicles", "banners", "logos"]
-      
-      for (const bucket of buckets) {
-        const res = await fetch(`/api/media?bucket=${bucket}`)
-        if (res.ok) {
-          const json = await res.json()
-          if (json.data) {
-            json.data.forEach((item: any) => {
-              if (item.metadata) {
-                const publicUrl = `https://michelines-6e06b.supabase.co/storage/v1/object/public/${bucket}/${item.name}`
-                allFiles.push({
-                  name: `[${bucket.toUpperCase()}] ${item.name}`,
-                  url: publicUrl
-                })
-              }
-            })
-          }
-        }
-      }
-      setSupabaseFiles(allFiles)
-    } catch (e) {
-      console.warn("Erro ao buscar arquivos do Supabase:", e)
-    } finally {
-      setLoadingSupabaseFiles(false)
-    }
-  }
-
-  const handleAddAsset = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!assetForm.name || !assetForm.url) return
-    try {
-      setSavingAsset(true)
-      const newAsset = {
-        name: assetForm.name,
-        category: assetForm.category,
-        description: assetForm.description,
-        url: assetForm.url,
-        createdAt: new Date().toISOString()
-      }
-      await addDoc(collection(db, "marketing_assets"), newAsset)
-      success("Ativo de mídia adicionado!", "O item foi registrado na biblioteca.")
-      setAssetCreateOpen(false)
-      setAssetForm({ name: "", category: "veiculos", description: "", url: "" })
-    } catch (e: any) {
-      console.error(e)
-      showError("Erro ao adicionar ativo", e.message || "Tente novamente.")
-    } finally {
-      setSavingAsset(false)
-    }
-  }
-
-  const handleDeleteAsset = async (id: string) => {
-    if (!confirm("Remover este ativo da biblioteca?")) return
-    try {
-      await deleteDoc(doc(db, "marketing_assets", id))
-      success("Ativo removido!", "O item foi excluído da biblioteca central de mídia.")
-    } catch (e: any) {
-      console.error(e)
-      showError("Erro ao excluir ativo", e.message || "Tente novamente.")
-    }
-  }
 
   // Helper to map vehicle names to leads
   const vehicleLeadsMap = useMemo(() => {
@@ -698,7 +603,6 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
           <button
             onClick={() => {
               setActiveTab("assets")
-              fetchSupabaseFiles()
             }}
             className={cn(
               "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
@@ -1611,255 +1515,21 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
       {activeTab === "assets" && (
         <div className="space-y-6">
           <Card className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
-            <CardHeader className="border-b border-slate-100 bg-slate-50/50 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 p-6">
               <div>
                 <CardTitle className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
                   <ImageIcon className="h-3.5 w-3.5 text-violet-600" />
                   Biblioteca Central de Mídia
                 </CardTitle>
                 <CardDescription className="text-[10px] text-slate-500 font-bold">
-                  Armazenamento indexado de imagens corporativas, logos e mídias das campanhas vinculadas ao Supabase.
+                  Consulte, envie e gerencie mídias (veículos, banners e logotipos) diretamente do Supabase Storage.
                 </CardDescription>
               </div>
-              
-              <Button
-                onClick={() => setAssetCreateOpen(true)}
-                className="bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs h-9 px-4 rounded-lg flex items-center gap-1.5 shadow-sm"
-              >
-                <Plus className="h-4 w-4" /> Registrar Novo Ativo
-              </Button>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              
-              {/* Category selector filter */}
-              <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-100">
-                {[
-                  { id: "veiculos", label: "Veículos" },
-                  { id: "dtaxi", label: "D-Taxi" },
-                  { id: "acessivel", label: "Táxi Acessível" },
-                  { id: "logos", label: "Logos" },
-                  { id: "institucional", label: "Institucional" },
-                  { id: "parceiros", label: "Parceiros" }
-                ].map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveAssetTab(cat.id)}
-                    className={cn(
-                      "text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border transition-all",
-                      activeAssetTab === cat.id 
-                        ? "bg-violet-600 text-white border-violet-600 shadow-sm" 
-                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
-                    )}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Grid of Assets */}
-              {assetsLoading ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-2 text-slate-400">
-                  <span className="animate-spin text-lg">⚙️</span>
-                  <p className="text-xs font-bold font-semibold">Buscando biblioteca de mídia...</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {assets.filter(a => a.category === activeAssetTab).map(asset => {
-                    const isImg = asset.url && (
-                      asset.url.includes(".png") || 
-                      asset.url.includes(".jpg") || 
-                      asset.url.includes(".jpeg") || 
-                      asset.url.includes(".webp") || 
-                      asset.url.includes(".svg") || 
-                      asset.url.startsWith("data:image")
-                    )
-
-                    return (
-                      <Card key={asset.id} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden hover:shadow-sm transition-all flex flex-col justify-between">
-                        <div>
-                          {isImg ? (
-                            <div className="relative aspect-video bg-slate-200 overflow-hidden border-b border-slate-200 group">
-                              <img 
-                                src={asset.url} 
-                                alt={asset.name} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                              />
-                            </div>
-                          ) : (
-                            <div className="aspect-video bg-slate-200 border-b border-slate-200 flex items-center justify-center text-slate-400">
-                              <FileText className="h-8 w-8" />
-                            </div>
-                          )}
-                          
-                          <div className="p-3.5">
-                            <span className="text-[7px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-1.5">
-                              {asset.category}
-                            </span>
-                            <h4 className="text-xs font-black text-slate-800 truncate" title={asset.name}>{asset.name}</h4>
-                            {asset.description && (
-                              <p className="text-[9px] text-slate-500 font-semibold mt-1 line-clamp-2 leading-relaxed">
-                                {asset.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-3.5 pt-0 border-t border-slate-200/50 mt-2 flex gap-2">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(asset.url)
-                              success("URL Copiada!", "O link público da mídia está na área de transferência.")
-                            }}
-                            className="flex-1 bg-white border border-slate-250 hover:bg-slate-100 text-slate-700 text-[9px] font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 shadow-2xs"
-                          >
-                            <Copy className="h-3 w-3" /> Copiar Link
-                          </button>
-                          <button
-                            onClick={() => handleDeleteAsset(asset.id)}
-                            className="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-lg border border-red-200 transition-colors"
-                            title="Excluir ativo da biblioteca"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </Card>
-                    )
-                  })}
-                  
-                  {assets.filter(a => a.category === activeAssetTab).length === 0 && (
-                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 border border-dashed border-slate-250 rounded-xl bg-slate-50/50">
-                      <ImageIcon className="h-8 w-8 text-slate-300 mb-2" />
-                      <p className="text-xs font-bold">Nenhum ativo de mídia registrado nesta categoria.</p>
-                      <p className="text-[9px] text-slate-500 font-semibold mt-1">Clique em "Registrar Novo Ativo" para catalogar.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
+            <CardContent className="p-6">
+              <SupabaseMediaCenter />
             </CardContent>
           </Card>
-
-          {/* Form Dialog for Asset Creation */}
-          <Dialog open={assetCreateOpen} onOpenChange={setAssetCreateOpen}>
-            <DialogContent className="sm:max-w-[450px] bg-white rounded-2xl shadow-xl border border-slate-100 p-6">
-              <DialogHeader>
-                <DialogTitle className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
-                  <Plus className="h-4 w-4 text-violet-600" />
-                  Registrar Novo Ativo de Mídia
-                </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500 font-semibold mt-1">
-                  Adicione e catalogue links públicos de imagens armazenadas no Supabase Storage para uso rápido no painel.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleAddAsset} className="space-y-4 my-3">
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-black text-slate-550 uppercase tracking-wider">Nome do Ativo</Label>
-                  <Input
-                    required
-                    placeholder="Ex: Corolla Cross Banner Lateral"
-                    value={assetForm.name}
-                    onChange={e => setAssetForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="text-xs font-semibold h-9"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-black text-slate-550 uppercase tracking-wider">Categoria</Label>
-                  <Select
-                    value={assetForm.category}
-                    onValueChange={v => setAssetForm(prev => ({ ...prev, category: v }))}
-                  >
-                    <SelectTrigger className="text-xs font-semibold h-9">
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="veiculos">Veículos</SelectItem>
-                      <SelectItem value="dtaxi">D-Taxi</SelectItem>
-                      <SelectItem value="acessivel">Táxi Acessível</SelectItem>
-                      <SelectItem value="logos">Logos</SelectItem>
-                      <SelectItem value="institucional">Institucional</SelectItem>
-                      <SelectItem value="parceiros">Parceiros</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-black text-slate-550 uppercase tracking-wider">Descrição / Notas</Label>
-                  <Textarea
-                    placeholder="Ex: Imagem em alta resolução usada para divulgação comercial..."
-                    value={assetForm.description}
-                    onChange={e => setAssetForm(prev => ({ ...prev, description: e.target.value }))}
-                    className="text-xs font-semibold resize-none min-h-[60px]"
-                  />
-                </div>
-
-                {/* Dropdown helper for Supabase files list */}
-                <div className="space-y-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <span className="text-[8px] font-black text-slate-450 uppercase block tracking-wider mb-1">
-                    Selecionar do Supabase Storage
-                  </span>
-                  
-                  {loadingSupabaseFiles ? (
-                    <span className="text-[9px] text-slate-500 font-bold block animate-pulse">⚙️ Carregando arquivos do Supabase...</span>
-                  ) : supabaseFiles.length === 0 ? (
-                    <span className="text-[9px] text-slate-400 font-bold block">Nenhum arquivo listado nos buckets.</span>
-                  ) : (
-                    <Select
-                      onValueChange={val => {
-                        const fileObj = supabaseFiles.find(f => f.url === val)
-                        setAssetForm(prev => ({
-                          ...prev,
-                          url: val,
-                          name: prev.name || (fileObj ? fileObj.name.split("] ").pop() || "" : "")
-                        }))
-                      }}
-                    >
-                      <SelectTrigger className="text-[10px] font-bold h-8 bg-white border-slate-250">
-                        <SelectValue placeholder="Escolha um arquivo do Storage" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {supabaseFiles.map((file, fIdx) => (
-                          <SelectItem key={fIdx} value={file.url} className="text-[10px] font-bold">
-                            {file.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-black text-slate-550 uppercase tracking-wider">URL do Arquivo / Endereço Público</Label>
-                  <Input
-                    required
-                    placeholder="https://..."
-                    value={assetForm.url}
-                    onChange={e => setAssetForm(prev => ({ ...prev, url: e.target.value }))}
-                    className="text-xs font-semibold h-9 font-mono"
-                  />
-                </div>
-
-                <DialogFooter className="border-t border-slate-100 pt-4 flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setAssetCreateOpen(false)}
-                    className="text-xs font-bold text-slate-500"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={savingAsset}
-                    className="bg-violet-600 hover:bg-violet-550 text-white font-bold text-xs"
-                  >
-                    {savingAsset ? "Registrando..." : "Registrar"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
         </div>
       )}
 

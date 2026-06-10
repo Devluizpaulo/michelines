@@ -28,6 +28,11 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
     isHybrid: false,
     hasGNV: false,
     isDTaxiApproved: false,
+    isAccessible: false,
+    isAtendeApproved: false,
+    hasRadioAssociation: false,
+    isDTPApproved: false,
+    hasDTPCourseSupport: false,
     shortDescription: "",
     fullDescription: "",
     monthlyPrice: 0,
@@ -58,7 +63,12 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
         specs: vehicle.specs || [],
         tags: vehicle.tags || [],
         positivePoints: vehicle.positivePoints || [],
-        highlights: vehicle.highlights || []
+        highlights: vehicle.highlights || [],
+        isAccessible: vehicle.isAccessible || false,
+        isAtendeApproved: vehicle.isAtendeApproved || false,
+        hasRadioAssociation: vehicle.hasRadioAssociation || false,
+        isDTPApproved: vehicle.isDTPApproved || false,
+        hasDTPCourseSupport: vehicle.hasDTPCourseSupport || false
       })
     }
   }, [vehicle])
@@ -208,6 +218,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
                 <SelectItem value="hibridos">Híbridos (Combustível Híbrido)</SelectItem>
                 <SelectItem value="sedans">Sedans (Executivo)</SelectItem>
                 <SelectItem value="hatches">Compactos</SelectItem>
+                <SelectItem value="acessivel">Táxi Acessível (Adaptado) ♿</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -391,6 +402,78 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
             />
             <label htmlFor="available" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Disponível Locação</label>
+          </div>
+        </div>
+
+        <div className="h-px bg-slate-100" />
+
+        {/* PARÂMETROS DE ACESSIBILIDADE E HOMOLOGAÇÃO */}
+        <div className="space-y-3">
+          <Label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <span>Parâmetros de Acessibilidade & Homologação ♿</span>
+            <span className="text-[10px] text-slate-450 font-semibold">(Preencha estes campos adicionais caso o veículo seja adaptado)</span>
+          </Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 bg-slate-50/50 p-4 border border-slate-200 rounded-xl">
+            <div className="flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                id="isAccessible" 
+                checked={formData.isAccessible || false} 
+                onChange={(e) => setFormData(prev => {
+                  const updated = { ...prev, isAccessible: e.target.checked }
+                  if (e.target.checked) {
+                    updated.category = "acessivel"
+                  }
+                  return updated;
+                })}
+                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+              />
+              <label htmlFor="isAccessible" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Táxi Acessível Adaptado ♿</label>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                id="isAtendeApproved" 
+                checked={formData.isAtendeApproved || false} 
+                onChange={(e) => setFormData(prev => ({ ...prev, isAtendeApproved: e.target.checked }))}
+                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+              />
+              <label htmlFor="isAtendeApproved" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Homologado no ATENDE ♿</label>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                id="hasRadioAssociation" 
+                checked={formData.hasRadioAssociation || false} 
+                onChange={(e) => setFormData(prev => ({ ...prev, hasRadioAssociation: e.target.checked }))}
+                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+              />
+              <label htmlFor="hasRadioAssociation" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Associação com Rádio 📻</label>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                id="isDTPApproved" 
+                checked={formData.isDTPApproved || false} 
+                onChange={(e) => setFormData(prev => ({ ...prev, isDTPApproved: e.target.checked }))}
+                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+              />
+              <label htmlFor="isDTPApproved" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Credenciado DTP / DETAXI 🏢</label>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                id="hasDTPCourseSupport" 
+                checked={formData.hasDTPCourseSupport || false} 
+                onChange={(e) => setFormData(prev => ({ ...prev, hasDTPCourseSupport: e.target.checked }))}
+                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+              />
+              <label htmlFor="hasDTPCourseSupport" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Suporte Curso Mobilidade 🎓</label>
+            </div>
           </div>
         </div>
 

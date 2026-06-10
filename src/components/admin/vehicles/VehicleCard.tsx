@@ -32,6 +32,11 @@ export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardPr
 
         {/* Floating Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+          {vehicle.isAccessible && (
+            <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-[9px] font-black uppercase py-0.5 px-2 shadow-sm">
+              ♿ Acessível (ATENDE)
+            </Badge>
+          )}
           {vehicle.isDTaxiApproved && (
             <Badge className="bg-sky-50 text-sky-700 border border-sky-200 text-[9px] font-black uppercase py-0.5 px-2 shadow-sm">
               ✈️ D-TAXI Congonhas

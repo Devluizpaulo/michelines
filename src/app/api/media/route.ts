@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_service_role_key!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_service_role_key || ""
 
 // Corrige o potencial typo 'leyJ' da chave se presente, garantindo robustez
 const finalServiceKey = supabaseServiceKey && supabaseServiceKey.startsWith("leyJ")
@@ -10,12 +10,19 @@ const finalServiceKey = supabaseServiceKey && supabaseServiceKey.startsWith("ley
   : supabaseServiceKey
 
 // Inicializa o cliente com service_role para ignorar políticas RLS
-const supabaseAdmin = createClient(supabaseUrl, finalServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-})
+let supabaseAdmin: any = null
+if (supabaseUrl && finalServiceKey) {
+  try {
+    supabaseAdmin = createClient(supabaseUrl, finalServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  } catch (e) {
+    console.error("Erro ao inicializar Supabase Admin:", e)
+  }
+}
 
 /**
  * GET /api/media?bucket=...&folder=...
@@ -23,6 +30,9 @@ const supabaseAdmin = createClient(supabaseUrl, finalServiceKey, {
  */
 export async function GET(request: Request) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Supabase não configurado localmente." }, { status: 503 })
+    }
     const { searchParams } = new URL(request.url)
     const bucket = searchParams.get("bucket")
     const folder = searchParams.get("folder") || ""
@@ -55,6 +65,9 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Supabase não configurado localmente." }, { status: 503 })
+    }
     const formData = await request.formData()
     const bucket = formData.get("bucket") as string
     const path = formData.get("path") as string
@@ -103,6 +116,9 @@ export async function POST(request: Request) {
  */
 export async function DELETE(request: Request) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Supabase não configurado localmente." }, { status: 503 })
+    }
     const { searchParams } = new URL(request.url)
     const bucket = searchParams.get("bucket")
     const pathsParam = searchParams.get("paths")

@@ -71,7 +71,7 @@ export function Acessivel() {
       title: "Capacitação Especializada",
       badge: "Treinamento",
       badgeColor: "bg-violet-50 text-violet-700 border-violet-200",
-      description: "O Grupo Michelines orienta motoristas sobre operação acessível, atendimento humanizado e boas práticas para o transporte de passageiros com mobilidade reduzida."
+      description: "Disponibilizamos veículos para motoristas credenciados no DTP e auxiliamos na homologação do curso obrigatório exigido por lei para o transporte de pessoas com mobilidade reduzida."
     },
     {
       icon: Award,
@@ -307,7 +307,7 @@ export function Acessivel() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
             {/* Active Display Panel */}
-            <div className="lg:col-span-8 flex flex-col rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="lg:col-span-8 flex flex-col rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
               <div className="group relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-slate-150 bg-slate-50 shadow-inner">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -326,6 +326,61 @@ export function Acessivel() {
                   </p>
                 </div>
               </div>
+
+              {/* Dynamic Differentials / Features for Accessible Vehicle */}
+              {accessibleVehicles.length > 0 && accessibleVehicles[activePhoto] && (
+                <div className="pt-3 border-t border-slate-100 text-left">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block mb-2">
+                    Homologação & Diferenciais do Veículo
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
+                    <div className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
+                      accessibleVehicles[activePhoto].isAccessible 
+                        ? "bg-violet-50 border-violet-200 text-violet-750 font-black" 
+                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                    )}>
+                      <span>♿ Acessível</span>
+                    </div>
+
+                    <div className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
+                      accessibleVehicles[activePhoto].isAtendeApproved 
+                        ? "bg-purple-50 border-purple-200 text-purple-750 font-black" 
+                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                    )}>
+                      <span>♿ ATENDE</span>
+                    </div>
+
+                    <div className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
+                      accessibleVehicles[activePhoto].hasRadioAssociation 
+                        ? "bg-indigo-50 border-indigo-200 text-indigo-750 font-black" 
+                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                    )}>
+                      <span>📻 Rádio</span>
+                    </div>
+
+                    <div className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
+                      accessibleVehicles[activePhoto].isDTPApproved 
+                        ? "bg-blue-50 border-blue-200 text-blue-750 font-black" 
+                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                    )}>
+                      <span>🏢 DTP/DETAXI</span>
+                    </div>
+
+                    <div className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
+                      accessibleVehicles[activePhoto].hasDTPCourseSupport 
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-750 font-black" 
+                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                    )}>
+                      <span>🎓 Curso DTP</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Gallery Thumbnail Grid */}
@@ -384,8 +439,8 @@ export function Acessivel() {
               },
               {
                 step: "02",
-                title: "Avaliação de Perfil",
-                description: "Nossa equipe comercial analisará seu perfil de motorista e entrará em contato para detalhar os requisitos da operação e homologação."
+                title: "Homologação & Curso DTP",
+                description: "A frota é disponibilizada para motoristas cadastrados no DTP. Damos total suporte na homologação do curso de transporte de mobilidade reduzida exigido por lei."
               },
               {
                 step: "03",

@@ -10,6 +10,11 @@ export interface Vehicle {
   isHybrid?: boolean
   hasGNV?: boolean
   isDTaxiApproved?: boolean
+  isAccessible?: boolean
+  isAtendeApproved?: boolean
+  hasRadioAssociation?: boolean
+  isDTPApproved?: boolean
+  hasDTPCourseSupport?: boolean
   shortDescription?: string
   fullDescription?: string
   positivePoints?: string[]
