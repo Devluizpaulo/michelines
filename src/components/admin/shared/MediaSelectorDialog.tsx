@@ -126,7 +126,7 @@ export function MediaSelectorDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-3xl overflow-y-auto max-h-[85vh] flex flex-col p-6 rounded-2xl shadow-xl">
+      <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-3xl overflow-y-auto max-h-[85vh] flex flex-col p-6 rounded-2xl shadow-xl" descriptionId="media-selector-dialog-description">
         <DialogHeader className="border-b border-slate-100 pb-3">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -134,7 +134,7 @@ export function MediaSelectorDialog({
                 <ImageIcon className="h-4.5 w-4.5 text-sky-600" />
                 {title}
               </DialogTitle>
-              <DialogDescription className="text-slate-500 text-xs mt-0.5">
+              <DialogDescription id="media-selector-dialog-description" className="text-slate-500 text-xs mt-0.5">
                 {description} (Bucket: <code className="font-mono text-sky-700 bg-sky-50 px-1 rounded">{bucket}</code>)
               </DialogDescription>
             </div>

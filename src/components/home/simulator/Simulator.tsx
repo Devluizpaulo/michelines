@@ -72,7 +72,7 @@ export function Simulator() {
           }
         }
       } catch (e) {
-        console.warn("Erro ao buscar simulator_scenarios, usando estático:", e)
+        console.error("[Simulator] Erro ao buscar simulator_scenarios:", e instanceof Error ? e.message : e)
       } finally {
         setLoading(false)
       }

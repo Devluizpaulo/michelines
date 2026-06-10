@@ -96,6 +96,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
                 fill
                 priority={isPriority}
                 loading={isPriority ? "eager" : "lazy"}
+                sizes="100vw"
                 className="object-cover blur-2xl opacity-25 scale-110 pointer-events-none"
               />
             )}
@@ -105,6 +106,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
               fill
               priority={isPriority}
               loading={isPriority ? "eager" : "lazy"}
+              sizes="100vw"
               className={cn(
                 slide.imageFit === "contain" ? "object-contain" : "object-cover"
               )}

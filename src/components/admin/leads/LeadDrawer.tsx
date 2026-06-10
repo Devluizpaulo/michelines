@@ -19,12 +19,13 @@ import {
 } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
   Phone, MessageSquare, Save, User, MapPin, Globe, CheckSquare, Square, Clock, Send, Sparkles,
-  ShieldCheck, FileText, CheckCircle, XCircle, Info, Eye, UploadCloud, Trash2
+  ShieldCheck, FileText, CheckCircle, XCircle, Info, Eye, UploadCloud, Trash2,
+  Archive, RotateCcw, Star, ArrowRight, CalendarPlus
 } from "lucide-react"
 import { calculateLeadScore } from "@/lib/lead-score"
 import { useToast } from "@/components/ui/toast-simple"
@@ -49,23 +50,97 @@ const getDailyRateForVehicle = (interest: string): string => {
   return "150"
 }
 
-const WHATSAPP_TEMPLATES = [
+// Template categories for WhatsApp messages
+const WHATSAPP_TEMPLATE_CATEGORIES = [
   {
-    id: "intro",
-    label: "Apresentação Táxi 🚖",
-    text: "Fala, {name}! Beleza? Aqui é o {agent} da Michelines. 🚖 Vi que você tem interesse em alugar o {vehicle}. Cara, nossas diárias tão partindo de R$ {dailyRate} com liberação rápida, sem burocracia e sem enrolação de score! Bora dar um pulo aqui tomar um café e já sair rodando? Que dia fica melhor pra você?"
+    category: "Primeiro Contato",
+    templates: [
+      {
+        id: "intro",
+        label: "Apresentação Táxi 🚖",
+        text: "Fala, {name}! Beleza? Aqui é o {agent} da Michelines. 🚖 Vi que você tem interesse em alugar o {vehicle}. Cara, nossas diárias tão partindo de R$ {dailyRate} com liberação rápida, sem burocracia e sem enrolação de score! Bora dar um pulo aqui tomar um café e já sair rodando? Que dia fica melhor pra você?"
+      },
+      {
+        id: "reativacao",
+        label: "Reativação de Lead Frio ❄️",
+        text: "Oi {name}! Tudo certo? Aqui é o {agent} do Grupo Michelines. Vi que você tinha interesse no {vehicle} há um tempo. A gente tá com condições especiais essa semana e pensei em você. Ainda tá procurando uma oportunidade pra rodar de táxi?"
+      }
+    ]
   },
   {
-    id: "docs",
-    label: "Pedido de CNH 📑",
-    text: "Opa, {name}! Para a gente já adiantar sua ficha aqui e deixar o {vehicle} separado pra você, consegue me mandar uma foto bem nítida da sua CNH por aqui? É rapidinho!"
+    category: "Documentação",
+    templates: [
+      {
+        id: "docs",
+        label: "Pedido de CNH 📑",
+        text: "Opa, {name}! Para a gente já adiantar sua ficha aqui e deixar o {vehicle} separado pra você, consegue me mandar uma foto bem nítida da sua CNH por aqui? É rapidinho!"
+      },
+      {
+        id: "score",
+        label: "Pedido de Score (Serasa) 📊",
+        text: "Olá {name}! Para concluir sua análise de crédito, preciso da sua autorização para consultar o Serasa. É um processo padrão e não afeta sua pontuação. Posso prosseguir?"
+      }
+    ]
   },
   {
-    id: "agendamento",
-    label: "Aprovação & Retirada 🏆",
-    text: "Grande {name}! Notícia boa: sua ficha comercial já foi pré-aprovada para o {vehicle}! 🏆 Agora é só vir buscar e começar a faturar. Qual o melhor horário para você passar aqui amanhã?"
+    category: "Agendamento",
+    templates: [
+      {
+        id: "lembrete_visita",
+        label: "Lembrete de Visita 📅",
+        text: "Oi {name}! Lembrando que amanhã você tem visita marcada na garagem Michelines para conhecer o {vehicle}. Confirma que você vem? A gente deixa tudo pronto pra você! 🚖"
+      },
+      {
+        id: "teste_7dias",
+        label: "Convite Teste 7 Dias 🗓️",
+        text: "Oi {name}! Que tal você experimentar o {vehicle} por 7 dias sem compromisso? A gente faz uma semana de teste pra você sentir como é rodar de táxi pela Michelines. Topo?"
+      }
+    ]
+  },
+  {
+    category: "Negociação",
+    templates: [
+      {
+        id: "desconto",
+        label: "Proposta Especial 💰",
+        text: "Olá {name}! Tenho uma novidade pra você: essa semana o {vehicle} tá com condição especial de entrada facilitada. Posso te passar os detalhes? É uma oportunidade que vale a pena!"
+      },
+      {
+        id: "pos_visita",
+        label: "Pós-Visita ☕",
+        text: "Oi {name}! Foi um prazer te receber na garagem hoje! Ficou alguma dúvida sobre o {vehicle}? Qualquer coisa, pode chamar aqui. A gente tá sempre pronto pra ajudar! 😊"
+      }
+    ]
+  },
+  {
+    category: "Conversão",
+    templates: [
+      {
+        id: "agendamento",
+        label: "Aprovação & Retirada 🏆",
+        text: "Grande {name}! Notícia boa: sua ficha comercial já foi pré-aprovada para o {vehicle}! 🏆 Agora é só vir buscar e começar a faturar. Qual o melhor horário para você passar aqui amanhã?"
+      }
+    ]
+  },
+  {
+    category: "Pós-venda",
+    templates: [
+      {
+        id: "encerramento",
+        label: "Encerramento Cordial 👋",
+        text: "Oi {name}, tudo bem? Aqui é o {agent} da Michelines. Por ora vou encerrar nosso contato, mas fico aqui se você mudar de ideia ou tiver interesse no futuro. Obrigado pela atenção e boa sorte! 🤝"
+      },
+      {
+        id: "indicacao",
+        label: "Indicação / Referral 🤝",
+        text: "Oi {name}! Tudo ótimo por aí? Aqui é o {agent} da Michelines. Você conhece algum motorista que esteja buscando oportunidade pra rodar de táxi? A gente tem programa de indicação e você pode ganhar benefícios por cada amigo aprovado! 🚖"
+      }
+    ]
   }
 ]
+
+// Flat list for backward compatibility
+const WHATSAPP_TEMPLATES = WHATSAPP_TEMPLATE_CATEGORIES.flatMap(c => c.templates)
 
 export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerProps) {
   const { adminUser } = useAuth()
@@ -1081,12 +1156,82 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
               📥 Exportar
             </Button>
             <span className={`text-[10px] font-bold px-2 py-1 rounded border flex items-center gap-1 shrink-0 ${scoreInfo.color}`}>
-              Score: {scoreInfo.score} pts
+              {scoreInfo.labelEmoji} {scoreInfo.score} pts
             </span>
           </div>
         </DialogHeader>
 
-        {/* Tab-driven layout with sidebar styling */}
+        {/* Funnel Progress Bar — Interactive, always visible */}
+        {(() => {
+          const FUNNEL_STEPS: { id: Lead["status"]; label: string; shortLabel: string }[] = [
+            { id: "new", label: "Novo Lead", shortLabel: "Novo" },
+            { id: "contacted", label: "Contatado", shortLabel: "Contatado" },
+            { id: "negotiating", label: "Em Negociao", shortLabel: "Negociao" },
+            { id: "scheduled", label: "Agendado", shortLabel: "Agendado" },
+            { id: "converted", label: "Alugado ✓", shortLabel: "Alugado" },
+            { id: "lost", label: "Perdido", shortLabel: "Perdido" },
+          ]
+          const currentIdx = FUNNEL_STEPS.findIndex(s => s.id === status)
+
+          const handleFunnelStep = async (stepId: Lead["status"]) => {
+            if (!lead || stepId === status) return
+            try {
+              const leadRef = doc(db, "leads", lead.id)
+              const newInteractions = [...(lead.interactions || [])]
+              newInteractions.push({
+                id: Math.random().toString(36).substring(2, 9),
+                type: "status_change",
+                agentName: loggedInUser,
+                content: `Avanou etapa do funil: ${status} → ${stepId}.`,
+                createdAt: new Date().toISOString()
+              })
+              await updateDoc(leadRef, {
+                status: stepId,
+                interactions: newInteractions,
+                updatedAt: new Date().toISOString()
+              })
+              setStatus(stepId)
+              onLeadUpdated({ ...lead, status: stepId, interactions: newInteractions, updatedAt: new Date().toISOString() })
+            } catch (e) {
+              console.error("Erro ao avanar etapa:", e)
+            }
+          }
+
+          return (
+            <div className="px-6 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+              <div className="flex items-center gap-0 overflow-x-auto scrollbar-none">
+                {FUNNEL_STEPS.map((step, idx) => {
+                  const isActive = step.id === status
+                  const isPast = idx < currentIdx
+                  const isLost = step.id === "lost"
+
+                  return (
+                    <button
+                      key={step.id}
+                      onClick={() => handleFunnelStep(step.id)}
+                      title={step.label}
+                      className={[
+                        "flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full shrink-0 transition-all duration-200 border",
+                        isActive && !isLost && "bg-sky-600 text-white border-sky-600 shadow-sm",
+                        isActive && isLost && "bg-red-500 text-white border-red-500 shadow-sm",
+                        isPast && !isActive && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                        !isActive && !isPast && "bg-white text-slate-400 border-slate-200 hover:border-slate-350 hover:text-slate-600",
+                      ].filter(Boolean).join(" ")}
+                    >
+                      {isPast && !isActive && <CheckCircle className="h-3 w-3 text-emerald-500" />}
+                      {isActive && <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
+                      <span>{step.shortLabel}</span>
+                    </button>
+                  )
+                }).reduce<React.ReactNode[]>((acc, btn, idx) => {
+                  if (idx === 0) return [btn]
+                  return [...acc, <ArrowRight key={`arr-${idx}`} className="h-3 w-3 text-slate-300 shrink-0 mx-0.5" />, btn]
+                }, [])}
+              </div>
+            </div>
+          )
+        })()}
+
         <Tabs defaultValue="perfil" className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
           
           {/* Stacked Tabs list */}
@@ -2179,8 +2324,17 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         <SelectValue placeholder="Selecione o template" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border border-slate-200 text-slate-755">
-                        {WHATSAPP_TEMPLATES.map(t => (
-                          <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                        {WHATSAPP_TEMPLATE_CATEGORIES.map(cat => (
+                          <SelectGroup key={cat.category}>
+                            <SelectLabel className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-2 py-1">
+                              {cat.category}
+                            </SelectLabel>
+                            {cat.templates.map(t => (
+                              <SelectItem key={t.id} value={t.id} className="text-xs">
+                                {t.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         ))}
                       </SelectContent>
                     </Select>
@@ -2279,7 +2433,25 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         </Tabs>
 
         {/* Persistent dialog Footer actions */}
-        <div className="border-t border-slate-100 p-4 bg-slate-50/50 flex gap-3 shrink-0">
+        <div className="border-t border-slate-100 p-4 bg-slate-50/50 flex gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+          {/* Archive / Unarchive */}
+          <Button
+            onClick={handleToggleArchive}
+            disabled={saving}
+            variant="outline"
+            className={[
+              "flex items-center gap-1.5 font-bold text-xs shrink-0 px-3",
+              archived
+                ? "border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                : "border-red-200 text-red-600 hover:bg-red-50"
+            ].join(" ")}
+          >
+            {archived
+              ? <><RotateCcw className="h-3.5 w-3.5" /> Reativar</>
+              : <><Archive className="h-3.5 w-3.5" /> Arquivar</>
+            }
+          </Button>
+
           <Button
             onClick={onClose}
             variant="outline"

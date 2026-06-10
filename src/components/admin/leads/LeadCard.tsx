@@ -2,11 +2,9 @@
 
 import { Lead } from "@/types/lead"
 import { Badge } from "@/components/ui/badge"
-import { Phone, Calendar, MessageSquare, Flame, Sparkles, Snowflake } from "lucide-react"
+import { Calendar, MessageSquare, Flame, Sparkles, Snowflake, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { calculateLeadScore } from "@/lib/lead-score"
-import { THEME_TOKENS } from "@/theme/design-system"
-import { motion } from "framer-motion"
 
 interface LeadCardProps {
   lead: Lead
@@ -48,6 +46,21 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
     e.dataTransfer.effectAllowed = "move"
   };
 
+  // Level-based left border and hover styling
+  const levelStyles = {
+    priority: "hover:border-purple-300 hover:shadow-md",
+    hot: "hover:border-red-300 hover:shadow-md",
+    warm: "hover:border-amber-300 hover:shadow-md",
+    cold: "hover:border-sky-300 hover:shadow-md",
+  }
+
+  const levelStripe = {
+    priority: "bg-purple-500",
+    hot: "bg-red-500",
+    warm: "bg-amber-500",
+    cold: "bg-sky-500",
+  }
+
   return (
     <div 
       draggable
@@ -55,17 +68,14 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
       onClick={() => onClick(lead)}
       className={cn(
         "cursor-grab active:cursor-grabbing p-4 rounded-xl flex flex-col justify-between space-y-3 relative overflow-hidden select-none border border-slate-200 bg-white hover:bg-slate-50/50 transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 active:scale-[0.985] shadow-sm",
-        scoreInfo.level === "hot" && "hover:border-red-300 hover:shadow-md",
-        scoreInfo.level === "warm" && "hover:border-amber-300 hover:shadow-md",
-        scoreInfo.level === "cold" && "hover:border-sky-300 hover:shadow-md"
+        levelStyles[scoreInfo.level]
       )}
     >
-      {/* Light temperature indicator stripe at the left */}
+      {/* Left temperature indicator stripe */}
       <span className={cn(
         "absolute left-0 top-0 bottom-0 w-1",
-        scoreInfo.level === "hot" && "bg-red-500",
-        scoreInfo.level === "warm" && "bg-amber-500",
-        scoreInfo.level === "cold" && "bg-sky-500"
+        levelStripe[scoreInfo.level],
+        scoreInfo.level === "priority" && "animate-pulse"
       )} />
 
       <div className="space-y-2.5">
@@ -77,6 +87,7 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
           {/* Lead score & temperature */}
           <div className="flex items-center gap-1.5">
             <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1", scoreInfo.color)}>
+              {scoreInfo.level === "priority" && <Star className="h-3 w-3 text-purple-500 fill-purple-500" />}
               {scoreInfo.level === "hot" && <Flame className="h-3 w-3 animate-pulse text-red-500" />}
               {scoreInfo.level === "warm" && <Sparkles className="h-2.5 w-2.5 text-amber-500" />}
               {scoreInfo.level === "cold" && <Snowflake className="h-2.5 w-2.5 text-blue-500" />}
@@ -102,7 +113,14 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
         </span>
 
         <div className="flex items-center gap-2">
-          {lead.approvalStatus && lead.approvalStatus !== "pending" && (
+          {/* Priority badge */}
+          {scoreInfo.level === "priority" && (
+            <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-[9px] font-bold animate-pulse">
+              PRIORITÁRIO
+            </Badge>
+          )}
+
+          {lead.approvalStatus && lead.approvalStatus !== "pending" && scoreInfo.level !== "priority" && (
             <Badge className={cn(
               "text-[9px] font-bold px-1.5 py-0.2",
               lead.approvalStatus === "approved" 

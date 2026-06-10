@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper para verificar se o usuário é um administrador autenticado e ativo
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/admin_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.active == true;
+    }
+
+    // Helper para verificar se o usuário é super administrador
+    function isSuperAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/admin_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.role == 'super_admin' &&
+        get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.active == true;
+    }
+
+    // 1. Coleção de Administradores
+    match /admin_users/{uid} {
+      // Qualquer usuário autenticado pode ler (get) e criar (create) seu próprio perfil inicial
+      allow get, create: if request.auth != null && request.auth.uid == uid;
+      // Administradores ativos podem listar (list) e obter (get) detalhes de todos os usuários da equipe
+      allow list, get: if isAdmin();
+      // Apenas super admins ativos podem atualizar ou deletar perfis
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // 2. Coleção de Leads (Cadastros de Clientes)
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, write: if isAdmin();
+    }
+
+    // 3. Coleção de Drivers (Motoristas / Cadastros da Frota Legada)
+    match /drivers/{driverId} {
+      allow create: if true;
+      allow read, write: if isAdmin();
+    }
+
+    // 4. Coleção de Veículos e Precificação
+    match /vehicles/{vehicleId} {
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+    
+    match /vehicle_pricing/{pricingId} {
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+
+    // 5. Configurações da Landing e Banners (Hero Slides)
+    match /landing/{docId} {
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+
+    match /hero_slides/{slideId} {
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+
+    // 6. Permissões de Roles Dinâmicas
+    match /role_permissions/{docId} {
+      allow read: if true; 
+      allow write: if isSuperAdmin(); 
+    }
+
+    // 7. Coleção de Simulador
+    match /simulator_scenarios/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 8. Coleção de Depoimentos / Testimonials
+    match /testimonials/{docId} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // 9. Coleção de Agenda / Appointments
+    match /appointments/{docId} {
+      allow create, read, write: if isAdmin();
+    }
+
+    // 10. Configurações gerais (landing, stats, etc)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -74,13 +74,13 @@ export default function BannerCarousel() {
               <div className="relative w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-lg">
                 {banner.isLogo ? (
                   <div className="absolute inset-0 bg-white z-10 flex items-center justify-center flex-col px-4 text-center">
-                    <div className="relative w-full max-w-md sm:max-w-lg h-auto">
+                    <div className="relative w-full max-w-md sm:max-w-lg h-auto aspect-auto">
                       <Image
                         src={banner.image || "/placeholder.svg"}
                         alt={banner.title}
                         width={500}
                         height={300}
-                        className="object-contain mx-auto max-h-[120px] sm:max-h-[180px] md:max-h-[220px]"
+                        className="object-contain mx-auto max-h-[120px] sm:max-h-[180px] md:max-h-[220px] w-auto"
                         priority
                         quality={90}
                       />

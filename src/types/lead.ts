@@ -1,6 +1,16 @@
 export interface LeadInteraction {
   id: string
-  type: 'whatsapp' | 'note' | 'status_change' | 'credit_check' | 'authorization'
+  type:
+    | 'whatsapp'
+    | 'note'
+    | 'status_change'
+    | 'credit_check'
+    | 'authorization'
+    | 'document_upload'
+    | 'appointment'
+    | 'decision'
+    | 'archive'
+    | 'score_update'
   agentName: string
   content: string
   createdAt: string
@@ -96,7 +106,11 @@ export interface Lead {
     url: string
     path?: string
     uploadedAt: string
+    category?: 'cnh' | 'condutax' | 'residencia' | 'foto' | 'outros'
   }[]
+
+  // Calculated score (cached)
+  leadScore?: number
 }
 
 

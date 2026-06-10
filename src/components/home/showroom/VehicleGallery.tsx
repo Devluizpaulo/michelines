@@ -26,10 +26,10 @@ export function ShowroomVehicleGallery({ images, name, isOpen, onClose }: Showro
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-slate-950/95 border-slate-900 text-slate-100 max-w-4xl w-full p-4 flex flex-col justify-center items-center rounded-2xl">
+      <DialogContent className="bg-slate-950/95 border-slate-900 text-slate-100 max-w-4xl w-full p-4 flex flex-col justify-center items-center rounded-2xl" descriptionId="vehicle-gallery-dialog-description">
         <DialogHeader className="w-full text-left pb-2 border-b border-slate-900">
           <DialogTitle className="text-lg font-black text-white">{name}</DialogTitle>
-          <DialogDescription className="text-xs text-slate-450">Galeria de imagens oficiais e detalhes do interior.</DialogDescription>
+          <DialogDescription id="vehicle-gallery-dialog-description" className="text-xs text-slate-450">Galeria de imagens oficiais e detalhes do interior.</DialogDescription>
         </DialogHeader>
 
         {/* Main Image Slideshow */}
@@ -38,7 +38,8 @@ export function ShowroomVehicleGallery({ images, name, isOpen, onClose }: Showro
           <img 
             src={images[currentIndex]} 
             alt={`${name} - Imagem ${currentIndex + 1}`}
-            className="w-full h-full object-contain filter drop-shadow-[0_20px_20px_rgba(0,0,0,0.6)]"
+            className="w-full h-full object-contain filter drop-shadow-[0_20px_20px_rgba(0,0,0,0.6)] loading-lazy"
+            loading="lazy"
           />
 
           {/* Navigation Controls */}
@@ -77,7 +78,7 @@ export function ShowroomVehicleGallery({ images, name, isOpen, onClose }: Showro
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
               </button>
             ))}
           </div>

@@ -30,6 +30,7 @@ import { AnalyticsDashboard } from "@/components/admin/analytics/AnalyticsDashbo
 import { SupabaseMediaCenter } from "@/components/admin/shared/SupabaseMediaCenter"
 import { UserManager } from "@/components/admin/users/UserManager"
 import { TestimonialManager } from "@/components/admin/testimonials/TestimonialManager"
+import { AgendaManager } from "@/components/admin/agenda/AgendaManager"
 import { Shield } from "lucide-react"
 
 // Inner component that uses auth context
@@ -330,6 +331,7 @@ function AdminContent() {
                 <DashboardOverview
                   leads={leads}
                   onLeadClick={() => setActiveTab("leads")}
+                  role={role || undefined}
                 />
               )}
 
@@ -373,6 +375,10 @@ function AdminContent() {
 
               {activeTab === "usuarios" && (
                 <UserManager />
+              )}
+
+              {activeTab === "agenda" && (
+                <AgendaManager />
               )}
 
               {activeTab === "depoimentos" && (

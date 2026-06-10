@@ -12,6 +12,7 @@ import {
   Users,
   Sliders,
   MessageSquare,
+  CalendarDays,
   LucideIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -31,8 +32,9 @@ interface MenuItem {
 }
 
 const ALL_MENU_ITEMS: MenuItem[] = [
-  { id: "dashboard",     label: "Dashboard",       icon: LayoutDashboard },
-  { id: "leads",         label: "Leads Funil",     icon: Target },
+  { id: "dashboard",     label: "Dashboard",        icon: LayoutDashboard },
+  { id: "leads",         label: "Leads Funil",      icon: Target },
+  { id: "agenda",        label: "Agenda",           icon: CalendarDays },
   { id: "campanhas",     label: "Campanhas",        icon: Megaphone },
   { id: "landing",       label: "Landing Page",     icon: Monitor },
   { id: "depoimentos",   label: "Depoimentos",      icon: MessageSquare },

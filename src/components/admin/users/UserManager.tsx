@@ -10,6 +10,7 @@ import {
 import { db, auth, secondaryAuth } from "@/app/firebase/config"
 import { AdminUser, UserRole, ROLE_LABELS, ROLE_PERMISSIONS, TabId } from "@/lib/permissions"
 import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/components/ui/toast-simple"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   UserPlus, Shield, RefreshCw, Trash2, MailIcon, KeyRound,
   CheckCircle2, XCircle, Crown, Eye, EyeOff, Users, Lock,
-  Send
+  Send, Pencil
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { THEME_TOKENS } from "@/theme/design-system"
@@ -38,17 +39,62 @@ const TAB_LABELS: Record<TabId, string> = {
   configuracoes: "Configurações",
   usuarios:      "Usuários",
   operacao:      "Operação & Preços",
+  agenda:        "Agenda",
 }
 
 export function UserManager() {
   const { adminUser, customPermissions } = useAuth()
+  const { success, error: toastError } = useToast()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
   const [editUser, setEditUser] = useState<AdminUser | null>(null)
+  const [editForm, setEditForm] = useState({
+    displayName: "",
+    phone: "",
+    role: "vendedor" as UserRole,
+  })
   const [saving, setSaving] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [resetSent, setResetSent] = useState<string | null>(null)
+
+  const handleStartEdit = (user: AdminUser) => {
+    setEditUser(user)
+    setEditForm({
+      displayName: user.displayName,
+      phone: user.phone || "",
+      role: user.role,
+    })
+  }
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editUser) return
+    setSaving(true)
+    try {
+      await updateDoc(doc(db, "admin_users", editUser.uid), {
+        displayName: editForm.displayName,
+        phone: editForm.phone,
+        role: editForm.role,
+      })
+      
+      // Update local state
+      setUsers(prev => prev.map(u => u.uid === editUser.uid ? {
+        ...u,
+        displayName: editForm.displayName,
+        phone: editForm.phone,
+        role: editForm.role
+      } : u))
+      
+      setEditUser(null)
+      success("Usuário atualizado!", "Os dados do usuário foram salvos com sucesso.")
+    } catch (err: any) {
+      console.error(err)
+      toastError("Erro ao atualizar usuário", err.message || "Tente novamente.")
+    } finally {
+      setSaving(false)
+    }
+  }
   
   // Custom manual invitation share states
   const [shareOpen, setShareOpen] = useState(false)
@@ -86,10 +132,10 @@ export function UserManager() {
     setSavingPermissions(true)
     try {
       await setDoc(doc(db, "role_permissions", "config"), permissionsConfig)
-      alert("Níveis de acesso e permissões salvos com sucesso!")
+      success("Permissões salvas!", "Níveis de acesso e permissões salvos com sucesso.")
     } catch (e: any) {
       console.error(e)
-      alert(`Erro ao salvar permissões: ${e.message || "Tente novamente."}`)
+      toastError("Erro ao salvar permissões", e.message || "Tente novamente.")
     } finally {
       setSavingPermissions(false)
     }
@@ -176,7 +222,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
     } catch (err: any) {
       let msg = "Erro ao criar usuário."
       if (err.code === "auth/email-already-in-use") msg = "Este email já está em uso."
-      alert(msg)
+      toastError("Erro ao criar usuário", msg)
     } finally {
       setSaving(false)
     }
@@ -187,8 +233,9 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
     try {
       await updateDoc(doc(db, "admin_users", uid), { role })
       setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role } : u))
-    } catch (e) {
-      alert("Erro ao atualizar permissão.")
+      success("Cargo atualizado!", "O nível de acesso do usuário foi alterado.")
+    } catch (e: any) {
+      toastError("Erro ao atualizar cargo", e.message || "Tente novamente.")
     }
   }
 
@@ -196,18 +243,21 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
     try {
       await updateDoc(doc(db, "admin_users", uid), { active: !active })
       setUsers(prev => prev.map(u => u.uid === uid ? { ...u, active: !active } : u))
-    } catch (e) {
-      alert("Erro ao atualizar status.")
+      success(
+        active ? "Acesso bloqueado!" : "Acesso liberado!",
+        active ? "O usuário não poderá acessar o painel." : "O usuário agora pode acessar o painel."
+      )
+    } catch (e: any) {
+      toastError("Erro ao atualizar status", e.message || "Tente novamente.")
     }
   }
 
   const handleResetPassword = async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email)
-      setResetSent(email)
-      setTimeout(() => setResetSent(null), 5000)
-    } catch (e) {
-      alert("Erro ao enviar email de redefinição.")
+      success("E-mail enviado!", `Um link para redefinir a senha foi enviado para ${email}.`)
+    } catch (e: any) {
+      toastError("Erro ao redefinir senha", e.message || "Tente novamente.")
     }
   }
 
@@ -216,8 +266,9 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
     try {
       await deleteDoc(doc(db, "admin_users", uid))
       setUsers(prev => prev.filter(u => u.uid !== uid))
-    } catch (e) {
-      alert("Erro ao remover usuário.")
+      success("Usuário removido!", "O acesso do usuário foi removido permanentemente do Firestore.")
+    } catch (e: any) {
+      toastError("Erro ao remover usuário", e.message || "Tente novamente.")
     }
   }
 
@@ -466,6 +517,17 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
                         </SelectContent>
                       </Select>
 
+                      {/* Edit Details */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleStartEdit(user)}
+                        className="h-8 w-8 p-0 text-slate-400 hover:text-sky-600 hover:bg-sky-50"
+                        title="Editar dados do usuário"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+
                       {/* Toggle Active */}
                       <Button
                         size="sm"
@@ -507,13 +569,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
         )}
       </div>
 
-      {/* Reset feedback */}
-      {resetSent && (
-        <div className="fixed bottom-6 right-6 bg-emerald-600 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 z-50 animate-in slide-in-from-bottom-4">
-          <MailIcon className="h-4 w-4" />
-          Email de redefinição enviado para {resetSent}
-        </div>
-      )}
+
 
       {/* Create User Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -614,6 +670,114 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
                 className="bg-sky-600 hover:bg-sky-500 text-white font-bold"
               >
                 {saving ? "Criando..." : "Criar Usuário"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editUser !== null} onOpenChange={(open) => !open && setEditUser(null)}>
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md">
+          <form onSubmit={handleEditSubmit} className="space-y-5">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <Pencil className="h-5 w-5 text-sky-600" />
+                Editar Dados do Membro
+              </DialogTitle>
+              <DialogDescription className="text-slate-500">
+                Altere as informações de cadastro e o cargo do membro da equipe.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-slate-700 text-xs font-bold">Nome completo</Label>
+                <Input
+                  placeholder="Ex: João Silva"
+                  value={editForm.displayName}
+                  onChange={e => setEditForm(p => ({ ...p, displayName: e.target.value }))}
+                  className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-slate-700 text-xs font-bold">Telefone / WhatsApp</Label>
+                <Input
+                  placeholder="Ex: (11) 99999-9999"
+                  value={editForm.phone}
+                  onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
+                  className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5 opacity-70">
+                <Label className="text-slate-700 text-xs font-bold flex items-center gap-1">
+                  Email corporativo <Lock className="h-3 w-3 text-slate-400" />
+                </Label>
+                <Input
+                  type="email"
+                  value={editUser?.email || ""}
+                  disabled
+                  className="bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed select-none"
+                />
+                <p className="text-[10px] text-slate-400 font-semibold mt-1">
+                  O email de login não pode ser alterado para evitar inconsistência de acesso.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-slate-700 text-xs font-bold">Nível de acesso (Role)</Label>
+                <Select
+                  value={editForm.role}
+                  onValueChange={val => setEditForm(p => ({ ...p, role: val as UserRole }))}
+                >
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-800">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 text-slate-700">
+                    {(Object.entries(ROLE_LABELS) as [UserRole, typeof ROLE_LABELS[UserRole]][]).map(([role, info]) => (
+                      <SelectItem key={role} value={role}>
+                        <div>
+                          <span className="font-bold">{info.label}</span>
+                          <span className="text-slate-400 ml-2 text-xs">— {info.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Preview das permissões */}
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg mt-2">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Acesso liberado:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {(ROLE_PERMISSIONS[editForm.role] || []).map(tab => (
+                      <span key={tab} className="text-[9px] bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-bold">
+                        {TAB_LABELS[tab]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-2 border-t border-slate-100 flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditUser(null)}
+                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-sky-600 hover:bg-sky-500 text-white font-bold"
+              >
+                {saving ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </DialogFooter>
           </form>

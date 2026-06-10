@@ -8,8 +8,8 @@
  *   marketing    — Apenas campanhas e landing page
  */
 
-export type UserRole = "super_admin" | "gerente" | "vendedor" | "marketing"
-export type TabId = "dashboard" | "leads" | "campanhas" | "landing" | "frota" | "analytics" | "configuracoes" | "usuarios" | "operacao" | "depoimentos"
+export type UserRole = "super_admin" | "supervisor" | "gerente" | "vendedor" | "marketing"
+export type TabId = "dashboard" | "leads" | "campanhas" | "landing" | "frota" | "analytics" | "configuracoes" | "usuarios" | "operacao" | "depoimentos" | "agenda"
 
 export interface AdminUser {
   uid: string
@@ -28,9 +28,10 @@ export interface AdminUser {
  * Define quais abas cada role pode acessar
  */
 export const ROLE_PERMISSIONS: Record<UserRole, TabId[]> = {
-  super_admin: ["dashboard", "leads", "campanhas", "landing", "frota", "analytics", "configuracoes", "usuarios", "operacao", "depoimentos"],
-  gerente:     ["dashboard", "leads", "campanhas", "landing", "frota", "analytics", "operacao", "depoimentos"],
-  vendedor:    ["dashboard", "leads"],
+  super_admin: ["dashboard", "leads", "campanhas", "landing", "frota", "analytics", "configuracoes", "usuarios", "operacao", "depoimentos", "agenda"],
+  supervisor:  ["dashboard", "leads", "frota", "analytics", "operacao", "depoimentos", "agenda"],
+  gerente:     ["dashboard", "leads", "campanhas", "landing", "frota", "analytics", "operacao", "depoimentos", "agenda"],
+  vendedor:    ["dashboard", "leads", "agenda"],
   marketing:   ["dashboard", "campanhas", "landing", "depoimentos"],
 }
 
@@ -43,6 +44,11 @@ export const ROLE_LABELS: Record<UserRole, { label: string; description: string;
     description: "Acesso total ao sistema, usuários e configurações",
     color: "bg-red-50 text-red-700 border-red-200",
   },
+  supervisor: {
+    label: "Supervisor",
+    description: "Acesso a leads, frota, analytics e agenda — sem configurações",
+    color: "bg-purple-50 text-purple-700 border-purple-200",
+  },
   gerente: {
     label: "Gerente",
     description: "Acesso a leads, frota, analytics e campanhas",
@@ -50,7 +56,7 @@ export const ROLE_LABELS: Record<UserRole, { label: string; description: string;
   },
   vendedor: {
     label: "Vendedor",
-    description: "Somente gestão de leads e pipeline",
+    description: "Somente gestão de leads, pipeline e agenda",
     color: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
   marketing: {

@@ -68,7 +68,7 @@ export function Testimonials() {
         })
         setDbTestimonials(list)
       } catch (err) {
-        console.warn("Firestore offline ou erro ao carregar avaliações:", err)
+        console.error("[Testimonials] Erro ao carregar avaliações. Usando dados padrão:", err instanceof Error ? err.message : err)
       }
     }
     loadTestimonials()
@@ -139,7 +139,7 @@ export function Testimonials() {
                 Deixar minha Avaliação
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md rounded-2xl p-6">
+            <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md rounded-2xl p-6" descriptionId="testimonial-dialog-description">
               {submitted ? (
                 <div className="py-8 flex flex-col items-center text-center space-y-4">
                   <div className="h-16 w-16 bg-emerald-50 rounded-full border border-emerald-250 flex items-center justify-center text-emerald-600 animate-bounce">
@@ -165,7 +165,7 @@ export function Testimonials() {
                       <Quote className="h-5 w-5 text-sky-500" />
                       Avalie sua Experiência
                     </DialogTitle>
-                    <DialogDescription className="text-slate-500 text-xs font-semibold leading-relaxed">
+                    <DialogDescription id="testimonial-dialog-description" className="text-slate-500 text-xs font-semibold leading-relaxed">
                       Compartilhe com outros motoristas como o Grupo Michelines transformou a sua rotina e seus rendimentos.
                     </DialogDescription>
                   </DialogHeader>

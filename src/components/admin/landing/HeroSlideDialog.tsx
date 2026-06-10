@@ -169,13 +169,13 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-2xl overflow-y-auto max-h-[92vh]">
+      <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-2xl overflow-y-auto max-h-[92vh]" descriptionId="hero-slide-dialog-description">
         <form onSubmit={handleSubmit} className="space-y-5">
           <DialogHeader>
             <DialogTitle className="text-lg font-black text-slate-900">
               {slide ? "Editar Slide" : "Novo Slide"}
             </DialogTitle>
-            <DialogDescription className="text-slate-500 text-xs">
+            <DialogDescription id="hero-slide-dialog-description" className="text-slate-500 text-xs">
               Configure os textos, imagem, vídeo e call-to-action do slide no topo da Home.
             </DialogDescription>
           </DialogHeader>
