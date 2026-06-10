@@ -348,7 +348,10 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
 
       {/* Read-only details dialog */}
       <Dialog open={viewingVehicle !== null} onOpenChange={(open) => !open && setViewingVehicle(null)}>
-        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl p-0">
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl p-0" descriptionId="vehicle-manager-dialog-description">
+          <DialogDescription id="vehicle-manager-dialog-description" className="sr-only">
+            Detalhes do veículo selecionado
+          </DialogDescription>
           {viewingVehicle && (
             <div className="flex flex-col">
               

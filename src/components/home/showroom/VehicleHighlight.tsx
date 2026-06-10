@@ -26,7 +26,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white border-slate-200 text-slate-800 max-w-2xl w-full overflow-y-auto max-h-[92vh] rounded-2xl scrollbar-thin scrollbar-thumb-slate-200 p-6 shadow-2xl">
+      <DialogContent className="bg-white border-slate-200 text-slate-800 max-w-2xl w-full overflow-y-auto max-h-[92vh] rounded-2xl scrollbar-thin scrollbar-thumb-slate-200 p-6 shadow-2xl" descriptionId="vehicle-highlight-dialog-description">
         
         <DialogHeader className="border-b border-slate-100 pb-4">
           <div className="flex flex-wrap gap-2 mb-2">
@@ -61,7 +61,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             )}
           </div>
           <DialogTitle className="text-2xl font-black text-slate-900">{vehicle.name}</DialogTitle>
-          <DialogDescription className="text-xs text-slate-400 font-semibold">
+          <DialogDescription id="vehicle-highlight-dialog-description" className="text-xs text-slate-400 font-semibold">
             Informações do veículo e condições de locação.
           </DialogDescription>
         </DialogHeader>

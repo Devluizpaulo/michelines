@@ -23,8 +23,9 @@ service cloud.firestore {
       allow get, create: if request.auth != null && request.auth.uid == uid;
       // Administradores ativos podem listar (list) e obter (get) detalhes de todos os usuários da equipe
       allow list, get: if isAdmin();
-      // Apenas super admins ativos podem atualizar ou deletar perfis
-      allow update, delete: if isSuperAdmin();
+      // Admins ativos podem atualizar usuários (incluindo a si mesmos) e super admins podem deletar
+      allow update: if isAdmin();
+      allow delete: if isSuperAdmin();
     }
 
     // 2. Coleção de Leads (Cadastros de Clientes)
@@ -87,6 +88,12 @@ service cloud.firestore {
 
     // 10. Configurações gerais (landing, stats, etc)
     match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 11. Coleção de Diferenciais Operacionais
+    match /operational_features/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }

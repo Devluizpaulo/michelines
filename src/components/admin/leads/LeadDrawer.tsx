@@ -1124,7 +1124,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl w-[92vw] h-[90vh] md:h-[85vh] flex flex-col p-0 overflow-hidden bg-white border border-slate-200 rounded-3xl shadow-2xl text-slate-800 focus:outline-none">
+      <DialogContent className="max-w-4xl w-[92vw] h-[90vh] md:h-[85vh] flex flex-col p-0 overflow-hidden bg-white border border-slate-200 rounded-3xl shadow-2xl text-slate-800 focus:outline-none" descriptionId="lead-drawer-dialog-description">
         
         {/* Persistent Dialog Header */}
         <DialogHeader className="border-b border-slate-100 p-6 flex flex-row items-center justify-between shrink-0">
@@ -1136,7 +1136,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                 {lead.source}
               </Badge>
             </DialogTitle>
-            <DialogDescription className="text-slate-500 text-xs flex flex-wrap items-center gap-1.5 font-semibold">
+            <DialogDescription id="lead-drawer-dialog-description" className="text-slate-500 text-xs flex flex-wrap items-center gap-1.5 font-semibold">
               <span>Registrado em {dateString}</span>
               {getElapsedTime(lead.createdAt) && (
                 <span className="text-sky-600 font-extrabold">{getElapsedTime(lead.createdAt)}</span>

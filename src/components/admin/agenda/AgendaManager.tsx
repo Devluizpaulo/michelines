@@ -491,12 +491,15 @@ export function AgendaManager() {
 
       {/* ── New Appointment Dialog ── */}
       <Dialog open={showForm} onOpenChange={open => { if (!open) { setShowForm(false); resetForm() } else setShowForm(true) }}>
-        <DialogContent className="bg-white max-w-md">
+        <DialogContent className="bg-white max-w-md" descriptionId="agenda-form-description">
           <DialogHeader>
             <DialogTitle className="text-base font-black text-slate-900 flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-sky-600" />
               Novo Agendamento
             </DialogTitle>
+            <DialogDescription id="agenda-form-description" className="text-slate-500">
+              Agende uma reunião com um cliente selecionando a data, hora e detalhes.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">

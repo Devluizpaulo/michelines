@@ -407,11 +407,11 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
 
       {/* Dialog para Novo Lead */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md">
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md" descriptionId="lead-board-dialog-description">
           <form onSubmit={handleCreateLead} className="space-y-4">
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-slate-900">Criar Novo Lead Manual</DialogTitle>
-              <DialogDescription className="text-slate-500">
+              <DialogDescription id="lead-board-dialog-description" className="text-slate-500">
                 Insira os dados do contato comercial para iniciar o acompanhamento.
               </DialogDescription>
             </DialogHeader>

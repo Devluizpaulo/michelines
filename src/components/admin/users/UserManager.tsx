@@ -573,14 +573,14 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
 
       {/* Create User Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md">
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md" descriptionId="create-user-dialog-description">
           <form onSubmit={handleCreate} className="space-y-5">
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-sky-600" />
                 Novo Membro da Equipe
               </DialogTitle>
-              <DialogDescription className="text-slate-500">
+              <DialogDescription id="create-user-dialog-description" className="text-slate-500">
                 O usuário receberá um convite por e-mail para cadastrar sua própria senha.
               </DialogDescription>
             </DialogHeader>
@@ -678,14 +678,14 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
 
       {/* Edit User Dialog */}
       <Dialog open={editUser !== null} onOpenChange={(open) => !open && setEditUser(null)}>
-        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md">
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md" descriptionId="edit-user-dialog-description">
           <form onSubmit={handleEditSubmit} className="space-y-5">
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <Pencil className="h-5 w-5 text-sky-600" />
                 Editar Dados do Membro
               </DialogTitle>
-              <DialogDescription className="text-slate-500">
+              <DialogDescription id="edit-user-dialog-description" className="text-slate-500">
                 Altere as informações de cadastro e o cargo do membro da equipe.
               </DialogDescription>
             </DialogHeader>
@@ -786,14 +786,14 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
  
       {/* Dialog de Compartilhamento de Convite Premium (Aesthetics Wow) */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
-        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md">
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md" descriptionId="share-invite-dialog-description">
           <div className="space-y-4">
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500 animate-bounce" />
                 Usuário Criado com Sucesso! 🎉
               </DialogTitle>
-              <DialogDescription className="text-slate-500">
+              <DialogDescription id="share-invite-dialog-description" className="text-slate-500">
                 Encaminhe o convite de primeiro acesso para <span className="text-slate-800 font-bold">{shareData.displayName}</span> usando os canais abaixo.
               </DialogDescription>
             </DialogHeader>

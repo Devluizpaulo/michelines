@@ -466,13 +466,13 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto" descriptionId="campaign-export-dialog-description">
           <DialogHeader className="border-b border-slate-100 pb-4">
             <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
               <Share2 className="h-5 w-5 text-violet-600" />
               Exportar Campanha para Redes Sociais
             </DialogTitle>
-            <DialogDescription className="text-slate-500 text-xs">
+            <DialogDescription id="campaign-export-dialog-description" className="text-slate-500 text-xs">
               Gere textos otimizados para cada plataforma com base na campanha ativa.
             </DialogDescription>
           </DialogHeader>
