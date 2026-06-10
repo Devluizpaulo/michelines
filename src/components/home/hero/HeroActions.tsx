@@ -10,18 +10,25 @@ interface HeroActionsProps {
   ctaText: string
   ctaUrl: string
   theme?: string
+  alignment?: "left" | "center" | "right"
+  onClick?: () => void
 }
 
-export function HeroActions({ ctaText, ctaUrl, theme = "navy" }: HeroActionsProps) {
+export function HeroActions({ ctaText, ctaUrl, theme = "navy", alignment = "center", onClick }: HeroActionsProps) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 25 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.6 }}
-      className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-20"
+      className={cn(
+        "flex flex-col sm:flex-row items-center gap-5 mb-20",
+        alignment === "left" && "justify-start text-left sm:items-start",
+        alignment === "right" && "justify-end text-right sm:items-end",
+        alignment === "center" && "justify-center text-center sm:items-center"
+      )}
     >
       {ctaText && ctaUrl && (
-        <Link href={ctaUrl} className="w-full sm:w-auto">
+        <Link href={ctaUrl} onClick={onClick} className="w-full sm:w-auto">
           <Button 
             className={cn(
               "w-full sm:w-auto h-15 px-8 text-base font-extrabold rounded-lg shadow-md hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2",
@@ -34,7 +41,7 @@ export function HeroActions({ ctaText, ctaUrl, theme = "navy" }: HeroActionsProp
           </Button>
         </Link>
       )}
-      <Link href="https://wa.me/5511944830851" className="w-full sm:w-auto">
+      <Link href="https://wa.me/5511944830851" onClick={onClick} className="w-full sm:w-auto">
         <Button 
           variant="outline" 
           className="w-full sm:w-auto h-15 px-8 text-base rounded-lg border-slate-200 hover:border-sky-500 bg-white hover:bg-slate-50 text-slate-700 transition-all duration-300 flex items-center justify-center gap-2"

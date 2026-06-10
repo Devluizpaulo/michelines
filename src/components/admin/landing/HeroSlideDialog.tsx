@@ -41,6 +41,29 @@ const EMPTY_FORM: Partial<HeroSlideType> = {
   badge: "",
   overlay: "gradient",
   theme: "navy",
+  showTextOverlay: true,
+  textAlignment: "center",
+  titleWeight: "black",
+  subtitleWeight: "medium",
+  bgOpacity: 14,
+  heroHeight: "fullscreen",
+  imageFit: "cover",
+  clickableSlide: false,
+  destinationUrl: "",
+  displayPriority: 0,
+  startDate: "",
+  endDate: "",
+}
+
+const formatDateForInput = (isoString?: string) => {
+  if (!isoString) return ""
+  try {
+    const date = new Date(isoString)
+    const tzOffset = date.getTimezoneOffset() * 60000
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16)
+  } catch (e) {
+    return ""
+  }
 }
 
 export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: HeroSlideDialogProps) {
@@ -274,6 +297,229 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
                 placeholder="Ex: /cadastro"
                 className="bg-white border-slate-200 text-slate-800 h-9"
               />
+            </div>
+          </div>
+
+          {/* Clique do Slide */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => set("clickableSlide", !form.clickableSlide)}
+                className={`relative h-5 w-9 rounded-full transition-colors shrink-0 ${form.clickableSlide ? "bg-sky-600" : "bg-slate-300"}`}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.clickableSlide ? "translate-x-4" : "translate-x-0.5"}`} />
+              </button>
+              <span className="text-[11px] font-bold text-slate-700">
+                Tornar Slide Inteiro Clicável (CTA Invisível)
+              </span>
+            </div>
+            {form.clickableSlide && (
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">URL de Destino do Clique</label>
+                <Input
+                  value={form.destinationUrl || ""}
+                  onChange={(e) => set("destinationUrl", e.target.value)}
+                  placeholder="Ex: /showroom ou link do WhatsApp"
+                  className="bg-white border-slate-200 text-slate-800 h-9"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Layout & Estilos (Estilo Canva/Banner) */}
+          <div className="space-y-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              🎨 Layout & Estilos (Estilo Canva)
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Text Overlay Toggle */}
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => set("showTextOverlay", !form.showTextOverlay)}
+                  className={`relative h-5 w-9 rounded-full transition-colors shrink-0 ${form.showTextOverlay ? "bg-sky-600" : "bg-slate-300"}`}
+                >
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.showTextOverlay ? "translate-x-4" : "translate-x-0.5"}`} />
+                </button>
+                <span className="text-[11px] font-bold text-slate-700">
+                  Exibir Textos sobre a Imagem (Overlay)
+                </span>
+              </div>
+
+              {/* Background Opacity */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Opacidade do Fundo ({form.bgOpacity ?? 14}%)</label>
+                <Select
+                  value={String(form.bgOpacity ?? 14)}
+                  onValueChange={(v) => set("bgOpacity", Number(v))}
+                >
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-800 h-9">
+                    <SelectValue placeholder="Opacidade" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 text-slate-700">
+                    <SelectItem value="10">10% (Muito Escuro)</SelectItem>
+                    <SelectItem value="14">14% (Padrão)</SelectItem>
+                    <SelectItem value="20">20%</SelectItem>
+                    <SelectItem value="30">30%</SelectItem>
+                    <SelectItem value="50">50%</SelectItem>
+                    <SelectItem value="75">75%</SelectItem>
+                    <SelectItem value="100">100% (Sem Escurecer / Flyer)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {form.showTextOverlay && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-200/50">
+                {/* Text Alignment */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Alinhamento</label>
+                  <Select
+                    value={form.textAlignment || "center"}
+                    onValueChange={(v) => set("textAlignment", v)}
+                  >
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-800 h-9">
+                      <SelectValue placeholder="Alinhamento" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-slate-200 text-slate-700">
+                      <SelectItem value="left">Esquerda</SelectItem>
+                      <SelectItem value="center">Centralizado</SelectItem>
+                      <SelectItem value="right">Direita</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Title Weight */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Espessura do Título</label>
+                  <Select
+                    value={form.titleWeight || "black"}
+                    onValueChange={(v) => set("titleWeight", v)}
+                  >
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-800 h-9">
+                      <SelectValue placeholder="Espessura" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-slate-200 text-slate-700">
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Médio</SelectItem>
+                      <SelectItem value="semibold">Semi-negrito</SelectItem>
+                      <SelectItem value="bold">Negrito</SelectItem>
+                      <SelectItem value="black">Extra-Negrito (Black)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Subtitle Weight */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Espessura do Subtítulo</label>
+                  <Select
+                    value={form.subtitleWeight || "medium"}
+                    onValueChange={(v) => set("subtitleWeight", v)}
+                  >
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-800 h-9">
+                      <SelectValue placeholder="Espessura" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-slate-200 text-slate-700">
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Médio</SelectItem>
+                      <SelectItem value="semibold">Semi-negrito</SelectItem>
+                      <SelectItem value="bold">Negrito</SelectItem>
+                      <SelectItem value="black">Extra-Negrito (Black)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Height Control */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-200/50">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Altura do Banner (Hero Height)</label>
+                <Select
+                  value={form.heroHeight || "fullscreen"}
+                  onValueChange={(v) => set("heroHeight", v)}
+                >
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-800 h-9">
+                    <SelectValue placeholder="Altura" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 text-slate-700">
+                    <SelectItem value="sm">Pequeno (sm - 350px)</SelectItem>
+                    <SelectItem value="md">Médio (md - 450px)</SelectItem>
+                    <SelectItem value="lg">Grande (lg - 550px)</SelectItem>
+                    <SelectItem value="fullscreen">Tela Cheia (fullscreen - 70vh)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Image Fit Control */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ajuste da Imagem (Image Fit)</label>
+                <Select
+                  value={form.imageFit || "cover"}
+                  onValueChange={(v) => set("imageFit", v)}
+                >
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-800 h-9">
+                    <SelectValue placeholder="Ajuste" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 text-slate-700">
+                    <SelectItem value="cover">Preencher com Corte (Cover - Padrão)</SelectItem>
+                    <SelectItem value="contain">Ajustar sem Cortes (Contain - Ideal para Canva)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Agendamento e Prioridade de Exibição */}
+          <div className="space-y-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              📅 Marketing & Vigência de Campanha
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Display Priority */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Prioridade de Exibição</label>
+                <Input
+                  type="number"
+                  value={form.displayPriority ?? 0}
+                  onChange={(e) => set("displayPriority", Number(e.target.value))}
+                  placeholder="Ex: 5"
+                  className="bg-white border-slate-200 text-slate-800 h-9"
+                />
+                <span className="text-[8px] text-slate-400 font-medium">Números maiores aparecem primeiro</span>
+              </div>
+
+              {/* Start Date */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Data de Início</label>
+                <Input
+                  type="datetime-local"
+                  value={formatDateForInput(form.startDate)}
+                  onChange={(e) => {
+                    const date = e.target.value
+                    if (!date) set("startDate", "")
+                    else set("startDate", new Date(date).toISOString())
+                  }}
+                  className="bg-white border-slate-200 text-slate-800 h-9 text-xs"
+                />
+              </div>
+
+              {/* End Date */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Data de Expiração</label>
+                <Input
+                  type="datetime-local"
+                  value={formatDateForInput(form.endDate)}
+                  onChange={(e) => {
+                    const date = e.target.value
+                    if (!date) set("endDate", "")
+                    else set("endDate", new Date(date).toISOString())
+                  }}
+                  className="bg-white border-slate-200 text-slate-800 h-9 text-xs"
+                />
+              </div>
             </div>
           </div>
 

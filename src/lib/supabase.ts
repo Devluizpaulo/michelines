@@ -57,8 +57,8 @@ export function getOptimizedImageUrl(
   width = 800,
   quality = 80
 ): string {
-  const base = `${supabaseUrl}/storage/v1/render/image/public/${bucket}/${filename}`
-  return `${base}?width=${width}&quality=${quality}&resize=contain`
+  // Fallback to direct public URL to avoid 403 transformation errors
+  return getSupabaseImageUrl(bucket, filename)
 }
 
 /**
@@ -66,23 +66,7 @@ export function getOptimizedImageUrl(
  * Se não for do Supabase, retorna a URL original sem alterações.
  */
 export function optimizeImageUrl(url: string, width = 600, quality = 80): string {
-  if (!url) return url
-  if (url.includes(supabaseUrl) && url.includes("/storage/v1/object/public/")) {
-    try {
-      const parts = url.split("/storage/v1/object/public/")
-      if (parts.length === 2) {
-        const bucketAndPath = parts[1]
-        const firstSlash = bucketAndPath.indexOf("/")
-        if (firstSlash !== -1) {
-          const bucket = bucketAndPath.substring(0, firstSlash)
-          const path = bucketAndPath.substring(firstSlash + 1)
-          return getOptimizedImageUrl(bucket, path, width, quality)
-        }
-      }
-    } catch (e) {
-      console.warn("[optimizeImageUrl] Erro ao otimizar URL:", e)
-    }
-  }
+  // Always return direct URL to bypass paid Image Transformation 403 limitations
   return url
 }
 

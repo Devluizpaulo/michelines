@@ -24,6 +24,11 @@ export interface Lead {
   interestExecutive?: boolean
   interestHybrid?: boolean
   interestGNV?: boolean
+  leadReason?: string
+  operationInterest?: string
+  preferredContactTime?: string
+  cityNeighborhood?: string
+  hasCnhEar?: boolean
   utm?: {
     source?: string
     medium?: string

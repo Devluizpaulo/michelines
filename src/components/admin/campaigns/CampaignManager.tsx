@@ -11,6 +11,62 @@ import { Settings, Save } from "lucide-react"
 import { CampaignExporter } from "./CampaignExporter"
 import { useToast } from "@/components/ui/toast-simple"
 
+// Helper to compress and load image client-side to keep base64 sizes small
+const compressAndLoadImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (file.type === "image/svg+xml") {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") resolve(reader.result)
+        else reject(new Error("Erro ao ler SVG"))
+      }
+      reader.onerror = () => reject(new Error("Erro ao ler SVG"))
+      reader.readAsDataURL(file)
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const MAX_WIDTH = 1000
+        const MAX_HEIGHT = 1000
+        let width = img.width
+        let height = img.height
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width
+            width = MAX_WIDTH
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height
+            height = MAX_HEIGHT
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext("2d")
+        if (!ctx) {
+          reject(new Error("Não foi possível obter contexto do canvas"))
+          return
+        }
+
+        ctx.drawImage(img, 0, 0, width, height)
+        const dataUrl = canvas.toDataURL("image/webp", 0.75)
+        resolve(dataUrl)
+      }
+      img.onerror = () => reject(new Error("Erro ao carregar imagem no DOM"))
+      img.src = event.target?.result as string
+    }
+    reader.onerror = () => reject(new Error("Erro ao ler arquivo"))
+    reader.readAsDataURL(file)
+  })
+}
+
 interface CampaignManagerProps {
   landingSettings: LandingSettings
   onSettingsSaved: (updatedSettings: LandingSettings) => void
@@ -27,6 +83,9 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
   const [campaignBtnText, setCampaignBtnText] = useState("")
   const [campaignBtnUrl, setCampaignBtnUrl] = useState("")
   const [campaignImageUrl, setCampaignImageUrl] = useState("")
+  const [campaignImagePosition, setCampaignImagePosition] = useState<'left' | 'right'>("right")
+  const [campaignImageSize, setCampaignImageSize] = useState<'sm' | 'md' | 'lg'>("md")
+  const [campaignImageAspectRatio, setCampaignImageAspectRatio] = useState<'square' | 'video' | 'wide' | 'original'>("video")
   const [savingCampaign, setSavingCampaign] = useState(false)
 
   // Sync props
@@ -39,30 +98,27 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
       setCampaignBtnText(landingSettings.campaignBtnText || "")
       setCampaignBtnUrl(landingSettings.campaignBtnUrl || "")
       setCampaignImageUrl(landingSettings.campaignImageUrl || "")
+      setCampaignImagePosition(landingSettings.campaignImagePosition || "right")
+      setCampaignImageSize(landingSettings.campaignImageSize || "md")
+      setCampaignImageAspectRatio(landingSettings.campaignImageAspectRatio || "video")
     }
   }, [landingSettings])
 
-  // Handle local image upload via Base64 FileReader
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle local image upload via Base64 FileReader with auto-compression
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (file.size > 800000) {
-      showError("Arquivo muito grande", "Por favor, selecione uma imagem com menos de 800KB para otimização.")
-      return
+    try {
+      const compressedBase64 = await compressAndLoadImage(file)
+      setCampaignImageUrl(compressedBase64)
+      success("Imagem carregada!", "A imagem foi carregada, redimensionada e otimizada com sucesso.")
+    } catch (err: any) {
+      console.error("Erro ao processar imagem:", err)
+      showError("Erro no upload", "Não foi possível carregar ou otimizar a imagem. Tente outro arquivo.")
+    } finally {
+      e.target.value = "" // Reset target
     }
-
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      if (typeof reader.result === "string") {
-        setCampaignImageUrl(reader.result)
-        success("Imagem carregada!", "A imagem foi carregada e convertida com sucesso.")
-      }
-    }
-    reader.onerror = () => {
-      showError("Erro no upload", "Não foi possível ler o arquivo de imagem.")
-    }
-    reader.readAsDataURL(file)
   }
 
   // Save Campaign Banner
@@ -79,6 +135,9 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
         campaignBtnText,
         campaignBtnUrl,
         campaignImageUrl,
+        campaignImagePosition,
+        campaignImageSize,
+        campaignImageAspectRatio,
         updatedAt: new Date().toISOString()
       }
 
@@ -236,105 +295,175 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                   </div>
                 </div>
 
+                {/* IMAGE LAYOUT SETTINGS */}
+                <div className="space-y-4 pt-4 border-t border-slate-200">
+                  <label className="text-xs font-bold text-slate-700 block">Configurações de Layout da Imagem</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Position Control */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-slate-500 font-bold uppercase block">Posição da Imagem</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setCampaignImagePosition("right")}
+                          className={`p-2 rounded-lg border text-xs font-bold transition-all h-9 ${
+                            campaignImagePosition === "right"
+                              ? "border-sky-500 bg-sky-50 text-sky-700"
+                              : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                          }`}
+                        >
+                          Direita
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCampaignImagePosition("left")}
+                          className={`p-2 rounded-lg border text-xs font-bold transition-all h-9 ${
+                            campaignImagePosition === "left"
+                              ? "border-sky-500 bg-sky-50 text-sky-700"
+                              : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                          }`}
+                        >
+                          Esquerda
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Size Control */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-slate-500 font-bold uppercase block">Tamanho da Imagem</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {(["sm", "md", "lg"] as const).map((sz) => (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => setCampaignImageSize(sz)}
+                            className={`p-1 rounded-lg border text-[10px] font-bold capitalize transition-all h-9 ${
+                              campaignImageSize === sz
+                                ? "border-sky-500 bg-sky-50 text-sky-700"
+                                : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                            }`}
+                          >
+                            {sz === "sm" && "Peq."}
+                            {sz === "md" && "Méd."}
+                            {sz === "lg" && "Grd."}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Aspect Ratio Control */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-slate-500 font-bold uppercase block">Formato da Imagem</label>
+                      <div className="grid grid-cols-4 gap-1">
+                        {(["video", "square", "wide", "original"] as const).map((ratio) => (
+                          <button
+                            key={ratio}
+                            type="button"
+                            onClick={() => setCampaignImageAspectRatio(ratio)}
+                            className={`p-0.5 rounded-lg border text-[8px] font-black uppercase transition-all h-9 ${
+                              campaignImageAspectRatio === ratio
+                                ? "border-sky-500 bg-sky-50 text-sky-700"
+                                : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                            }`}
+                          >
+                            {ratio === "video" && "16:9"}
+                            {ratio === "square" && "1:1"}
+                            {ratio === "wide" && "21:9"}
+                            {ratio === "original" && "Orig."}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* LIVE PREVIEW */}
                 <div className="space-y-3 pt-5 border-t border-slate-200">
                   <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Prévia em Tempo Real (Live Preview)</label>
                   
-                  {campaignTemplateId === 1 && (
-                    <div className="bg-gradient-to-r from-sky-50/80 to-indigo-50/50 border border-sky-100 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden transition-all duration-300">
-                      <div className="flex-1 space-y-3 text-left relative z-10">
-                        <span className="bg-sky-100 text-sky-700 border border-sky-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
-                          Campanha D-TAXI
-                        </span>
-                        <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
-                          {campaignText || "Alugue seu Corolla Cross com Fila D-TAXI!"}
-                        </h3>
-                        <p className="text-slate-600 text-xs font-semibold leading-relaxed text-justify">
-                          {campaignSubtitle || "Fature alto no aeroporto de Congonhas. Retirada rápida em 24 horas."}
-                        </p>
-                        <div className="pt-1">
-                          <button type="button" className="bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold px-4 h-9 text-xs transition-all shadow-sm">
-                            {campaignBtnText || "Quero Aproveitar"}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-200 bg-white">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={campaignImageUrl || "/images/banners/banner-1.png"} 
-                          alt="Promo Corolla Cross"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80"
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  {(() => {
+                    const TEMPLATE_CONFIGS: Record<number, {
+                      containerClass: string
+                      tagText: string
+                      tagClass: string
+                      buttonClass: string
+                      defaultImage: string
+                      imageBorderClass: string
+                    }> = {
+                      1: {
+                        containerClass: "from-sky-50/80 to-indigo-50/50 border-sky-100",
+                        tagText: "Campanha D-TAXI",
+                        tagClass: "bg-sky-100 text-sky-700 border-sky-200",
+                        buttonClass: "bg-sky-600 hover:bg-sky-500 text-white",
+                        defaultImage: "/images/banners/banner-1.png",
+                        imageBorderClass: "border-slate-200"
+                      },
+                      2: {
+                        containerClass: "from-amber-50/80 to-orange-50/50 border-amber-100",
+                        tagText: "Destaque Exclusivo",
+                        tagClass: "bg-amber-100 text-amber-800 border-amber-200",
+                        buttonClass: "bg-amber-600 hover:bg-amber-500 text-white",
+                        defaultImage: "/images/banners/banner-2.png",
+                        imageBorderClass: "border-amber-200"
+                      },
+                      3: {
+                        containerClass: "from-emerald-50/80 to-teal-50/50 border-emerald-100",
+                        tagText: "Mobilidade Híbrida Eco",
+                        tagClass: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        buttonClass: "bg-emerald-600 hover:bg-emerald-500 text-white",
+                        defaultImage: "/images/banners/banner-3.png",
+                        imageBorderClass: "border-emerald-200"
+                      }
+                    }
 
-                  {campaignTemplateId === 2 && (
-                    <div className="bg-gradient-to-r from-amber-50/80 to-orange-50/50 border border-amber-100 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden transition-all duration-300">
-                      <div className="flex-1 space-y-3 text-left relative z-10">
-                        <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
-                          Destaque Exclusivo
-                        </span>
-                        <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
-                          {campaignText || "Taxa Zero: 3 Diárias Grátis para Começar!"}
-                        </h3>
-                        <p className="text-slate-600 text-xs font-semibold leading-relaxed text-justify">
-                          {campaignSubtitle || "Inscreva-se hoje e aproveite as condições especiais sem comprovante de score."}
-                        </p>
-                        <div className="pt-1">
-                          <button type="button" className="bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold px-4 h-9 text-xs transition-all shadow-sm">
-                            {campaignBtnText || "Quero Aproveitar"}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-amber-200 bg-white">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={campaignImageUrl || "/images/banners/banner-2.png"} 
-                          alt="Promo Taxa Zero"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=400&q=80"
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    const cfg = TEMPLATE_CONFIGS[campaignTemplateId] || TEMPLATE_CONFIGS[1]
+                    const imageLeft = campaignImagePosition === "left"
+                    
+                    const previewWidths = {
+                      sm: "md:w-[150px]",
+                      md: "md:w-[200px]",
+                      lg: "md:w-[250px]"
+                    }
 
-                  {campaignTemplateId === 3 && (
-                    <div className="bg-gradient-to-r from-emerald-50/80 to-teal-50/50 border border-emerald-100 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden transition-all duration-300">
-                      <div className="flex-1 space-y-3 text-left relative z-10">
-                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
-                          Mobilidade Híbrida Eco
-                        </span>
-                        <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
-                          {campaignText || "Economize até R$ 2.000 com Corolla Híbrido + GNV"}
-                        </h3>
-                        <p className="text-slate-600 text-xs font-semibold leading-relaxed text-justify">
-                          {campaignSubtitle || "Tecnologia de ponta para rodar mais gastando muito menos combustível."}
-                        </p>
-                        <div className="pt-1">
-                          <button type="button" className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold px-4 h-9 text-xs transition-all shadow-sm">
-                            {campaignBtnText || "Quero Aproveitar"}
-                          </button>
+                    const previewRatios = {
+                      video: "aspect-video",
+                      square: "aspect-square",
+                      wide: "aspect-[21/9]",
+                      original: "aspect-auto"
+                    }
+
+                    return (
+                      <div className={`bg-gradient-to-r ${cfg.containerClass} border rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden transition-all duration-300`}>
+                        <div className={`flex-1 space-y-3 text-left relative z-10 ${imageLeft ? "order-2" : "order-1"}`}>
+                          <span className={`${cfg.tagClass} border text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider`}>
+                            {cfg.tagText}
+                          </span>
+                          <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
+                            {campaignText || "Alugue seu Corolla Cross com Fila D-TAXI!"}
+                          </h3>
+                          <p className="text-slate-600 text-xs font-semibold leading-relaxed text-justify">
+                            {campaignSubtitle || "Fature alto no aeroporto de Congonhas. Retirada rápida em 24 horas."}
+                          </p>
+                          <div className="pt-1">
+                            <button type="button" className={`${cfg.buttonClass} rounded-xl font-bold px-4 h-9 text-xs transition-all shadow-sm`}>
+                              {campaignBtnText || "Quero Aproveitar"}
+                            </button>
+                          </div>
+                        </div>
+                        <div className={`w-full ${previewWidths[campaignImageSize]} ${campaignImageAspectRatio === 'original' ? '' : previewRatios[campaignImageAspectRatio]} ${imageLeft ? "order-1" : "order-2"} relative rounded-xl overflow-hidden shrink-0 shadow-sm border ${cfg.imageBorderClass} bg-white transition-all duration-300`}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                            src={campaignImageUrl || cfg.defaultImage} 
+                            alt="Promo Campaign"
+                            className={`w-full ${campaignImageAspectRatio === 'original' ? 'h-auto' : 'h-full object-cover'}`}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80"
+                            }}
+                          />
                         </div>
                       </div>
-                      <div className="w-full md:w-[220px] h-[125px] relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-emerald-200 bg-white">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={campaignImageUrl || "/images/banners/banner-3.png"} 
-                          alt="Promo Híbridos"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80"
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    )
+                  })()}
                 </div>
               </div>
             )}
@@ -348,6 +477,9 @@ export function CampaignManager({ landingSettings, onSettingsSaved }: CampaignMa
                 campaignBtnText,
                 campaignBtnUrl,
                 campaignImageUrl,
+                campaignImagePosition,
+                campaignImageSize,
+                campaignImageAspectRatio,
               }} />
               <Button 
                 type="submit" 

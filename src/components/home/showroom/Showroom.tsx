@@ -5,7 +5,7 @@ import {
   collection,
   query,
   where,
-  getDocs,
+  onSnapshot,
   orderBy,
 } from "firebase/firestore"
 
@@ -39,33 +39,32 @@ export function Showroom() {
 
   const [galleryOpen, setGalleryOpen] = useState(false)
 
-  // Load vehicles
+  // Load vehicles in real-time
   useEffect(() => {
+    // Try to load cached showroom vehicles first
     if (typeof window !== "undefined") {
-      // Clear legacy cache to force recalculation with correct parsed numbers
-      localStorage.removeItem("showroom_vehicles")
+      const cached = localStorage.getItem("showroom_vehicles")
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          if (parsed && parsed.length > 0) {
+            setVehicles(parsed)
+            setLoading(false)
+          }
+        } catch (e) {
+          console.error("Erro ao carregar showroom do cache local:", e)
+        }
+      }
     }
 
-    const fetchShowroomVehicles = async () => {
-      try {
-        setLoading(true)
+    const q = query(
+      collection(db, "vehicles"),
+      orderBy("showroomOrder", "asc")
+    )
 
-        // Vehicles query
-        const q = query(
-          collection(db, "vehicles"),
-          where("status", "==", "active"),
-          where("available", "==", true),
-          orderBy("showroomOrder", "asc")
-        )
-        
-        // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
-        const snap = await Promise.race([
-          getDocs(q),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout de rede")), 2500)
-          )
-        ]) as any
-
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
         if (!snap.empty) {
           const list: Vehicle[] = []
 
@@ -73,23 +72,25 @@ export function Showroom() {
             const carData = doc.data() as Vehicle
             const carId = doc.id
 
-            list.push({
-              id: carId,
-              ...carData,
-              pricing: {
-                vehicleId: carId,
-                dailyRate: carData.dailyPrice || Math.round((carData.monthlyPrice || 2400) / 30),
-                weeklyRate: carData.weeklyPrice || Math.round((carData.monthlyPrice || 2400) / 4),
-                monthlyRate: carData.monthlyPrice || 2400,
-                weekendExempt: true,
-                acceptedPayments: [
-                  "pix",
-                  "debito",
-                  "credito",
-                ],
-                active: true,
-              },
-            } as any)
+            if (carData.status === "active" && carData.available === true) {
+              list.push({
+                id: carId,
+                ...carData,
+                pricing: {
+                  vehicleId: carId,
+                  dailyRate: carData.dailyPrice || Math.round((carData.monthlyPrice || 2400) / 30),
+                  weeklyRate: carData.weeklyPrice || Math.round((carData.monthlyPrice || 2400) / 4),
+                  monthlyRate: carData.monthlyPrice || 2400,
+                  weekendExempt: true,
+                  acceptedPayments: [
+                    "pix",
+                    "debito",
+                    "credito",
+                  ],
+                  active: true,
+                },
+              } as any)
+            }
           })
 
           setVehicles(list)
@@ -103,22 +104,20 @@ export function Showroom() {
             localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
           }
         }
-      } catch (error) {
-        console.warn(
-          "Erro ou timeout ao carregar showroom dinâmico, usando fallbacks:",
-          error
-        )
+        setLoading(false)
+      },
+      (error) => {
+        console.warn("Erro ao carregar showroom dinâmico no Firestore:", error)
         const fallback = buildFallbackVehicles()
         setVehicles(fallback)
         if (typeof window !== "undefined") {
           localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
         }
-      } finally {
         setLoading(false)
       }
-    }
+    )
 
-    fetchShowroomVehicles()
+    return () => unsubscribe()
   }, [])
 
   // Fallback builder
@@ -230,7 +229,7 @@ export function Showroom() {
   return (
     <section
       id="showroom"
-      className="relative w-full overflow-hidden bg-[#F8FAFC] py-20 lg:py-32 select-none"
+      className="relative w-full overflow-hidden bg-transparent py-20 lg:py-32 select-none"
     >
       {/* Spotlight */}
       <div className="pointer-events-none absolute left-1/2 top-[-20%] z-0 h-[60%] w-[80%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(2,132,199,0.04),transparent_70%)]" />
@@ -239,15 +238,15 @@ export function Showroom() {
         
         {/* TITLE */}
         <div className="mx-auto max-w-3xl space-y-4 text-center">
-          <Badge className="rounded-full border border-sky-200 bg-sky-50 px-3.5 py-1 text-xs font-semibold text-sky-700">
+          <Badge className="rounded-full border border-white/10 bg-white/10 px-3.5 py-1 text-xs font-semibold text-sky-200">
             Frota Executiva
           </Badge>
 
-          <h2 className="text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl">
+          <h2 className="text-3xl font-black leading-tight tracking-tight text-white md:text-5xl">
             Veículos preparados para alta performance
           </h2>
 
-          <p className="text-base font-medium leading-relaxed text-slate-600 md:text-lg">
+          <p className="text-base font-medium leading-relaxed text-sky-100/90 md:text-lg">
             Frota moderna com veículos híbridos, elétricos e
             modelos econômicos preparados para operação executiva
             e locação profissional.
@@ -267,7 +266,7 @@ export function Showroom() {
           </div>
         )}
 
-        <div className="mx-auto h-px max-w-6xl bg-slate-200" />
+        <div className="mx-auto h-px max-w-6xl bg-white/10" />
 
         {/* CATEGORY */}
         <div className="space-y-8">
@@ -311,11 +310,11 @@ export function Showroom() {
 
           {/* CATEGORY INFO */}
           <div className="text-center">
-            <h3 className="text-sm font-extrabold text-slate-800">
+            <h3 className="text-sm font-extrabold text-sky-100">
               {activeCategoryName}
             </h3>
 
-            <p className="mt-1 text-xs font-semibold italic text-slate-500">
+            <p className="mt-1 text-xs font-semibold italic text-sky-200/80">
               &ldquo;{activeCategoryDesc}&rdquo;
             </p>
           </div>
@@ -348,17 +347,17 @@ export function Showroom() {
           )}
         </div>
 
-        <div className="mx-auto h-px max-w-6xl bg-slate-200" />
+        <div className="mx-auto h-px max-w-6xl bg-white/10" />
 
         {/* QUIZ */}
         {!loading && vehicles.length > 0 && (
           <div className="pt-4">
             <div className="mx-auto mb-8 max-w-xl space-y-2 text-center">
-              <h3 className="text-xl font-black text-slate-900 md:text-2xl">
+              <h3 className="text-xl font-black text-white md:text-2xl">
                 Qual veículo combina com você?
               </h3>
 
-              <p className="text-xs font-semibold leading-relaxed text-slate-600">
+              <p className="text-xs font-semibold leading-relaxed text-sky-100/90">
                 Criamos um assistente inteligente para ajudar na
                 escolha ideal da sua operação.
               </p>

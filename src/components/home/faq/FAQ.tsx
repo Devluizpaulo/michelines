@@ -17,7 +17,7 @@ export function FAQ() {
       {/* FAQ */}
       <section
         id="faq"
-        className="relative w-full border-t border-slate-200 bg-white py-20 lg:py-32 select-none"
+        className="relative w-full bg-transparent py-20 lg:py-32 select-none"
       >
         <div className="container mx-auto px-6">
           
@@ -26,15 +26,15 @@ export function FAQ() {
             {/* LEFT */}
             <div className="space-y-6 lg:col-span-5">
               
-              <Badge className="rounded-full border border-sky-200 bg-sky-50 px-3.5 py-1 text-xs font-bold text-sky-700 shadow-xs">
+              <Badge className="rounded-full border border-white/10 bg-white/10 px-3.5 py-1 text-xs font-bold text-sky-200 shadow-xs">
                 Perguntas Frequentes
               </Badge>
 
-              <h2 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+              <h2 className="text-3xl font-black leading-tight text-white md:text-5xl">
                 Restou alguma dúvida?
               </h2>
 
-              <p className="text-base font-semibold leading-relaxed text-slate-600 md:text-lg">
+              <p className="text-base font-semibold leading-relaxed text-sky-100/90 md:text-lg">
                 Reunimos as dúvidas mais comuns dos motoristas que
                 desejam iniciar na operação táxi com mais estrutura,
                 praticidade e suporte operacional.
@@ -154,7 +154,7 @@ export function FAQ() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative w-full overflow-hidden border-t border-slate-200 bg-slate-50 py-20 lg:py-32 select-none">
+      <section className="relative w-full overflow-hidden bg-transparent py-20 lg:py-32 select-none">
         
         {/* LIGHT EFFECTS */}
         <div className="pointer-events-none absolute left-1/4 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-sky-500/[0.01] blur-[130px]" />
@@ -167,17 +167,17 @@ export function FAQ() {
             
             <div className="pointer-events-none absolute inset-0 rounded-3xl border border-sky-500/[0.02]" />
 
-            <Badge className="mb-6 rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-sky-700 shadow-xs">
+            <Badge className="mb-6 rounded-full border border-white/10 bg-white/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-sky-200 shadow-xs">
               Disponibilidade Limitada de Veículos
             </Badge>
 
-            <h2 className="mb-6 text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl">
+            <h2 className="mb-6 text-3xl font-black leading-tight tracking-tight text-white md:text-5xl">
               Comece sua operação
               <br />
               com mais estrutura e suporte
             </h2>
 
-            <p className="mx-auto mb-10 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 md:text-lg">
+            <p className="mx-auto mb-10 max-w-2xl text-base font-semibold leading-relaxed text-sky-100/90 md:text-lg">
               Tenha acesso a veículos preparados para operação
               executiva, suporte operacional da frota e estrutura
               completa para trabalhar com mais tranquilidade no dia
@@ -212,7 +212,7 @@ export function FAQ() {
             </div>
 
             {/* FOOTER BADGES */}
-            <div className="mx-auto mt-12 grid max-w-md grid-cols-3 gap-4 border-t border-slate-100 pt-10 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+            <div className="mx-auto mt-12 grid max-w-md grid-cols-3 gap-4 border-t border-white/10 pt-10 text-[10px] font-extrabold uppercase tracking-wider text-sky-200/80">
               <div>✓ Sem taxa de cadastro</div>
 
               <div>✓ Assistência 24h</div>

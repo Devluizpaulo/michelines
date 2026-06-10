@@ -7,6 +7,7 @@ import { LandingSettings } from "@/types/landing"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Save, ShieldCheck, Info } from "lucide-react"
 import { HeroSlideManager } from "./HeroSlideManager"
 import { useToast } from "@/components/ui/toast-simple"
@@ -22,6 +23,8 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
   const [heroGlowText, setHeroGlowText] = useState("")
   const [liveBannerText, setLiveBannerText] = useState("")
   const [congonhasStatus, setCongonhasStatus] = useState("")
+  const [heroAutoplayInterval, setHeroAutoplayInterval] = useState(8)
+  const [heroTransitionDuration, setHeroTransitionDuration] = useState(50)
   const [savingSettings, setSavingSettings] = useState(false)
 
   // Sync state with props
@@ -31,6 +34,8 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
       setHeroGlowText(landingSettings.heroGlowText || "")
       setLiveBannerText(landingSettings.liveBannerText || "")
       setCongonhasStatus(landingSettings.congonhasStatus || "")
+      setHeroAutoplayInterval(landingSettings.heroAutoplayInterval || 8)
+      setHeroTransitionDuration(landingSettings.heroTransitionDuration || 50)
     }
   }, [landingSettings])
 
@@ -44,6 +49,8 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
         heroGlowText,
         liveBannerText,
         congonhasStatus,
+        heroAutoplayInterval: Number(heroAutoplayInterval || 8),
+        heroTransitionDuration: Number(heroTransitionDuration || 50),
         updatedAt: new Date().toISOString()
       }
 
@@ -56,7 +63,7 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
       }
 
       onSettingsSaved(payload)
-      success("Configurações salvas!", "Os textos da Landing Page foram atualizados.")
+      success("Configurações salvas!", "Os textos e o tempo de rotação foram atualizados.")
     } catch (e: any) {
       console.error("Erro ao salvar configurações da landing:", e)
       showError("Erro ao salvar", e?.message || "Tente novamente.")
@@ -138,6 +145,44 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
                   placeholder="Ex: Dirija com propósito."
                   className="bg-white border-slate-200 text-slate-800 h-11 focus-visible:ring-sky-500"
                 />
+              </div>
+
+              {/* Tempo de Rotação do Carrossel */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700">Tempo de Rotação do Carrossel (segundos)</label>
+                <Input
+                  type="number"
+                  min={2}
+                  max={30}
+                  value={heroAutoplayInterval}
+                  onChange={(e) => setHeroAutoplayInterval(Number(e.target.value))}
+                  placeholder="Ex: 8"
+                  className="bg-white border-slate-200 text-slate-800 h-11 focus-visible:ring-sky-500"
+                />
+                <span className="text-[10px] text-slate-400 font-medium block mt-1">Duração de exibição de cada slide antes de girar automaticamente (Padrão: 8s).</span>
+              </div>
+
+              {/* Velocidade de Transição do Slide */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700">Velocidade de Transição do Slide (suavidade)</label>
+                <Select
+                  value={String(heroTransitionDuration)}
+                  onValueChange={(v) => setHeroTransitionDuration(Number(v))}
+                >
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-800 h-11 focus:ring-sky-500">
+                    <SelectValue placeholder="Selecione a velocidade" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 text-slate-700">
+                    <SelectItem value="20">Muito Rápida (20ms)</SelectItem>
+                    <SelectItem value="35">Rápida (35ms)</SelectItem>
+                    <SelectItem value="50">Suave / Cinemática (50ms - Padrão)</SelectItem>
+                    <SelectItem value="75">Lenta / Gradual (75ms)</SelectItem>
+                    <SelectItem value="100">Super Lenta (100ms)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-[10px] text-slate-400 font-medium block mt-1">
+                  Controla o tempo da animação ao deslizar de um banner para o outro (valores maiores são mais suaves).
+                </span>
               </div>
 
               {/* Fila Congonhas */}

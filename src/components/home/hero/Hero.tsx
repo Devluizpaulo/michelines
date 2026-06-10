@@ -13,9 +13,21 @@ export function Hero({ landingSettings, isMobile }: HeroProps) {
   // Pass landingSettings so the default slide respects heroTitle/heroGlowText
   const { slides } = useHeroSlides(landingSettings)
 
+  // Calculate dynamic padding-top to accommodate the fixed header/banner
+  const hasBanner = landingSettings.showCampaignBanner
+  const ptClass = hasBanner 
+    ? "pt-[114px] md:pt-[126px]" 
+    : "pt-[76px] md:pt-[88px]"
+
   return (
-    <section className="relative min-h-[90vh] md:min-h-[100vh] w-full bg-[#F8FAFC]">
-      <HeroCarousel slides={slides} isMobile={isMobile} />
+    <section className={`relative w-full bg-transparent ${ptClass}`}>
+      <HeroCarousel 
+        slides={slides} 
+        isMobile={isMobile} 
+        autoplayInterval={landingSettings.heroAutoplayInterval || 8}
+        transitionDuration={landingSettings.heroTransitionDuration || 50}
+      />
     </section>
   )
 }
+

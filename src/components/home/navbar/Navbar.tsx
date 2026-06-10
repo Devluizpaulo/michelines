@@ -57,7 +57,12 @@ export function Navbar({ landingSettings }: NavbarProps) {
                 priority
               />
               {/* Institutional 45 Years Badge - Premium gradient styling */}
-              <span className="text-[10px] font-extrabold text-sky-700 bg-gradient-to-r from-sky-50 to-indigo-50/50 border border-sky-200 px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-3 shadow-sm">
+              {/* Institutional 45 Years Badge - Premium gradient styling */}
+              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-3 shadow-sm border ${
+                scrolled
+                  ? "text-sky-700 bg-gradient-to-r from-sky-50 to-indigo-50/50 border-sky-200"
+                  : "text-white bg-white/10 border-white/20"
+              }`}>
                 45 Anos
               </span>
             </Link>
@@ -76,10 +81,16 @@ export function Navbar({ landingSettings }: NavbarProps) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-sm font-semibold text-slate-600 hover:text-sky-600 transition-colors duration-300 relative group py-1.5"
+                  className={`text-sm font-semibold transition-colors duration-300 relative group py-1.5 ${
+                    scrolled 
+                      ? "text-slate-650 hover:text-sky-600" 
+                      : "text-white/80 hover:text-white"
+                  }`}
                 >
                   {item.label}
-                  <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-sky-600 transition-all duration-300 group-hover:w-full"></span>
+                  <span className={`absolute left-0 bottom-0 w-0 h-[2px] transition-all duration-300 group-hover:w-full ${
+                    scrolled ? "bg-sky-600" : "bg-white"
+                  }`}></span>
                 </Link>
               ))}
             </nav>
@@ -92,7 +103,11 @@ export function Navbar({ landingSettings }: NavbarProps) {
                 </Button>
               </Link>
               <Link href="/login">
-                <Button variant="ghost" size="icon" className="rounded-2xl text-slate-500 hover:text-sky-600 hover:bg-slate-50 border border-slate-200 w-10 h-10 transition-all duration-300 hover:scale-105">
+                <Button variant="ghost" size="icon" className={`rounded-2xl w-10 h-10 transition-all duration-300 hover:scale-105 border ${
+                  scrolled 
+                    ? "text-slate-500 hover:text-sky-600 hover:bg-slate-50 border-slate-200" 
+                    : "text-white/80 hover:text-white hover:bg-white/10 border-white/20"
+                }`}>
                   <Lock className="h-4 w-4" />
                   <span className="sr-only">Login Administrativo</span>
                 </Button>
@@ -102,7 +117,11 @@ export function Navbar({ landingSettings }: NavbarProps) {
             {/* Mobile Sheet Trigger */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <button className="md:hidden p-2.5 text-slate-600 hover:text-sky-600 bg-slate-50 border border-slate-200 rounded-2xl transition-all duration-300 active:scale-95 shadow-sm">
+                <button className={`md:hidden p-2.5 rounded-2xl transition-all duration-300 active:scale-95 shadow-sm border ${
+                  scrolled 
+                    ? "text-slate-600 hover:text-sky-600 bg-slate-50 border-slate-200" 
+                    : "text-white/80 hover:text-white bg-white/10 border-white/20"
+                }`}>
                   <Menu className="h-5 w-5" />
                 </button>
               </SheetTrigger>

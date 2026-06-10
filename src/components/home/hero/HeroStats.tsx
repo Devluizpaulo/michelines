@@ -6,9 +6,10 @@ import { cn } from "@/lib/utils"
 
 interface HeroStatsProps {
   theme?: string
+  alignment?: "left" | "center" | "right"
 }
 
-export function HeroStats({ theme = "navy" }: HeroStatsProps) {
+export function HeroStats({ theme = "navy", alignment = "center" }: HeroStatsProps) {
   const stats = [
     { label: "Ganhos Médios", val: "R$ 11.200/mês", detail: "Faturamento líquido superior", icon: TrendingUp },
     { label: "Veículo Pronto", val: "Liberação em 24h", detail: "Sem burocracia", icon: Car },
@@ -33,7 +34,12 @@ export function HeroStats({ theme = "navy" }: HeroStatsProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1, delay: 0.8 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto"
+      className={cn(
+        "grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl",
+        alignment === "left" && "mr-auto ml-0 text-left",
+        alignment === "right" && "ml-auto mr-0 text-right",
+        alignment === "center" && "mx-auto text-center"
+      )}
     >
       {stats.map((badge, idx) => (
         <div 

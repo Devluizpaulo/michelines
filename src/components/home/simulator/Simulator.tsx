@@ -155,7 +155,7 @@ export function Simulator() {
   ]
 
   return (
-    <section id="simulador" className="w-full py-20 lg:py-32 bg-[#F8FAFC] border-b border-slate-200 relative select-none">
+    <section id="simulador" className="w-full py-20 lg:py-32 bg-transparent relative select-none">
       
       {/* Background radial spotlight */}
       <div className="absolute right-0 top-1/4 w-[400px] h-[400px] bg-sky-500/[0.015] rounded-full blur-[100px] pointer-events-none" />
@@ -164,13 +164,13 @@ export function Simulator() {
         
         {/* Title Block */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <Badge className="bg-sky-50 text-sky-700 border-sky-200 px-3.5 py-1 rounded-full text-xs font-semibold border shadow-xs">
+          <Badge className="bg-white/10 text-sky-200 border-white/10 px-3.5 py-1 rounded-full text-xs font-semibold border shadow-xs">
             Comparador Operacional
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            Simulador de Operação Professional
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+            Simulador de Operação Profissional
           </h2>
-          <p className="text-base md:text-lg text-slate-500 font-medium leading-relaxed text-justify">
+          <p className="text-base md:text-lg text-sky-100/90 font-medium leading-relaxed text-justify">
             Compare a estrutura de trabalho e custos fixos. Escolha o modelo que traz previsibilidade real e suporte para a sua jornada profissional.
           </p>
         </div>
@@ -261,7 +261,7 @@ export function Simulator() {
 
         {/* Comparison Footer Notice (UX Humanizada) */}
         <div className="mt-10 text-center max-w-2xl mx-auto space-y-4">
-          <p className="text-xs text-slate-500 leading-relaxed font-semibold text-justify">
+          <p className="text-xs text-sky-200/80 leading-relaxed font-semibold text-justify">
             * Cada operação possui características diferentes. Nossa equipe ajuda você a encontrar a alternativa mais adequada para sua rotina profissional.
           </p>
           <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-6 max-w-4xl mx-auto text-left shadow-xs">

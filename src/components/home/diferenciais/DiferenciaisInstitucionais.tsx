@@ -157,7 +157,7 @@ export function DiferenciaisInstitucionais() {
   return (
     <section
       id="diferenciais"
-      className="relative w-full border-t border-slate-200/60 bg-[#F8FAFC] py-20 lg:py-32 select-none"
+      className="relative w-full bg-transparent py-20 lg:py-32 select-none"
     >
       {/* Background */}
       <div className="pointer-events-none absolute left-1/2 top-[-10%] z-0 h-[70%] w-[90%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(2,132,199,0.02),transparent_70%)]" />
@@ -167,17 +167,17 @@ export function DiferenciaisInstitucionais() {
         {/* HEADER */}
         <div className="mx-auto mb-16 max-w-3xl space-y-4 text-center">
           
-          <Badge className="rounded-full border border-sky-200 bg-sky-50 px-3.5 py-1 text-xs font-semibold text-sky-700 shadow-xs">
+          <Badge className="rounded-full border border-white/10 bg-white/10 px-3.5 py-1 text-xs font-semibold text-sky-200 shadow-xs">
             Estrutura & Suporte Operacional
           </Badge>
 
-          <h2 className="text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl">
+          <h2 className="text-3xl font-black leading-tight tracking-tight text-white md:text-5xl">
             Mais tranquilidade
             <br />
             para sua operação diária
           </h2>
 
-          <p className="text-base font-medium leading-relaxed text-slate-600 md:text-lg">
+          <p className="text-base font-medium leading-relaxed text-sky-100/90 md:text-lg">
             Trabalhe com suporte operacional, oficina própria,
             assistência 24h e estrutura preparada para reduzir
             imprevistos no dia a dia da operação táxi.

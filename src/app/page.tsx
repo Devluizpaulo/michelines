@@ -18,7 +18,7 @@ export default function Home() {
   const { landingSettings, isMobile } = useLandingSettings()
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-sky-600 selection:text-white overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#1b3e72] via-[#23569c] to-[#142d54] text-slate-900 font-sans selection:bg-sky-600 selection:text-white overflow-x-hidden">
       <Navbar landingSettings={landingSettings} />
       
       <main className="flex-1">

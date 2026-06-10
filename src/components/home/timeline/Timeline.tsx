@@ -217,7 +217,7 @@ export function Timeline() {
   }
 
   return (
-    <section id="como-funciona" className="w-full py-24 lg:py-36 bg-[#F8FAFC] relative border-t border-slate-200 select-none overflow-hidden">
+    <section id="como-funciona" className="w-full py-24 lg:py-36 bg-transparent relative select-none overflow-hidden">
       
       {/* Background gradients for luxury depth */}
       <div className="absolute right-0 top-1/4 w-[600px] h-[600px] bg-sky-500/[0.015] rounded-full blur-[140px] pointer-events-none" />
@@ -227,13 +227,13 @@ export function Timeline() {
         
         {/* Header Block */}
         <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
-          <Badge className="bg-sky-50 text-sky-700 px-3.5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase border border-sky-200 shadow-xs hover:bg-sky-100/50">
+          <Badge className="bg-white/10 text-sky-200 px-3.5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase border border-white/10 shadow-xs hover:bg-white/20">
             💼 Trajetória Profissional
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
             Sua jornada para a mobilidade profissional em São Paulo
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium text-justify">
+          <p className="text-base md:text-lg text-sky-100/90 font-medium text-justify">
             Entenda o caminho regulamentado para ingressar na atividade profissional, acessar a frota de suporte do Grupo Michelines e escolher a operação mais adequada para o seu perfil.
           </p>
         </div>
@@ -326,27 +326,27 @@ export function Timeline() {
                       onClick={() => setActiveStep(idx)}
                       className={`w-full text-left p-4.5 rounded-2xl border transition-all duration-500 ease-out flex items-center gap-4 group ${activeStep === idx
                         ? "bg-white border-sky-300 shadow-[0_10px_25px_-5px_rgba(2,132,199,0.06)] scale-[1.01]"
-                        : "bg-white/40 border-slate-200 hover:border-slate-300 hover:bg-white hover:scale-[1.005]"
+                        : "bg-white/10 border-white/10 hover:border-white/20 hover:bg-white/15 hover:scale-[1.005]"
                         }`}
                     >
                       <span className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-500 ${activeStep === idx
                         ? "bg-sky-600 border-sky-500 text-white shadow-md shadow-sky-600/10"
-                        : "bg-slate-50 border-slate-200 text-slate-500 group-hover:text-slate-700"
+                        : "bg-white/5 border-white/10 text-sky-200 group-hover:text-white"
                         }`}>
                         <IconComponent className="h-5 w-5" />
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-center mb-0.5">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{step.number}</span>
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${activeStep === idx ? "text-slate-400" : "text-sky-200/50 group-hover:text-sky-100"}`}>{step.number}</span>
                           {activeStep === idx && (
                             <Badge className="bg-sky-50 text-sky-700 border border-sky-200 text-[8px] font-bold px-2 py-0">Jornada</Badge>
                           )}
                         </div>
-                        <p className={`text-sm font-black truncate transition-colors duration-300 ${activeStep === idx ? "text-slate-900" : "text-slate-650"}`}>
+                        <p className={`text-sm font-black truncate transition-colors duration-300 ${activeStep === idx ? "text-slate-900" : "text-white/80 group-hover:text-white"}`}>
                           {step.title}
                         </p>
                       </div>
-                      <ChevronRight className={`h-4.5 w-4.5 text-slate-300 transition-transform duration-350 ${activeStep === idx ? "text-sky-600 translate-x-1" : "group-hover:text-slate-400 group-hover:translate-x-0.5"
+                      <ChevronRight className={`h-4.5 w-4.5 transition-transform duration-350 ${activeStep === idx ? "text-sky-600 translate-x-1" : "text-white/40 group-hover:text-white group-hover:translate-x-0.5"
                         }`} />
                     </button>
                   )
@@ -354,13 +354,13 @@ export function Timeline() {
               </div>
  
               {/* Support Human notice box */}
-              <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4.5 flex items-center gap-3.5 shadow-xs mt-auto">
-                <div className="w-10 h-10 rounded-xl bg-white border border-sky-200 text-sky-600 flex items-center justify-center shrink-0">
+              <div className="bg-white/10 border border-white/10 rounded-2xl p-4.5 flex items-center gap-3.5 shadow-xs mt-auto">
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-sky-300 flex items-center justify-center shrink-0">
                   <Users className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Suporte Humano</h4>
-                  <p className="text-[11px] text-slate-600 font-semibold mt-0.5 text-justify">
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider">Suporte Humano</h4>
+                  <p className="text-[11px] text-sky-200/80 font-semibold mt-0.5 text-justify">
                     Nossa equipe acompanha você em todas as etapas de homologação e treinamento.
                   </p>
                 </div>
@@ -472,11 +472,11 @@ export function Timeline() {
         </div>
 
         {/* Closing Emotional CTA */}
-        <div className="mt-20 text-center max-w-2xl mx-auto space-y-4 pt-10 border-t border-slate-100">
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1">
+        <div className="mt-20 text-center max-w-2xl mx-auto space-y-4 pt-10 border-t border-white/10">
+          <p className="text-sky-200/80 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1">
             <Zap className="h-3.5 w-3.5 text-sky-600" /> Transparência e Suporte Grupo Michelines
           </p>
-          <p className="text-base md:text-lg font-extrabold text-slate-800 tracking-tight">
+          <p className="text-base md:text-lg font-extrabold text-white tracking-tight">
             “Você está a poucos passos de iniciar sua jornada profissional na mobilidade executiva.”
           </p>
           <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">

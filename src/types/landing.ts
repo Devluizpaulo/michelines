@@ -5,4 +5,6 @@ export interface LandingSettings extends CampaignBannerSettings {
   heroGlowText: string
   liveBannerText: string
   congonhasStatus: string
+  heroAutoplayInterval?: number
+  heroTransitionDuration?: number
 }

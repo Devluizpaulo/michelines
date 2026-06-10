@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore"
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore"
 import { db } from "@/app/firebase/config"
 import { HeroSlideType } from "@/types/hero-slide"
 import { LandingSettings } from "@/types/landing"
@@ -57,47 +57,64 @@ export function useHeroSlides(landingSettings?: Partial<LandingSettings>) {
       }
     }
 
-    const fetchSlides = async () => {
-      try {
-        const q = query(
-          collection(db, "hero_slides"),
-          where("active", "==", true),
-          orderBy("order", "asc")
-        )
-        
-        // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
-        const snap = await Promise.race([
-          getDocs(q),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout de rede")), 2500)
-          )
-        ])
+    const q = query(
+      collection(db, "hero_slides"),
+      orderBy("order", "asc")
+    )
 
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
         const list: HeroSlideType[] = []
         snap.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as HeroSlideType)
+          const data = doc.data() as HeroSlideType
+          if (data.active) {
+            list.push({ id: doc.id, ...data })
+          }
         })
 
-        if (list.length > 0) {
-          setSlides(list)
-          localStorage.setItem("hero_slides", JSON.stringify(list))
+        // Filtro de vigência de datas (Agendamento)
+        const now = new Date()
+        const visibleList = list.filter((slide) => {
+          const startValid = !slide.startDate || new Date(slide.startDate) <= now
+          const endValid = !slide.endDate || new Date(slide.endDate) >= now
+          return startValid && endValid
+        })
+
+        // Ordenação: prioridade de exibição desc (maior primeiro) e ordem asc
+        visibleList.sort((a, b) => {
+          const priorityA = a.displayPriority ?? 0
+          const priorityB = b.displayPriority ?? 0
+          if (priorityA !== priorityB) {
+            return priorityB - priorityA
+          }
+          return (a.order ?? 0) - (b.order ?? 0)
+        })
+
+        if (visibleList.length > 0) {
+          setSlides(visibleList)
+          if (typeof window !== "undefined") {
+            localStorage.setItem("hero_slides", JSON.stringify(visibleList))
+          }
         } else {
           // No Firestore slides — use default with landingSettings override
-          setSlides([buildDefaultSlide(landingSettings)])
+          const fallback = [buildDefaultSlide(landingSettings)]
+          setSlides(fallback)
+          if (typeof window !== "undefined") {
+            localStorage.setItem("hero_slides", JSON.stringify(fallback))
+          }
         }
-      } catch (e) {
-        console.warn("Erro ao buscar slides do Firestore, usando fallback local:", e)
-        setSlides((prev) =>
-          prev.length > 0 ? prev : [buildDefaultSlide(landingSettings)]
-        )
-      } finally {
+        setLoading(false)
+      },
+      (error) => {
+        console.warn("Erro ao carregar slides do Firestore em tempo real:", error)
         setLoading(false)
       }
-    }
+    )
 
-    fetchSlides()
+    return () => unsubscribe()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [landingSettings?.heroTitle, landingSettings?.heroGlowText])
 
   const defaultSlide = buildDefaultSlide(landingSettings)
   return { slides: slides.length > 0 ? slides : [defaultSlide], loading }

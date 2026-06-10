@@ -25,16 +25,16 @@ const testimonialsData = [
 
 export function Testimonials() {
   return (
-    <section id="cases" className="w-full py-20 lg:py-32 bg-slate-50 border-t border-slate-200 relative select-none">
+    <section id="cases" className="w-full py-20 lg:py-32 bg-transparent relative select-none">
       <div className="container mx-auto px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <Badge className="bg-sky-50 text-sky-700 px-3.5 py-1 rounded-full text-xs font-bold mb-4 border border-sky-200 shadow-xs hover:bg-sky-100/50">
+          <Badge className="bg-white/10 text-sky-200 px-3.5 py-1 rounded-full text-xs font-bold mb-4 border border-white/10 shadow-xs hover:bg-white/20">
             Cases de Sucesso
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">
             Quem mudou, não se arrepende
           </h2>
-          <p className="text-base md:text-lg text-slate-600 font-medium text-justify">
+          <p className="text-base md:text-lg text-sky-100/90 font-medium text-justify">
             Histórias reais de motoristas que saíram do aperto dos aplicativos e mudaram de patamar de vida com a Micheline's.
           </p>
         </div>

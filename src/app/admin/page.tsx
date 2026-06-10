@@ -52,7 +52,11 @@ function AdminContent() {
     campaignTemplateId: 1,
     campaignSubtitle: "",
     campaignBtnText: "",
-    campaignBtnUrl: ""
+    campaignBtnUrl: "",
+    campaignImageUrl: "",
+    campaignImagePosition: "right",
+    campaignImageSize: "md",
+    campaignImageAspectRatio: "video"
   })
 
   const router = useRouter()

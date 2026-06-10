@@ -42,8 +42,8 @@ export function getOptimizedUrl(
   width = 800,
   quality = 80
 ): string {
-  const base = `${supabaseUrl}/storage/v1/render/image/public/${bucket}/${path}`
-  return `${base}?width=${width}&quality=${quality}&resize=contain`
+  // Always fallback to public URL to avoid 403 rendering errors on free tiers
+  return getPublicUrl(bucket, path)
 }
 
 /**

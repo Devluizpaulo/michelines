@@ -5,23 +5,23 @@ export function Advantages() {
   return (
     <section
       id="vantagens"
-      className="relative w-full border-t border-slate-200 bg-slate-50 py-20 lg:py-32 select-none"
+      className="relative w-full bg-transparent py-20 lg:py-32 select-none"
     >
       <div className="container mx-auto px-6">
         
         {/* HEADER */}
         <div className="mx-auto mb-16 max-w-3xl text-center">
-          <Badge className="mb-4 rounded-full border border-sky-200 bg-sky-50 px-3.5 py-1 text-xs font-bold text-sky-700 shadow-xs">
+          <Badge className="mb-4 rounded-full border border-white/10 bg-white/10 px-3.5 py-1 text-xs font-bold text-sky-200 shadow-xs">
             Benefícios da Operação Táxi
           </Badge>
 
-          <h2 className="mb-4 text-3xl font-black tracking-tight text-slate-900 md:text-5xl">
+          <h2 className="mb-4 text-3xl font-black tracking-tight text-white md:text-5xl">
             Por que muitos motoristas
             <br />
             estão voltando para o táxi?
           </h2>
 
-          <p className="text-base font-medium text-slate-600 md:text-lg">
+          <p className="text-base font-medium text-sky-100/90 md:text-lg">
             O táxi oferece vantagens reais no dia a dia de quem
             trabalha nas ruas de São Paulo, com mais mobilidade,
             menos limitações e maior autonomia operacional.

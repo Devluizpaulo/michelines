@@ -13,4 +13,18 @@ export interface HeroSlideType {
   badge?: string
   overlay?: string
   theme?: string
+  showTextOverlay?: boolean
+  textAlignment?: 'left' | 'center' | 'right'
+  titleWeight?: 'normal' | 'medium' | 'semibold' | 'bold' | 'black'
+  subtitleWeight?: 'normal' | 'medium' | 'semibold' | 'bold' | 'black'
+  bgOpacity?: number
+  heroHeight?: 'sm' | 'md' | 'lg' | 'fullscreen'
+  imageFit?: 'cover' | 'contain'
+  clickableSlide?: boolean
+  destinationUrl?: string
+  displayPriority?: number
+  startDate?: string
+  endDate?: string
+  views?: number
+  clicks?: number
 }

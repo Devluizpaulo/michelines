@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 
 export function MapSection() {
   return (
-    <section className="relative w-full overflow-hidden border-t border-slate-200 bg-slate-50 py-20 lg:py-32 select-none">
+    <section className="relative w-full overflow-hidden py-20 lg:py-32 select-none bg-transparent">
       
       {/* Soft background glow */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(2,132,199,0.03),transparent_65%)]" />
@@ -22,17 +22,17 @@ export function MapSection() {
             viewport={{ once: true }}
             className="space-y-6 lg:col-span-5"
           >
-            <Badge className="rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1 text-xs font-bold text-emerald-700">
+            <Badge className="rounded-full border border-white/10 bg-white/10 px-3.5 py-1 text-xs font-bold text-emerald-300">
               Estrutura Operacional
             </Badge>
 
-            <h2 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+            <h2 className="text-3xl font-black leading-tight text-white md:text-5xl">
               Mais praticidade
               <br />
               para sua rotina diária
             </h2>
 
-            <p className="text-base font-semibold leading-relaxed text-slate-600 md:text-lg">
+            <p className="text-base font-semibold leading-relaxed text-sky-100/90 md:text-lg">
               Nossa sede operacional e oficina estão localizadas
               na Zona Sul de São Paulo, próximas ao Aeroporto de
               Congonhas, facilitando suporte rápido, manutenção e
@@ -40,12 +40,12 @@ export function MapSection() {
             </p>
 
             {/* BENEFITS */}
-            <div className="space-y-4 border-t border-slate-200 pt-4">
+            <div className="space-y-4 border-t border-white/10 pt-4">
               
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 shrink-0 rounded-full bg-emerald-500"></span>
 
-                <span className="text-sm font-semibold text-slate-700">
+                <span className="text-sm font-semibold text-sky-100">
                   Próximo ao Aeroporto de Congonhas
                 </span>
               </div>
@@ -53,7 +53,7 @@ export function MapSection() {
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 shrink-0 rounded-full bg-sky-500"></span>
 
-                <span className="text-sm font-semibold text-slate-700">
+                <span className="text-sm font-semibold text-sky-100">
                   Fácil acesso pelas principais vias da Zona Sul
                 </span>
               </div>
@@ -61,7 +61,7 @@ export function MapSection() {
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 shrink-0 rounded-full bg-amber-500"></span>
 
-                <span className="text-sm font-semibold text-slate-700">
+                <span className="text-sm font-semibold text-sky-100">
                   Oficina, suporte e atendimento no mesmo local
                 </span>
               </div>

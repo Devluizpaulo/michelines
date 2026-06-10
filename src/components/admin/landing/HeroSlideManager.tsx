@@ -60,6 +60,13 @@ export function HeroSlideManager() {
 
   const handleToggleActive = async (slide: HeroSlideType) => {
     if (!slide.id) return
+
+    // Validação: máximo 5 slides ativos
+    if (!slide.active && activeCount >= 5) {
+      showError("Limite atingido", "Você já tem 5 slides ativos no carrossel. Desative outro slide antes de ativar este.")
+      return
+    }
+
     try {
       setTogglingId(slide.id)
       await updateDoc(doc(db, "hero_slides", slide.id), {
@@ -72,6 +79,7 @@ export function HeroSlideManager() {
       )
       fetchSlides()
     } catch (e: any) {
+      console.error("Erro ao publicar/ocultar slide:", e)
       showError("Erro", e?.message || "Tente novamente.")
     } finally {
       setTogglingId(null)
@@ -160,9 +168,57 @@ export function HeroSlideManager() {
                   slide.theme === "amber" ? "bg-amber-500" : "bg-emerald-500"
                 }`} />
 
+                {/* Slide Preview Thumbnail */}
+                <div className="relative aspect-[16/7] w-full bg-slate-950 overflow-hidden border-b border-slate-100 flex items-center justify-center">
+                  {slide.video ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 text-sky-450 gap-1 z-10">
+                      <Film className="h-5 w-5 animate-pulse" />
+                      <span className="text-[9px] font-black uppercase tracking-widest text-sky-400">Vídeo Ativo</span>
+                    </div>
+                  ) : null}
+                  
+                  {slide.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={slide.image}
+                      alt={slide.title || "Preview do Slide"}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80"
+                      }}
+                    />
+                  ) : (
+                    <div className="text-slate-400 text-xs flex flex-col items-center gap-1">
+                      <ImageIcon className="h-6 w-6 text-slate-300" />
+                      <span>Sem imagem</span>
+                    </div>
+                  )}
+
+                  {/* Badges on top of image */}
+                  <div className="absolute top-2 left-2 z-10 flex gap-1 flex-wrap">
+                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded shadow ${
+                      slide.active 
+                        ? "bg-emerald-600 text-white" 
+                        : "bg-slate-500 text-white"
+                    }`}>
+                      {slide.active ? "Ativo" : "Oculto"}
+                    </span>
+                    {slide.displayPriority ? (
+                      <span className="text-[8px] bg-indigo-650 text-white px-1.5 py-0.5 rounded font-black shadow uppercase tracking-wider">
+                        Prio: {slide.displayPriority}
+                      </span>
+                    ) : null}
+                    {!slide.showTextOverlay && (
+                      <span className="text-[8px] bg-rose-650 text-white px-1.5 py-0.5 rounded font-black shadow uppercase tracking-wider">
+                        Flyer
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <CardHeader className="p-4 pb-3 flex flex-row items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">#{slide.order}</span>
                       <Badge
                         variant="outline"
@@ -173,27 +229,59 @@ export function HeroSlideManager() {
                       </Badge>
                     </div>
                     <CardTitle className="text-sm font-bold text-slate-800 leading-snug line-clamp-1">
-                      {slide.title}
+                      {slide.title || "— Sem Título (Apenas Imagem) —"}
                     </CardTitle>
                     {slide.glowTitle && (
                       <p className="text-xs font-semibold text-sky-600 truncate">{slide.glowTitle}</p>
                     )}
                     <CardDescription className="text-[11px] text-slate-500 mt-1 line-clamp-2">
-                      {slide.subtitle}
+                      {slide.subtitle || "Campanha visual."}
                     </CardDescription>
+                    
+                    {/* Vigência / Agendamento Badge */}
+                    {(slide.startDate || slide.endDate) && (
+                      <div className="mt-1.5 flex items-center gap-1 text-[8px] bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded font-bold w-fit">
+                        <span>📅 Vigência:</span>
+                        <span className="text-slate-700 font-extrabold">
+                          {slide.startDate ? new Date(slide.startDate).toLocaleDateString("pt-BR") : "Início"}
+                        </span>
+                        <span>→</span>
+                        <span className="text-slate-700 font-extrabold">
+                          {slide.endDate ? new Date(slide.endDate).toLocaleDateString("pt-BR") : "Expira"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <GripVertical className="h-4 w-4 text-slate-300 shrink-0 mt-1" />
                 </CardHeader>
 
-                <CardContent className="px-4 pb-3">
+                <CardContent className="px-4 pb-3 space-y-2.5">
                   <div className="flex items-center gap-3 text-[10px] text-slate-500 font-semibold">
                     <span className="flex items-center gap-1">
                       {slide.video ? <Film className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
                       {slide.video ? "Vídeo" : "Imagem"}
                     </span>
                     {slide.badge && (
-                      <span className="truncate max-w-[160px] text-slate-400">· {slide.badge}</span>
+                      <span className="truncate max-w-[120px] text-slate-400">· {slide.badge}</span>
                     )}
+                  </div>
+                  
+                  {/* Analytics display */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
+                    <div>
+                      <p className="text-[8px] text-slate-400 font-black uppercase">Views</p>
+                      <p className="text-xs font-bold text-slate-700">{slide.views ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] text-slate-400 font-black uppercase">Clicks</p>
+                      <p className="text-xs font-bold text-slate-700">{slide.clicks ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] text-slate-400 font-black uppercase">CTR</p>
+                      <p className="text-xs font-black text-sky-600">
+                        {slide.views ? `${((slide.clicks ?? 0) / slide.views * 100).toFixed(1)}%` : "0.0%"}
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
 
