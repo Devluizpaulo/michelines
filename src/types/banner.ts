@@ -9,5 +9,7 @@ export interface CampaignBannerSettings {
   campaignImagePosition?: 'left' | 'right'
   campaignImageSize?: 'sm' | 'md' | 'lg'
   campaignImageAspectRatio?: 'square' | 'video' | 'wide' | 'original'
+  campaignViews?: number
+  campaignClicks?: number
 }
 

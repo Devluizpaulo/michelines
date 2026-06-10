@@ -197,8 +197,8 @@ export function UserManager() {
 
 Você foi convidado para fazer parte da equipe de gestão comercial do Grupo Michelines! 🚖
 
-Seu acesso já está liberado na nossa plataforma. Para definir sua senha pessoal de primeiro acesso, entre no link abaixo:
-${window.location.origin}/recuperar-senha?email=${encodeURIComponent(form.email)}
+Seu acesso já está liberado na nossa plataforma. Para definir sua senha pessoal de 6 dígitos de primeiro acesso, entre no link abaixo:
+${window.location.origin}/definir-senha?email=${encodeURIComponent(form.email)}&temp=${encodeURIComponent(tempPassword)}
 
 Após cadastrar sua nova senha, você poderá acessar o painel de controle pelo link:
 ${window.location.origin}/login
@@ -264,13 +264,46 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
   const handleDelete = async (uid: string, email: string) => {
     if (!confirm(`Remover "${email}" do painel admin? O acesso será bloqueado imediatamente.`)) return
     try {
+      // 1. Tentar deletar o usuário do Firebase Auth via API
+      const response = await fetch("/api/usuarios/deletar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ uid }),
+      })
+
+      const data = await response.json()
+      let isPartial = false
+
+      if (!response.ok || !data.success) {
+        if (data.code === "ENV_NOT_CONFIGURED") {
+          isPartial = true
+        } else {
+          throw new Error(data.message || "Não foi possível remover o usuário do autenticador.")
+        }
+      }
+
+      // 2. Deletar do Firestore
       await deleteDoc(doc(db, "admin_users", uid))
+      
+      // 3. Atualizar estado local
       setUsers(prev => prev.filter(u => u.uid !== uid))
-      success("Usuário removido!", "O acesso do usuário foi removido permanentemente do Firestore.")
+
+      if (isPartial) {
+        toastError(
+          "Usuário removido com pendência",
+          "Usuário removido do painel. Porém, as chaves administrativas não estão configuradas localmente, então você precisará remover a conta manualmente do Console do Firebase Auth."
+        )
+      } else {
+        success("Usuário removido!", "O usuário foi removido permanentemente do painel e do autenticador.")
+      }
     } catch (e: any) {
+      console.error(e)
       toastError("Erro ao remover usuário", e.message || "Tente novamente.")
     }
   }
+
 
   return (
     <div className="space-y-8 select-none">

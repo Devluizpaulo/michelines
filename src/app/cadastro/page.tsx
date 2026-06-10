@@ -26,6 +26,8 @@ export default function CadastroPage() {
   const [loadingVehicles, setLoadingVehicles] = useState(true)
   const [loadingCep, setLoadingCep] = useState(false)
   const [protocol, setProtocol] = useState("")
+  const [campaignId, setCampaignId] = useState("")
+  const [campaignName, setCampaignName] = useState("")
 
   const [formData, setFormData] = useState({
     situation: "", // "taxista" | "futuro_taxista"
@@ -87,6 +89,35 @@ export default function CadastroPage() {
       }
     )
     return () => unsubscribe()
+  }, [])
+
+  // Parse tracking parameters on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      let cId = params.get("campaignId") || params.get("utm_campaign_id") || ""
+      let cName = params.get("campaignName") || params.get("utm_campaign") || ""
+      const carInterest = params.get("vehicle") || params.get("vehicleInterest") || ""
+
+      // Fallback/Persist to sessionStorage to prevent loss on refresh
+      if (!cId) {
+        cId = sessionStorage.getItem("utm_campaign_id") || ""
+        cName = sessionStorage.getItem("utm_campaign_name") || ""
+      } else {
+        sessionStorage.setItem("utm_campaign_id", cId)
+        sessionStorage.setItem("utm_campaign_name", cName)
+      }
+
+      setCampaignId(cId)
+      setCampaignName(cName)
+
+      if (carInterest) {
+        setFormData(prev => ({
+          ...prev,
+          vehicleInterest: carInterest
+        }))
+      }
+    }
   }, [])
 
   // Input Formatting Masks
@@ -287,6 +318,8 @@ export default function CadastroPage() {
         notes: `Smart Funnel Lead. Perfil: ${formData.situation === "taxista" ? "Já é Taxista" : "Futuro Taxista"}. CPF: ${formData.cpf}. Score calculado: ${score} pts. Protocolo: ${generatedProtocol}.`,
         contacted: false,
         whatsappSent: false,
+        campaignId: campaignId || "",
+        campaignName: campaignName || "",
         createdAt: serverTimestamp(),
       }
 

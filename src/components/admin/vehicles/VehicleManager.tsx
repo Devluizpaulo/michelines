@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { collection, query, orderBy, getDocs, doc, addDoc, updateDoc, deleteDoc, setDoc } from "firebase/firestore"
+import { collection, query, orderBy, getDocs, doc, addDoc, updateDoc, deleteDoc, setDoc, getDoc } from "firebase/firestore"
 import { db } from "@/app/firebase/config"
 import { Vehicle } from "@/types/vehicle"
 import { Lead } from "@/types/lead"
@@ -10,7 +10,7 @@ import { VehicleForm } from "./VehicleForm"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Plus, Car, RefreshCw, Flame, TrendingUp, DollarSign, Target, Clock } from "lucide-react"
+import { Plus, Car, RefreshCw, Flame, TrendingUp, DollarSign, Target, Clock, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { THEME_TOKENS } from "@/theme/design-system"
 import { MetricCard } from "@/components/ui/card-variants"
@@ -18,15 +18,17 @@ import { useToast } from "@/components/ui/toast-simple"
 
 interface VehicleManagerProps {
   leads: Lead[]
+  setActiveTab?: (tab: any) => void
 }
 
-export function VehicleManager({ leads }: VehicleManagerProps) {
+export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
   const { success, error: showError, warning } = useToast()
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<"list" | "form">("list")
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [viewingVehicle, setViewingVehicle] = useState<Vehicle | null>(null)
+  const [suggestedVehicle, setSuggestedVehicle] = useState<Vehicle | null>(null)
 
 
   // Load vehicles from Firestore
@@ -233,11 +235,108 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
 
         success("Veículo criado!", `"${vehicleData.name}" foi adicionado ao showroom.`)
       }
+      if (vehicleData.featured === true) {
+        setSuggestedVehicle({
+          id: slug,
+          slug: slug,
+          ...vehicleData
+        } as Vehicle)
+      }
       setView("list")
       fetchVehicles()
     } catch (e: any) {
       console.error("Erro ao salvar veículo:", e)
       showError("Erro ao salvar veículo", e?.message || "Tente novamente.")
+    }
+  }
+
+  const handleCreateHeroSlide = async (vehicle: Vehicle) => {
+    try {
+      const snap = await getDocs(collection(db, "hero_slides"))
+      const order = snap.size + 1
+      
+      const newSlide = {
+        active: true,
+        order,
+        title: vehicle.name,
+        glowTitle: "DESTAQUE",
+        subtitle: vehicle.shortDescription || vehicle.fullDescription || "Conheça as condições especiais de locação.",
+        ctaText: "Conhecer Showroom",
+        ctaUrl: `/cadastro?vehicleInterest=${encodeURIComponent(vehicle.name)}`,
+        image: vehicle.thumbnail || (vehicle.images && vehicle.images[0]) || "",
+        views: 0,
+        clicks: 0
+      }
+      await addDoc(collection(db, "hero_slides"), newSlide)
+      success("Slide Hero criado!", `O slide para "${vehicle.name}" foi adicionado com sucesso.`)
+      setSuggestedVehicle(null)
+    } catch (e: any) {
+      console.error(e)
+      showError("Erro ao criar slide", e.message || "Tente novamente.")
+    }
+  }
+
+  const handleConfigCampaignBanner = async (vehicle: Vehicle) => {
+    try {
+      const docRef = doc(db, "landing", "settings")
+      const snap = await getDoc(docRef)
+      const currentSettings = snap.exists() ? snap.data() : {}
+      
+      const payload = {
+        ...currentSettings,
+        showCampaignBanner: true,
+        campaignText: `Destaque: ${vehicle.name}`,
+        campaignSubtitle: vehicle.shortDescription || vehicle.fullDescription || "Aproveite a diária promocional.",
+        campaignBtnText: "Quero Alugar",
+        campaignBtnUrl: `/cadastro?vehicleInterest=${encodeURIComponent(vehicle.name)}`,
+        campaignImageUrl: vehicle.thumbnail || (vehicle.images && vehicle.images[0]) || "",
+        campaignTemplateId: 1,
+        campaignImagePosition: "right",
+        campaignImageSize: "md",
+        campaignImageAspectRatio: "video",
+        updatedAt: new Date().toISOString()
+      }
+      
+      await setDoc(docRef, payload, { merge: true })
+      success("Banner configurado!", `O banner principal agora destaca "${vehicle.name}".`)
+      setSuggestedVehicle(null)
+    } catch (e: any) {
+      console.error(e)
+      showError("Erro ao configurar banner", e.message || "Tente novamente.")
+    }
+  }
+
+  const handleGoToCampaignsExport = (vehicle: Vehicle) => {
+    if (setActiveTab) {
+      setActiveTab("campanhas")
+      setSuggestedVehicle(null)
+    } else {
+      warning("Ação não disponível", "Navegador de abas não configurado.")
+    }
+  }
+
+  const handleScheduleCalendar = async (vehicle: Vehicle) => {
+    try {
+      const calendarRef = doc(db, "landing", "calendar_events")
+      const cDoc = await getDoc(calendarRef)
+      const calendarEvents = cDoc.exists() ? (cDoc.data().events || []) : []
+      
+      const todayStr = new Date().toISOString().split("T")[0]
+      const newEvent = {
+        id: Date.now().toString(),
+        title: `Campanha Destaque: ${vehicle.name}`,
+        date: todayStr,
+        category: "Veículo em destaque",
+        color: "violet"
+      }
+      
+      const updatedEvents = [...calendarEvents, newEvent].sort((a: any, b: any) => a.date.localeCompare(b.date))
+      await setDoc(calendarRef, { events: updatedEvents })
+      success("Agendado no Calendário!", `A campanha do veículo foi registrada para hoje.`)
+      setSuggestedVehicle(null)
+    } catch (e: any) {
+      console.error(e)
+      showError("Erro ao agendar no calendário", e.message || "Tente novamente.")
     }
   }
 
@@ -525,6 +624,86 @@ export function VehicleManager({ leads }: VehicleManagerProps) {
 
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!suggestedVehicle} onOpenChange={(open) => !open && setSuggestedVehicle(null)}>
+        <DialogContent className="sm:max-w-[500px] bg-white rounded-2xl shadow-xl border border-slate-100 p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-violet-600 animate-pulse" />
+              Sugestões Inteligentes de Marketing
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 font-semibold mt-1">
+              O veículo <strong>{suggestedVehicle?.name}</strong> foi salvo como Destaque!
+              O que você deseja fazer para impulsionar a campanha deste veículo?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-3.5 my-4">
+            <button
+              onClick={() => suggestedVehicle && handleCreateHeroSlide(suggestedVehicle as Vehicle)}
+              className="group flex items-start gap-3.5 p-3.5 bg-slate-50 hover:bg-violet-50/50 border border-slate-200 hover:border-violet-300 rounded-xl transition-all text-left"
+            >
+              <div className="p-2 bg-violet-100 text-violet-600 rounded-lg group-hover:bg-violet-200 transition-colors">
+                <Flame className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-xs font-black text-slate-800">Criar Slide Hero</h4>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Adiciona automaticamente um banner carrossel de alta prioridade na página principal.</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => suggestedVehicle && handleConfigCampaignBanner(suggestedVehicle as Vehicle)}
+              className="group flex items-start gap-3.5 p-3.5 bg-slate-50 hover:bg-sky-50/50 border border-slate-200 hover:border-sky-300 rounded-xl transition-all text-left"
+            >
+              <div className="p-2 bg-sky-100 text-sky-600 rounded-lg group-hover:bg-sky-200 transition-colors">
+                <Target className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-xs font-black text-slate-800">Configurar como Banner Secundário</h4>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Ativa e atualiza o banner principal de campanhas da home com a foto e links do veículo.</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => suggestedVehicle && handleGoToCampaignsExport(suggestedVehicle as Vehicle)}
+              className="group flex items-start gap-3.5 p-3.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300 rounded-xl transition-all text-left"
+            >
+              <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg group-hover:bg-emerald-200 transition-colors">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-xs font-black text-slate-800">Exportar Material / Flyer</h4>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Abre o exportador de campanhas para gerar imagens e textos prontos para WhatsApp e redes sociais.</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => suggestedVehicle && handleScheduleCalendar(suggestedVehicle as Vehicle)}
+              className="group flex items-start gap-3.5 p-3.5 bg-slate-50 hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300 rounded-xl transition-all text-left"
+            >
+              <div className="p-2 bg-amber-100 text-amber-600 rounded-lg group-hover:bg-amber-200 transition-colors">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-xs font-black text-slate-800">Agendar no Calendário</h4>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Cria uma entrada no calendário de planejamento de marketing com a campanha do veículo.</p>
+              </div>
+            </button>
+          </div>
+
+          <DialogFooter className="border-t border-slate-100 pt-4 flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSuggestedVehicle(null)}
+              className="text-xs font-bold text-slate-500 hover:text-slate-700 w-full sm:w-auto"
+            >
+              Agora Não
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

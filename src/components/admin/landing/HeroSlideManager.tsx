@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { collection, query, orderBy, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore"
+import { useState } from "react"
+import { deleteDoc, doc, updateDoc } from "firebase/firestore"
 import { db } from "@/app/firebase/config"
 import { HeroSlideType } from "@/types/hero-slide"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { HeroSlideDialog } from "./HeroSlideDialog"
 import { useToast } from "@/components/ui/toast-simple"
 import {
-  Plus, Edit3, Trash2, Eye, EyeOff, GripVertical,
+  Plus, Edit3, Trash2, Eye, EyeOff, ArrowUp, ArrowDown,
   Film, Image as ImageIcon, Layers, RefreshCw
 } from "lucide-react"
 
@@ -20,33 +20,17 @@ const THEME_STYLES: Record<string, { badge: string; dot: string }> = {
   emerald: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
 }
 
-export function HeroSlideManager() {
+interface HeroSlideManagerProps {
+  slides: HeroSlideType[]
+  loading: boolean
+  onRefresh: () => void
+}
+
+export function HeroSlideManager({ slides, loading, onRefresh }: HeroSlideManagerProps) {
   const { success, error: showError } = useToast()
-  const [slides, setSlides] = useState<HeroSlideType[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedSlide, setSelectedSlide] = useState<HeroSlideType | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
-
-  const fetchSlides = useCallback(async () => {
-    try {
-      setLoading(true)
-      const q = query(collection(db, "hero_slides"), orderBy("order", "asc"))
-      const snap = await getDocs(q)
-      const list: HeroSlideType[] = []
-      snap.forEach((d) => list.push({ id: d.id, ...d.data() } as HeroSlideType))
-      setSlides(list)
-    } catch (e) {
-      console.error("Erro ao carregar slides:", e)
-      showError("Erro", "Não foi possível carregar os slides.")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchSlides()
-  }, [fetchSlides])
 
   const openCreate = () => {
     setSelectedSlide(null)
@@ -75,9 +59,9 @@ export function HeroSlideManager() {
       })
       success(
         slide.active ? "Slide ocultado" : "Slide publicado",
-        `"${slide.title}" foi ${slide.active ? "removido da Home" : "publicado na Home"}.`
+        `"${slide.title || 'Slide'}" foi ${slide.active ? "removido da Home" : "publicado na Home"}.`
       )
-      fetchSlides()
+      onRefresh()
     } catch (e: any) {
       console.error("Erro ao publicar/ocultar slide:", e)
       showError("Erro", e?.message || "Tente novamente.")
@@ -88,13 +72,61 @@ export function HeroSlideManager() {
 
   const handleDelete = async (slide: HeroSlideType) => {
     if (!slide.id) return
-    if (!window.confirm(`Excluir o slide "${slide.title}"? Esta ação não pode ser desfeita.`)) return
+    if (!window.confirm(`Excluir o slide "${slide.title || 'Slide'}"? Esta ação não pode ser desfeita.`)) return
     try {
       await deleteDoc(doc(db, "hero_slides", slide.id))
       success("Slide excluído!", "O slide foi removido do carrossel.")
-      fetchSlides()
+      onRefresh()
     } catch (e: any) {
       showError("Erro ao excluir", e?.message || "Tente novamente.")
+    }
+  }
+
+  const handleMoveUp = async (index: number) => {
+    if (index === 0) return
+    const currentSlide = slides[index]
+    const prevSlide = slides[index - 1]
+    
+    try {
+      const currentOrder = currentSlide.order ?? index
+      const prevOrder = prevSlide.order ?? (index - 1)
+      
+      // Swap orders
+      const newCurrentOrder = prevOrder
+      const newPrevOrder = currentOrder === prevOrder ? currentOrder + 1 : currentOrder
+      
+      await updateDoc(doc(db, "hero_slides", currentSlide.id!), { order: newCurrentOrder })
+      await updateDoc(doc(db, "hero_slides", prevSlide.id!), { order: newPrevOrder })
+      
+      success("Ordem atualizada", `O slide "${currentSlide.title || 'Slide'}" foi movido para cima.`)
+      onRefresh()
+    } catch (e: any) {
+      console.error(e)
+      showError("Erro ao reordenar", e?.message || "Tente novamente.")
+    }
+  }
+
+  const handleMoveDown = async (index: number) => {
+    if (index === slides.length - 1) return
+    const currentSlide = slides[index]
+    const nextSlide = slides[index + 1]
+    
+    try {
+      const currentOrder = currentSlide.order ?? index
+      const nextOrder = nextSlide.order ?? (index + 1)
+      
+      // Swap orders
+      const newCurrentOrder = nextOrder
+      const newNextOrder = currentOrder === nextOrder ? currentOrder - 1 : currentOrder
+      
+      await updateDoc(doc(db, "hero_slides", currentSlide.id!), { order: newCurrentOrder })
+      await updateDoc(doc(db, "hero_slides", nextSlide.id!), { order: newNextOrder })
+      
+      success("Ordem atualizada", `O slide "${currentSlide.title || 'Slide'}" foi movido para baixo.`)
+      onRefresh()
+    } catch (e: any) {
+      console.error(e)
+      showError("Erro ao reordenar", e?.message || "Tente novamente.")
     }
   }
 
@@ -102,14 +134,14 @@ export function HeroSlideManager() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Sub-Header */}
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-            <Layers className="h-4 w-4 text-sky-600" />
-            Slides do Carrossel Hero
-          </h3>
-          <p className="text-[11px] text-slate-500 mt-0.5">
+          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            <Layers className="h-3.5 w-3.5 text-sky-600" />
+            Estrutura de Exibição
+          </h4>
+          <p className="text-[10px] text-slate-450 mt-0.5 font-bold">
             {slides.length === 0
               ? "Nenhum slide — exibindo slide padrão."
               : `${slides.length} slide${slides.length > 1 ? "s" : ""} cadastrado${slides.length > 1 ? "s" : ""} · ${activeCount} ativo${activeCount !== 1 ? "s" : ""}`}
@@ -120,7 +152,7 @@ export function HeroSlideManager() {
             type="button"
             variant="ghost"
             size="sm"
-            onClick={fetchSlides}
+            onClick={onRefresh}
             disabled={loading}
             className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 h-8 w-8 p-0"
             title="Recarregar slides"
@@ -130,7 +162,7 @@ export function HeroSlideManager() {
           <Button
             type="button"
             onClick={openCreate}
-            className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 rounded-lg"
+            className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs h-8 px-3 flex items-center gap-1.5 rounded-lg shadow-sm"
           >
             <Plus className="h-3.5 w-3.5" /> Novo Slide
           </Button>
@@ -139,41 +171,52 @@ export function HeroSlideManager() {
 
       {/* Slides grid */}
       {loading ? (
-        <div className="h-40 border border-slate-200 rounded-xl flex items-center justify-center gap-2 text-slate-400">
-          <span className="animate-spin h-4 w-4 border-2 border-sky-500 border-t-transparent rounded-full" />
+        <div className="h-40 flex flex-col items-center justify-center gap-2 text-slate-400">
+          <span className="animate-spin h-5 w-5 border-2 border-sky-500 border-t-transparent rounded-full" />
           <span className="text-xs font-semibold">Carregando slides...</span>
         </div>
       ) : slides.length === 0 ? (
         <div
           onClick={openCreate}
-          className="h-28 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-400 bg-slate-50/50 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-500 cursor-pointer transition-all group"
+          className="h-28 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-450 bg-slate-50/50 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-500 cursor-pointer transition-all group"
         >
           <Plus className="h-5 w-5 group-hover:scale-110 transition-transform" />
           <p className="text-xs font-semibold">Criar primeiro slide</p>
-          <p className="text-[10px]">Enquanto não houver slides, o padrão será exibido com os textos configurados abaixo</p>
+          <p className="text-[10px] text-center max-w-[280px]">
+            O carrossel ficará vazio no site e usará os textos padrões configurados na aba ao lado.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {slides.map((slide) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {slides.map((slide, idx) => {
             const themeStyle = THEME_STYLES[slide.theme || "navy"] || THEME_STYLES.navy
             const isToggling = togglingId === slide.id
             return (
               <Card
                 key={slide.id}
-                className={`bg-white border-slate-200 shadow-sm rounded-xl flex flex-col overflow-hidden transition-opacity ${!slide.active ? "opacity-60" : ""}`}
+                className={`bg-white border-slate-200 shadow-sm rounded-xl flex flex-col overflow-hidden transition-all duration-300 relative border-2 ${
+                  slide.active ? "border-slate-200" : "border-slate-200/40 opacity-70"
+                }`}
               >
-                {/* Card top color bar by theme */}
+                {/* Theme indicator stripe */}
                 <div className={`h-1 w-full ${
                   slide.theme === "navy" ? "bg-sky-600" :
                   slide.theme === "amber" ? "bg-amber-500" : "bg-emerald-500"
                 }`} />
 
-                {/* Slide Preview Thumbnail */}
-                <div className="relative aspect-[16/7] w-full bg-slate-950 overflow-hidden border-b border-slate-100 flex items-center justify-center">
+                {/* Visual order indicator badge */}
+                <div className="absolute top-2.5 right-2.5 z-20">
+                  <span className="text-[9px] bg-slate-900/80 text-white font-extrabold px-2 py-0.5 rounded-full border border-white/10 shadow-sm">
+                    {idx + 1}º Slide
+                  </span>
+                </div>
+
+                {/* Slide Thumbnail */}
+                <div className="relative aspect-[16/7] w-full bg-slate-950 overflow-hidden border-b border-slate-100 flex items-center justify-center shrink-0">
                   {slide.video ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 text-sky-450 gap-1 z-10">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 text-sky-400 gap-1 z-10">
                       <Film className="h-5 w-5 animate-pulse" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-sky-400">Vídeo Ativo</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-sky-400">Vídeo</span>
                     </div>
                   ) : null}
                   
@@ -181,7 +224,7 @@ export function HeroSlideManager() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={slide.image}
-                      alt={slide.title || "Preview do Slide"}
+                      alt={slide.title || "Preview"}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80"
@@ -194,79 +237,70 @@ export function HeroSlideManager() {
                     </div>
                   )}
 
-                  {/* Badges on top of image */}
-                  <div className="absolute top-2 left-2 z-10 flex gap-1 flex-wrap">
-                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded shadow ${
+                  {/* Status Overlay Badge */}
+                  <div className="absolute top-2.5 left-2.5 z-10 flex gap-1 flex-wrap">
+                    <span className={`text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-wider ${
                       slide.active 
                         ? "bg-emerald-600 text-white" 
                         : "bg-slate-500 text-white"
                     }`}>
-                      {slide.active ? "Ativo" : "Oculto"}
+                      {slide.active ? "Publicado" : "Rascunho"}
                     </span>
-                    {slide.displayPriority ? (
-                      <span className="text-[8px] bg-indigo-650 text-white px-1.5 py-0.5 rounded font-black shadow uppercase tracking-wider">
-                        Prio: {slide.displayPriority}
-                      </span>
-                    ) : null}
-                    {!slide.showTextOverlay && (
-                      <span className="text-[8px] bg-rose-650 text-white px-1.5 py-0.5 rounded font-black shadow uppercase tracking-wider">
-                        Flyer
-                      </span>
-                    )}
                   </div>
                 </div>
 
-                <CardHeader className="p-4 pb-3 flex flex-row items-start justify-between gap-2">
+                <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">#{slide.order}</span>
                       <Badge
                         variant="outline"
-                        className={`text-[9px] font-bold px-1.5 py-0 h-4 ${themeStyle.badge}`}
+                        className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0 h-4 ${themeStyle.badge}`}
                       >
                         <span className={`mr-1 h-1.5 w-1.5 rounded-full inline-block ${themeStyle.dot}`} />
-                        {slide.theme === "navy" ? "Navy" : slide.theme === "amber" ? "Amber" : "Emerald"}
+                        Tema: {slide.theme === "navy" ? "Navy" : slide.theme === "amber" ? "Amber" : "Emerald"}
                       </Badge>
+                      {slide.displayPriority ? (
+                        <span className="text-[8px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0 rounded font-black uppercase tracking-wider">
+                          Prioridade: {slide.displayPriority}
+                        </span>
+                      ) : null}
                     </div>
                     <CardTitle className="text-sm font-bold text-slate-800 leading-snug line-clamp-1">
-                      {slide.title || "— Sem Título (Apenas Imagem) —"}
+                      {slide.title || "— Sem Título —"}
                     </CardTitle>
-                    {slide.glowTitle && (
-                      <p className="text-xs font-semibold text-sky-600 truncate">{slide.glowTitle}</p>
-                    )}
-                    <CardDescription className="text-[11px] text-slate-500 mt-1 line-clamp-2">
-                      {slide.subtitle || "Campanha visual."}
+                    <CardDescription className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">
+                      {slide.subtitle || "Sem descrição."}
                     </CardDescription>
-                    
-                    {/* Vigência / Agendamento Badge */}
-                    {(slide.startDate || slide.endDate) && (
-                      <div className="mt-1.5 flex items-center gap-1 text-[8px] bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded font-bold w-fit">
-                        <span>📅 Vigência:</span>
-                        <span className="text-slate-700 font-extrabold">
-                          {slide.startDate ? new Date(slide.startDate).toLocaleDateString("pt-BR") : "Início"}
-                        </span>
-                        <span>→</span>
-                        <span className="text-slate-700 font-extrabold">
-                          {slide.endDate ? new Date(slide.endDate).toLocaleDateString("pt-BR") : "Expira"}
-                        </span>
-                      </div>
-                    )}
                   </div>
-                  <GripVertical className="h-4 w-4 text-slate-300 shrink-0 mt-1" />
+
+                  {/* EXPLICIT REORDERING BUTTONS */}
+                  <div className="flex flex-col gap-1 shrink-0 bg-slate-50 p-1 border border-slate-200/60 rounded-lg shadow-2xs">
+                    <button
+                      type="button"
+                      disabled={idx === 0 || loading}
+                      onClick={() => handleMoveUp(idx)}
+                      className={`text-slate-400 hover:text-sky-600 hover:bg-white rounded p-1 transition-all ${
+                        idx === 0 ? "opacity-30 cursor-not-allowed" : "cursor-pointer"
+                      }`}
+                      title="Mover slide para cima (anterior)"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={idx === slides.length - 1 || loading}
+                      onClick={() => handleMoveDown(idx)}
+                      className={`text-slate-400 hover:text-sky-600 hover:bg-white rounded p-1 transition-all ${
+                        idx === slides.length - 1 ? "opacity-30 cursor-not-allowed" : "cursor-pointer"
+                      }`}
+                      title="Mover slide para baixo (seguinte)"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </CardHeader>
 
-                <CardContent className="px-4 pb-3 space-y-2.5">
-                  <div className="flex items-center gap-3 text-[10px] text-slate-500 font-semibold">
-                    <span className="flex items-center gap-1">
-                      {slide.video ? <Film className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
-                      {slide.video ? "Vídeo" : "Imagem"}
-                    </span>
-                    {slide.badge && (
-                      <span className="truncate max-w-[120px] text-slate-400">· {slide.badge}</span>
-                    )}
-                  </div>
-                  
-                  {/* Analytics display */}
+                <CardContent className="px-4 pb-3 pt-1">
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
                     <div>
                       <p className="text-[8px] text-slate-400 font-black uppercase">Views</p>
@@ -285,13 +319,13 @@ export function HeroSlideManager() {
                   </div>
                 </CardContent>
 
-                <CardFooter className="p-3 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-2">
-                  {/* Toggle active */}
+                <CardFooter className="p-3 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
+                  {/* Visibilidade toggle */}
                   <button
                     type="button"
                     onClick={() => handleToggleActive(slide)}
                     disabled={isToggling}
-                    className={`flex items-center gap-1.5 text-[10px] font-bold rounded-full px-2.5 py-1 border transition-all ${
+                    className={`flex items-center gap-1.5 text-[9px] font-bold rounded-full px-2.5 py-1 border transition-all ${
                       slide.active
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                         : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200"
@@ -305,7 +339,7 @@ export function HeroSlideManager() {
                     ) : (
                       <EyeOff className="h-3 w-3" />
                     )}
-                    {slide.active ? "Ativo" : "Oculto"}
+                    {slide.active ? "Publicado" : "Oculto"}
                   </button>
 
                   <div className="flex gap-1">
@@ -339,7 +373,7 @@ export function HeroSlideManager() {
       <HeroSlideDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        onSaved={fetchSlides}
+        onSaved={onRefresh}
         slide={selectedSlide}
         slidesCount={slides.length}
       />

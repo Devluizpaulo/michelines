@@ -23,6 +23,8 @@ export interface Vehicle {
   showroomFeatured?: boolean
   showroomOrder?: number
   leadCount?: number
+  viewsCount?: number
+  clicksCount?: number
   thumbnail?: string
   images?: string[]
   specs?: string[]

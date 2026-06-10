@@ -7,6 +7,9 @@ import {
   where,
   onSnapshot,
   orderBy,
+  doc,
+  updateDoc,
+  increment,
 } from "firebase/firestore"
 
 import { db } from "@/app/firebase/config"
@@ -38,6 +41,16 @@ export function Showroom() {
     useState<Vehicle | null>(null)
 
   const [galleryOpen, setGalleryOpen] = useState(false)
+
+  const handleOpenDetails = (car: Vehicle) => {
+    setSelectedHighlightVehicle(car)
+    setHighlightOpen(true)
+    if (car.id && !car.id.includes("fallback")) {
+      updateDoc(doc(db, "vehicles", car.id), {
+        viewsCount: increment(1)
+      }).catch((err) => console.warn("Erro ao registrar view do veículo:", err))
+    }
+  }
 
   // Load vehicles in real-time
   useEffect(() => {
@@ -258,10 +271,7 @@ export function Showroom() {
           <div className="mx-auto max-w-6xl">
             <VehicleHighlightHero
               vehicle={featuredVehicle}
-              onOpenDetails={(car) => {
-                setSelectedHighlightVehicle(car)
-                setHighlightOpen(true)
-              }}
+              onOpenDetails={handleOpenDetails}
             />
           </div>
         )}
@@ -334,10 +344,7 @@ export function Showroom() {
             <div className="mx-auto max-w-6xl">
               <VehicleCarousel
                 vehicles={filteredVehicles}
-                onSelectVehicle={(car) => {
-                  setSelectedHighlightVehicle(car)
-                  setHighlightOpen(true)
-                }}
+                onSelectVehicle={handleOpenDetails}
                 onOpenGallery={(car) => {
                   setSelectedGalleryVehicle(car)
                   setGalleryOpen(true)
@@ -365,10 +372,7 @@ export function Showroom() {
 
             <LeadMatcher
               vehicles={vehicles}
-              onSelectVehicle={(car) => {
-                setSelectedHighlightVehicle(car)
-                setHighlightOpen(true)
-              }}
+              onSelectVehicle={handleOpenDetails}
             />
           </div>
         )}

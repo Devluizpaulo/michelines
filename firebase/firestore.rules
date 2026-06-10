@@ -19,8 +19,10 @@ service cloud.firestore {
 
     // 1. Coleção de Administradores
     match /admin_users/{uid} {
-      // Qualquer usuário autenticado pode ler (get) e criar (create) seu próprio perfil inicial
-      allow get, create: if request.auth != null && request.auth.uid == uid;
+      // Qualquer usuário autenticado pode ler (get) seu próprio perfil inicial
+      allow get: if request.auth != null && request.auth.uid == uid;
+      // Usuários autenticados podem criar seu perfil inicial, ou admins ativos podem criar outros usuários
+      allow create: if (request.auth != null && request.auth.uid == uid) || isAdmin();
       // Administradores ativos podem listar (list) e obter (get) detalhes de todos os usuários da equipe
       allow list, get: if isAdmin();
       // Admins ativos podem atualizar usuários (incluindo a si mesmos) e super admins podem deletar

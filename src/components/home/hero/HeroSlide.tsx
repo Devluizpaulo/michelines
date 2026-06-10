@@ -51,6 +51,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
   }
 
   const showTextOverlay = slide.showTextOverlay !== false
+  const textAlignment = slide.textAlignment || "left"
   const opacityValue = !showTextOverlay
     ? 1.0
     : (slide.bgOpacity !== undefined ? slide.bgOpacity / 100 : 0.14)
@@ -62,7 +63,14 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
     (slide.heroHeight === "fullscreen" || !slide.heroHeight) && "min-h-[60vh] h-[60vh] md:min-h-[70vh] md:h-[70vh]"
   )
 
-  const textAlignment = slide.textAlignment || "center"
+  const trackedCtaUrl = slide.ctaUrl?.startsWith("/cadastro")
+    ? `${slide.ctaUrl}${slide.ctaUrl.includes("?") ? "&" : "?"}campaignId=${slide.id}&campaignName=${encodeURIComponent(slide.title)}`
+    : slide.ctaUrl || ""
+
+  const rawDestination = !showTextOverlay ? (slide.destinationUrl || slide.ctaUrl || "#") : (slide.destinationUrl || "#")
+  const trackedDestination = rawDestination.startsWith("/cadastro")
+    ? `${rawDestination}${rawDestination.includes("?") ? "&" : "?"}campaignId=${slide.id}&campaignName=${encodeURIComponent(slide.title)}`
+    : rawDestination
 
   return (
     <div className={cn("relative w-full min-w-full flex-[0_0_100%] flex items-center justify-center overflow-hidden bg-transparent shrink-0", heightClass)}>
@@ -189,7 +197,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
           {/* CTA buttons */}
           <HeroActions 
             ctaText={slide.ctaText} 
-            ctaUrl={slide.ctaUrl} 
+            ctaUrl={trackedCtaUrl} 
             theme={slide.theme} 
             alignment={textAlignment} 
             onClick={handleSlideClick}
@@ -205,7 +213,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
       {/* Slide Clicável (CTA Invisível / Flyer Canva) */}
       {((!showTextOverlay && (slide.destinationUrl || slide.ctaUrl)) || (slide.clickableSlide && slide.destinationUrl)) && (
         <Link 
-          href={!showTextOverlay ? (slide.destinationUrl || slide.ctaUrl || "#") : (slide.destinationUrl || "#")} 
+          href={trackedDestination} 
           onClick={handleSlideClick} 
           className="absolute inset-0 z-30 cursor-pointer"
           aria-label={slide.title || "Acessar banner"}

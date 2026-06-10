@@ -155,14 +155,14 @@ function drawCampaignBanner(
   canvas: HTMLCanvasElement,
   settings: LandingSettings,
   templateId: number,
-  format: "feed" | "story",
+  format: "feed" | "story" | "facebook",
   carImg: HTMLImageElement
 ) {
   const ctx = canvas.getContext("2d")
   if (!ctx) return
 
   const width = 1080
-  const height = format === "feed" ? 1080 : 1920
+  const height = format === "feed" ? 1080 : format === "story" ? 1920 : 1350
   canvas.width = width
   canvas.height = height
 
@@ -237,23 +237,26 @@ function drawCampaignBanner(
 
   // Brand Name
   ctx.font = "900 38px Montserrat, Inter, system-ui, sans-serif"
-  ctx.fillText("GRUPO MICHELINES", width / 2, format === "feed" ? 130 : 250)
+  const headerY = format === "feed" ? 130 : format === "story" ? 250 : 160
+  ctx.fillText("GRUPO MICHELINES", width / 2, headerY)
 
   // Tag
   ctx.font = "900 16px Montserrat, Inter, system-ui, sans-serif"
   ctx.fillStyle = templateId === 1 ? "#38BDF8" : templateId === 2 ? "#FBBF24" : "#34D399"
+  const tagY = format === "feed" ? 180 : format === "story" ? 310 : 210
   ctx.fillText(
     templateId === 1 ? "CAMPANHA D-TAXI CONGONHAS" : templateId === 2 ? "TAXA ZERO • OFERTA DO MÊS" : "MOBILIDADE HÍBRIDA SUSTENTÁVEL",
     width / 2,
-    format === "feed" ? 180 : 310
+    tagY
   )
 
   // Separator
   ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"
   ctx.lineWidth = 3
   ctx.beginPath()
-  ctx.moveTo(width / 2 - 60, format === "feed" ? 220 : 360)
-  ctx.lineTo(width / 2 + 60, format === "feed" ? 220 : 360)
+  const sepY = format === "feed" ? 220 : format === "story" ? 360 : 250
+  ctx.moveTo(width / 2 - 60, sepY)
+  ctx.lineTo(width / 2 + 60, sepY)
   ctx.stroke()
 
   // 6. Main Title (multiline)
@@ -277,7 +280,7 @@ function drawCampaignBanner(
   }
   lines.push(line)
 
-  const titleYStart = format === "feed" ? 290 : 480
+  const titleYStart = format === "feed" ? 290 : format === "story" ? 480 : 330
   const titleLineHeight = 65
   for (let i = 0; i < lines.length; i++) {
     ctx.fillText(lines[i].trim(), width / 2, titleYStart + i * titleLineHeight)
@@ -311,7 +314,7 @@ function drawCampaignBanner(
   }
 
   // DRAW VEHICLE IMAGE WITH ROUNDED BORDERS
-  const carY = format === "feed" ? 520 : 820
+  const carY = format === "feed" ? 520 : format === "story" ? 820 : 610
   const carW = 640
   const carH = 360
   const carX = width / 2 - carW / 2
@@ -325,7 +328,7 @@ function drawCampaignBanner(
   ctx.drawImage(carImg, carX, carY, carW, carH)
   ctx.restore()
 
-  // Beautiful gold or white stroke around the vehicle image
+  // Beautiful stroke around the vehicle image
   ctx.strokeStyle = templateId === 2 ? "#D97706" : "rgba(255, 255, 255, 0.2)"
   ctx.lineWidth = 4
   ctx.beginPath()
@@ -334,7 +337,7 @@ function drawCampaignBanner(
 
   // 8. CTA Button
   const btnText = (settings.campaignBtnText || "QUERO APROVEITAR").toUpperCase()
-  const btnY = format === "feed" ? 920 : 1380
+  const btnY = format === "feed" ? 920 : format === "story" ? 1380 : 1050
   const btnWidth = 480
   const btnHeight = 90
   const btnX = width / 2 - btnWidth / 2
@@ -355,10 +358,11 @@ function drawCampaignBanner(
   // 9. Footer
   ctx.fillStyle = "rgba(255, 255, 255, 0.35)"
   ctx.font = "700 18px Montserrat, Inter, system-ui, sans-serif"
+  const footerY = format === "feed" ? 1040 : format === "story" ? 1800 : 1210
   ctx.fillText(
     "Acesse: michelinestransportes.com.br",
     width / 2,
-    format === "feed" ? 1040 : 1800
+    footerY
   )
 }
 
@@ -369,7 +373,7 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
   const { success, error: showError } = useToast()
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [bannerFormat, setBannerFormat] = useState<"feed" | "story">("feed")
+  const [bannerFormat, setBannerFormat] = useState<"feed" | "story" | "facebook">("feed")
 
   const generators: Record<Platform, (s: LandingSettings) => string> = {
     instagram: generateInstagramCaption,
@@ -552,6 +556,17 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
                     >
                       Stories (9:16)
                     </Button>
+                    <Button
+                      type="button"
+                      variant={bannerFormat === "facebook" ? "default" : "outline"}
+                      onClick={() => setBannerFormat("facebook")}
+                      className={`text-[10px] font-bold h-7 px-2.5 rounded-md ${bannerFormat === "facebook"
+                          ? "bg-amber-600 hover:bg-amber-500 text-white"
+                          : "border-slate-250 text-slate-700 hover:bg-slate-50 bg-white"
+                        }`}
+                    >
+                      Facebook (4:5)
+                    </Button>
                   </div>
                 </div>
 
@@ -559,8 +574,11 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
                 <div className="flex justify-center bg-slate-900 border border-slate-950 p-6 rounded-2xl relative overflow-hidden shadow-inner max-h-[360px] overflow-y-auto">
                   <canvas
                     ref={canvasRef}
-                    className={`max-w-full shadow-2xl rounded-xl border border-white/5 ${bannerFormat === "feed" ? "aspect-square max-h-[300px]" : "aspect-[9/16] max-h-[330px]"
-                      }`}
+                    className={`max-w-full shadow-2xl rounded-xl border border-white/5 ${
+                      bannerFormat === "feed" ? "aspect-square max-h-[300px]" : 
+                      bannerFormat === "facebook" ? "aspect-[4/5] max-h-[320px]" : 
+                      "aspect-[9/16] max-h-[330px]"
+                    }`}
                   />
                 </div>
 

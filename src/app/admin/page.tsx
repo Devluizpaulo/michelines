@@ -168,7 +168,7 @@ function AdminContent() {
   }, [leads.length])
 
   useEffect(() => {
-    if (activeTab === "leads" || activeTab === "dashboard" || activeTab === "analytics" || activeTab === "frota") {
+    if (activeTab === "leads" || activeTab === "dashboard" || activeTab === "analytics" || activeTab === "frota" || activeTab === "campanhas") {
       loadCRMData()
     }
   }, [activeTab, loadCRMData])
@@ -351,6 +351,7 @@ function AdminContent() {
                 <CampaignManager
                   landingSettings={landingSettings}
                   onSettingsSaved={setLandingSettings}
+                  leads={leads}
                 />
               )}
 
@@ -362,7 +363,7 @@ function AdminContent() {
               )}
 
               {activeTab === "frota" && (
-                <VehicleManager leads={leads} />
+                <VehicleManager leads={leads} setActiveTab={setActiveTab} />
               )}
 
               {activeTab === "operacao" && (

@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Star, MessageSquare, ArrowRight, TrendingUp, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { doc, updateDoc, increment } from "firebase/firestore"
+import { db } from "@/app/firebase/config"
 
 interface VehicleHighlightProps {
   vehicle: Vehicle | null
@@ -23,6 +25,14 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
     `Olá! Tenho interesse em alugar o táxi ${vehicle.name} (Diária a partir de R$ ${vehicle.dailyPrice || 150}). Vocês têm disponibilidade imediata?`
   )
   const waUrl = `https://wa.me/${waPhone}?text=${waText}`
+
+  const handleVehicleClick = () => {
+    if (vehicle.id && !vehicle.id.includes("fallback")) {
+      updateDoc(doc(db, "vehicles", vehicle.id), {
+        clicksCount: increment(1)
+      }).catch(err => console.warn("Erro ao registrar click do veículo:", err))
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -229,13 +239,18 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             target="_blank" 
             rel="noopener noreferrer"
             className="flex-1"
+            onClick={handleVehicleClick}
           >
             <Button className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-emerald-600 hover:text-emerald-700 font-bold flex items-center justify-center gap-2 rounded-xl text-xs h-12 transition-all shadow-sm">
               <MessageSquare className="h-4 w-4" /> Reservar pelo WhatsApp
             </Button>
           </a>
 
-          <Link href="/cadastro" className="flex-1">
+          <Link 
+            href={`/cadastro?vehicleInterest=${encodeURIComponent(vehicle.name)}`} 
+            onClick={handleVehicleClick}
+            className="flex-1"
+          >
             <Button className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold flex items-center justify-center gap-2 rounded-xl text-xs h-12 transition-all shadow-md">
               Cadastrar para Alugar <ArrowRight className="h-4 w-4" />
             </Button>

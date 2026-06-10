@@ -111,6 +111,10 @@ export interface Lead {
 
   // Calculated score (cached)
   leadScore?: number
+
+  // Marketing Intelligence Campaign Links
+  campaignId?: string
+  campaignName?: string
 }
 
 

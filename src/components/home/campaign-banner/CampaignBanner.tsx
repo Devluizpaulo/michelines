@@ -1,6 +1,11 @@
+"use client"
+
+import { useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LandingSettings } from "@/types/landing"
+import { doc, updateDoc, increment } from "firebase/firestore"
+import { db } from "@/app/firebase/config"
 
 interface CampaignBannerProps {
   landingSettings: LandingSettings
@@ -46,6 +51,20 @@ export function CampaignBanner({ landingSettings }: CampaignBannerProps) {
   const templateId = landingSettings.campaignTemplateId || 1
   const cfg = TEMPLATE_CONFIGS[templateId] || TEMPLATE_CONFIGS[1]
 
+  useEffect(() => {
+    if (landingSettings.showCampaignBanner) {
+      updateDoc(doc(db, "landing", "settings"), {
+        campaignViews: increment(1)
+      }).catch((err) => console.warn("Erro ao registrar view do banner:", err))
+    }
+  }, [landingSettings.showCampaignBanner])
+
+  const handleBannerClick = () => {
+    updateDoc(doc(db, "landing", "settings"), {
+      campaignClicks: increment(1)
+    }).catch((err) => console.warn("Erro ao registrar click do banner:", err))
+  }
+
   const imagePosition = landingSettings.campaignImagePosition || "right"
   const imageSize = landingSettings.campaignImageSize || "md"
   const imageAspectRatio = landingSettings.campaignImageAspectRatio || "video"
@@ -86,7 +105,16 @@ export function CampaignBanner({ landingSettings }: CampaignBannerProps) {
               {landingSettings.campaignSubtitle || "Fature alto no aeroporto de Congonhas. Retirada rápida em 24 horas."}
             </p>
             <div className="pt-2">
-              <Link href={landingSettings.campaignBtnUrl || "/cadastro"}>
+              <Link 
+                href={(() => {
+                  const url = landingSettings.campaignBtnUrl || "/cadastro"
+                  if (url.startsWith("/cadastro")) {
+                    return `${url}${url.includes("?") ? "&" : "?"}campaignId=main_banner&campaignName=${encodeURIComponent(landingSettings.campaignText || "Banner Principal")}`
+                  }
+                  return url
+                })()}
+                onClick={handleBannerClick}
+              >
                 <Button className={`${cfg.buttonClass} rounded-2xl font-bold px-6 h-11 transition-all shadow-sm hover:shadow`}>
                   {landingSettings.campaignBtnText || "Quero Aproveitar"}
                 </Button>

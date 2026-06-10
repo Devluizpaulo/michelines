@@ -1,15 +1,44 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Accessibility, Sparkles, Users, Briefcase, ChevronRight, HelpCircle } from "lucide-react"
-import { THEME_TOKENS } from "@/theme/design-system"
+import { 
+  Accessibility, Sparkles, Users, Briefcase, ChevronRight, 
+  HelpCircle, GraduationCap, Award, CheckSquare, Heart
+} from "lucide-react"
 import { motion } from "framer-motion"
+import { collection, query, where, getDocs } from "firebase/firestore"
+import { db } from "@/app/firebase/config"
+import { Vehicle } from "@/types/vehicle"
+import { cn } from "@/lib/utils"
 
 export function Acessivel() {
   const [activePhoto, setActivePhoto] = useState(0)
+  const [accessibleVehicles, setAccessibleVehicles] = useState<Vehicle[]>([])
+  const [loadingVehicles, setLoadingVehicles] = useState(true)
+
+  // Fetch accessible vehicles dynamically
+  useEffect(() => {
+    const fetchAccessibleVehicles = async () => {
+      try {
+        setLoadingVehicles(true)
+        const q = query(collection(db, "vehicles"), where("category", "==", "acessivel"))
+        const snap = await getDocs(q)
+        const list: Vehicle[] = []
+        snap.forEach(doc => {
+          list.push({ id: doc.id, ...doc.data() } as Vehicle)
+        })
+        setAccessibleVehicles(list)
+      } catch (err) {
+        console.error("Erro ao buscar veículos acessíveis:", err)
+      } finally {
+        setLoadingVehicles(false)
+      }
+    }
+    fetchAccessibleVehicles()
+  }, [])
 
   const cards = [
     {
@@ -21,12 +50,12 @@ export function Acessivel() {
       description: "Transporte especializado para pessoas com deficiência e mobilidade reduzida, promovendo autonomia, dignidade e acesso à cidade."
     },
     {
-      icon: Sparkles,
+      icon: Briefcase,
       iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100",
-      title: "Demanda Especializada",
-      badge: "Oportunidade",
+      title: "Segmento Especializado",
+      badge: "Segmento",
       badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
-      description: "A oferta de veículos adaptados ainda é reduzida em comparação à necessidade de atendimento, criando espaço para profissionais capacitados atuarem nesse segmento."
+      description: "Atuação em uma modalidade diferenciada do transporte urbano, com requisitos específicos de acessibilidade e atendimento."
     },
     {
       icon: Users,
@@ -37,7 +66,15 @@ export function Acessivel() {
       description: "Muitos usuários dependem frequentemente desse tipo de transporte para consultas, tratamentos, trabalho e atividades diárias, gerando relacionamentos duradouros com motoristas de confiança."
     },
     {
-      icon: Briefcase,
+      icon: GraduationCap,
+      iconBg: "bg-violet-50 text-violet-600 border-violet-100",
+      title: "Capacitação Especializada",
+      badge: "Treinamento",
+      badgeColor: "bg-violet-50 text-violet-700 border-violet-200",
+      description: "O Grupo Michelines orienta motoristas sobre operação acessível, atendimento humanizado e boas práticas para o transporte de passageiros com mobilidade reduzida."
+    },
+    {
+      icon: Award,
       iconBg: "bg-amber-50 text-amber-600 border-amber-100",
       title: "Operações Especializadas",
       badge: "Convênios",
@@ -54,7 +91,12 @@ export function Acessivel() {
     { label: "Relação com Cliente", conventional: "Relacionamento comercial transacional", accessible: "Relação de confiança e impacto humano" }
   ]
 
-  const photos = [
+  const defaultPhotos = [
+    {
+      src: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80",
+      title: "Spin Adaptada Michelines",
+      description: "Acesso por rampa traseira homologada, cinto de segurança de 3 pontos para o cadeirante e espaço confortável."
+    },
     {
       src: "https://images.openai.com/static-rsc-4/al-XfDhux_JMV_5FxWcG5fcsaQU1A7I-FZydeMfEUwLYVlBw5hpqJuNGb3EjTzsPwn666LZejXW59KJsaZS9eOyO6SLCnKcGNqU3Ze-0gqlJCRYm_HD6Wf1O_AZ9Ei4rs3WaqUKpSAraDGdglJOiSJyy5PwwliPQUhRWnbvM3VBeG4JgLk6jcEV6Q-LeflKQ?purpose=fullsize",
       title: "Embarque Seguro",
@@ -62,20 +104,23 @@ export function Acessivel() {
     },
     {
       src: "https://images.openai.com/static-rsc-4/9YJaa3S2sPAnHyBAPSBqASnAewjKAowvh1t7uosI27wX22ZwtBDkJEB1VYGKKLMXo7dmQyR8Sd4iWopOzFz9UJROSgn_8bNAVRhc0AJdVY0o1M7euZk2EiItUZHthiiOi3rndtLc9xfqgdujggJzvPmyVmFlZlirql4Bf1ikw72X1BADf7gqBZX8R4urmiPa?purpose=fullsize",
-      title: "Fixação e Cintos de Segurança",
+      title: "Fixação e Cintos",
       description: "Sistemas de travamento homologados para garantir estabilidade."
     },
     {
       src: "https://images.openai.com/static-rsc-4/D4xD1KYkkY28Mrgmfyd3JXrJz38RxoxS4KssWiDrY4rm-GKe3Oa6jNUc7jzuSA6fgWE2jJX56gkNtXyrRMnHrYJX0oPjjJtHg-eZuo08xf6oIxrVXJi7Jd9Lv7oLNw4UgJMJ0tBjx0E4km2c_GJuScUDLcHzrPW8VbxFVdrYKFJ8ytWal4ZORD95yqpi9X7v?purpose=fullsize",
-      title: "Espaço Interno Confortável",
+      title: "Espaço Interno",
       description: "Altura e largura adequadas para o cadeirante e acompanhantes."
-    },
-    {
-      src: "https://images.openai.com/static-rsc-4/qU7n9UTdgWUGNbaLCpUhZs3OmX9dm5rtZbWlZABFNZo8LrDhWPqV518OqyNhlninYiPq2LDuLsAkHZ1u2iSzuFsaIM2j0z08ooTD7391EPm259H1lPlISmB7sXP_e93owhVu5h2L1_2SbBM8azQbPsUgGeAhWwP3oSQqohH67sJyktBNSHykSVeGzFXDpvsB?purpose=fullsize",
-      title: "Dignidade no Transporte",
-      description: "Veículos modernos com tecnologia e acabamento premium."
     }
   ]
+
+  const photosList = accessibleVehicles.length > 0
+    ? accessibleVehicles.map(v => ({
+        src: v.thumbnail || (v.images && v.images[0]) || defaultPhotos[0].src,
+        title: v.name,
+        description: v.shortDescription || v.fullDescription || "Veículo adaptado e homologado para o transporte inclusivo."
+      }))
+    : defaultPhotos
 
   return (
     <section 
@@ -85,48 +130,80 @@ export function Acessivel() {
       <div className="container relative z-10 mx-auto space-y-16 px-6 lg:px-12 max-w-6xl">
         
         {/* Title / Hero block */}
-        <div className="mx-auto max-w-3xl space-y-4 text-center">
+        <div className="mx-auto max-w-4xl space-y-4 text-center">
           <Badge className="rounded-full border border-sky-100 bg-sky-50 px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-sky-700 shadow-sm">
-            Inclusão & Impacto
+            Programa de Táxi Acessível
           </Badge>
 
           <h2 className="text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl">
-            Mobilidade sem Barreiras
+            Programa Michelines de Táxi Acessível
           </h2>
 
-          <p className="text-base font-semibold leading-relaxed text-slate-550 md:text-lg">
-            O táxi acessível conecta pessoas à saúde, ao trabalho, à educação e à independência.
+          <p className="text-sm font-semibold leading-relaxed text-slate-550 md:text-base max-w-3xl mx-auto">
+            O táxi acessível conecta pessoas à saúde, ao trabalho, à educação e à independência. Além do impacto social, o motorista acessível atua em um segmento especializado, com menor oferta de veículos preparados e possibilidade de construir relações duradouras com passageiros, instituições e operações específicas.
           </p>
         </div>
 
-        {/* 4 Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* 5 Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {cards.map((card, idx) => {
             const Icon = card.icon
             return (
               <div 
                 key={idx}
-                className="flex flex-col justify-between p-6 rounded-2xl border border-slate-150 bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 space-y-4 text-left"
+                className="flex flex-col justify-between p-5 rounded-2xl border border-slate-150 bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 space-y-4 text-left"
               >
                 <div className="flex items-center justify-between">
-                  <div className={`h-9 w-9 rounded-xl border flex items-center justify-center ${card.iconBg}`}>
-                    <Icon className="h-4.5 w-4.5" />
+                  <div className={`h-8.5 w-8.5 rounded-xl border flex items-center justify-center ${card.iconBg}`}>
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <Badge className={`rounded-md border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${card.badgeColor}`}>
+                  <Badge className={`rounded-md border px-2 py-0.5 text-[8px] font-black uppercase tracking-wider ${card.badgeColor}`}>
                     {card.badge}
                   </Badge>
                 </div>
-                <div className="space-y-1.5">
-                  <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                <div className="space-y-1.5 flex-1 flex flex-col justify-between">
+                  <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wide">
                     {card.title}
                   </h4>
-                  <p className="text-xs font-semibold leading-relaxed text-slate-500">
+                  <p className="text-[10px] font-semibold leading-relaxed text-slate-500 mt-1">
                     {card.description}
                   </p>
                 </div>
               </div>
             )
           })}
+        </div>
+
+        {/* Nossa Frota Acessível Band */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-slate-50 border border-slate-200 rounded-3xl p-8 lg:p-12 text-left">
+          <div className="lg:col-span-5 space-y-4">
+            <Badge className="bg-sky-50 text-sky-700 border border-sky-200 rounded-md text-[9px] font-black uppercase tracking-wider">
+              Frota Preparada
+            </Badge>
+            <h3 className="text-2xl font-black text-slate-900 leading-tight">
+              Nossa Frota Acessível
+            </h3>
+            <p className="text-xs font-semibold leading-relaxed text-slate-550">
+              Veículos modernos adaptados com o que há de mais seguro no mercado, garantindo conformidade com as normas técnicas e total conforto ao passageiro.
+            </p>
+          </div>
+          <div className="lg:col-span-7 grid grid-cols-2 gap-4">
+            {[
+              "Veículos adaptados",
+              "Rampas homologadas",
+              "Espaço para cadeira de rodas",
+              "Ar-condicionado",
+              "Revisões periódicas",
+              "Suporte operacional"
+            ].map((badge, bIdx) => (
+              <div key={bIdx} className="flex items-center gap-2.5 p-3.5 bg-white border border-slate-150 rounded-2xl shadow-2xs hover:border-slate-350 hover:shadow-xs transition-all">
+                <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
+                  ✓
+                </div>
+                <span className="text-[11px] font-bold text-slate-700">{badge}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Institutional content and Emotional quote block */}
@@ -210,15 +287,16 @@ export function Acessivel() {
             
             {/* Gallery Selector Buttons */}
             <div className="flex gap-2 select-none overflow-x-auto scrollbar-none">
-              {photos.map((ph, idx) => (
+              {photosList.map((ph, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActivePhoto(idx)}
-                  className={`px-3 py-1.5 rounded-lg border text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 shrink-0 ${
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg border text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 shrink-0",
                     activePhoto === idx
                       ? "border-sky-300 bg-sky-50 text-sky-700 shadow-sm"
                       : "border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700"
-                  }`}
+                  )}
                 >
                   {ph.title}
                 </button>
@@ -233,18 +311,18 @@ export function Acessivel() {
               <div className="group relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-slate-150 bg-slate-50 shadow-inner">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={photos[activePhoto].src}
-                  alt={photos[activePhoto].title}
+                  src={photosList[activePhoto]?.src}
+                  alt={photosList[activePhoto]?.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                 />
                 
                 {/* Description Overlay */}
                 <div className="absolute inset-x-0 bottom-0 z-10 space-y-1 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent p-6 text-white text-left">
                   <h5 className="text-xs font-black uppercase tracking-wider">
-                    {photos[activePhoto].title}
+                    {photosList[activePhoto]?.title}
                   </h5>
                   <p className="text-[10px] font-semibold text-slate-200 leading-normal">
-                    {photos[activePhoto].description}
+                    {photosList[activePhoto]?.description}
                   </p>
                 </div>
               </div>
@@ -252,15 +330,16 @@ export function Acessivel() {
 
             {/* Gallery Thumbnail Grid */}
             <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-3.5">
-              {photos.map((ph, idx) => (
+              {photosList.map((ph, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActivePhoto(idx)}
-                  className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all text-left shadow-sm ${
+                  className={cn(
+                    "flex items-center gap-3 p-2.5 rounded-2xl border transition-all text-left shadow-sm",
                     activePhoto === idx
                       ? "border-sky-400 bg-sky-50/30 ring-1 ring-sky-300"
                       : "border-slate-200 bg-white hover:border-slate-350"
-                  }`}
+                  )}
                 >
                   <div className="relative aspect-[4/3] w-20 overflow-hidden rounded-lg border border-slate-150 bg-slate-50 shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -282,6 +361,46 @@ export function Acessivel() {
               ))}
             </div>
 
+          </div>
+        </div>
+
+        {/* Como Funciona Section */}
+        <div className="space-y-8 pt-4 text-left">
+          <div>
+            <h3 className="text-lg font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+              Como se Credenciar no Programa
+            </h3>
+            <p className="text-xs font-semibold leading-relaxed text-slate-450 mt-1">
+              Fluxo simplificado para motoristas ingressarem no segmento de táxi acessível Michelines.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                step: "01",
+                title: "Cadastro de Interesse",
+                description: "Preencha o formulário de cadastro indicando seu interesse em veículos acessíveis para registrar sua intenção diretamente no CRM."
+              },
+              {
+                step: "02",
+                title: "Avaliação de Perfil",
+                description: "Nossa equipe comercial analisará seu perfil de motorista e entrará em contato para detalhar os requisitos da operação e homologação."
+              },
+              {
+                step: "03",
+                title: "Credenciamento e Operação",
+                description: "Após aprovação e recebimento do veículo adaptado Michelines, você estará credenciado para atuar no segmento especializado com o suporte da nossa central."
+              }
+            ].map((item, idx) => (
+              <div key={idx} className="relative p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-3.5 hover:border-slate-350 hover:bg-white transition-all shadow-2xs">
+                <span className="text-3xl font-black text-slate-200 block font-mono">{item.step}</span>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-black text-slate-800 uppercase tracking-wide">{item.title}</h4>
+                  <p className="text-xs font-semibold leading-relaxed text-slate-550">{item.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
