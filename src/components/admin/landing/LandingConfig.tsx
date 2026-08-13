@@ -434,9 +434,9 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
                         {currentPreviewSlide.glowTitle && (
                           <span className={cn(
                             "bg-gradient-to-r bg-clip-text text-transparent drop-shadow-sm font-black",
-                            currentPreviewSlide.theme === "navy" && "from-sky-450 via-sky-400 to-indigo-400",
-                            currentPreviewSlide.theme === "amber" && "from-amber-400 via-amber-350 to-orange-400",
-                            currentPreviewSlide.theme === "emerald" && "from-emerald-450 via-teal-400 to-green-400"
+                            currentPreviewSlide.theme === "navy" && "from-sky-400 via-sky-400 to-indigo-400",
+                            currentPreviewSlide.theme === "amber" && "from-amber-400 via-amber-300 to-orange-400",
+                            currentPreviewSlide.theme === "emerald" && "from-emerald-400 via-teal-400 to-green-400"
                           )}>
                             {currentPreviewSlide.glowTitle}
                           </span>
@@ -458,7 +458,7 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
                           className={cn(
                             "px-4 py-1.5 text-[9px] font-black rounded-lg transition-transform active:scale-95 shadow-md flex items-center gap-1.5 text-white",
                             currentPreviewSlide.theme === "navy" && "bg-sky-600 hover:bg-sky-500",
-                            currentPreviewSlide.theme === "amber" && "bg-amber-500 hover:bg-amber-450 text-slate-900",
+                            currentPreviewSlide.theme === "amber" && "bg-amber-500 hover:bg-amber-400 text-slate-900",
                             currentPreviewSlide.theme === "emerald" && "bg-emerald-600 hover:bg-emerald-500"
                           )}
                         >

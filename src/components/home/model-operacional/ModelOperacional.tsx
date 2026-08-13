@@ -150,7 +150,7 @@ export function ModelOperacional() {
                     Domingos e feriados sem cobrança
                   </h5>
 
-                  <p className="text-[10px] font-semibold leading-relaxed text-slate-550">
+                  <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
                     Todo o faturamento realizado nesses períodos fica
                     integralmente com o motorista.
                   </p>

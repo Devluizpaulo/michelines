@@ -142,7 +142,7 @@ export function Testimonials() {
             <DialogContent className="bg-white border border-slate-200 text-slate-800 w-full sm:max-w-md rounded-2xl p-6" descriptionId="testimonial-dialog-description">
               {submitted ? (
                 <div className="py-8 flex flex-col items-center text-center space-y-4">
-                  <div className="h-16 w-16 bg-emerald-50 rounded-full border border-emerald-250 flex items-center justify-center text-emerald-600 animate-bounce">
+                  <div className="h-16 w-16 bg-emerald-50 rounded-full border border-emerald-200 flex items-center justify-center text-emerald-600 animate-bounce">
                     <CheckCircle2 className="h-10 w-10" />
                   </div>
                   <div>
@@ -212,7 +212,7 @@ export function Testimonials() {
                               className={`h-7 w-7 ${
                                 star <= (hoverRating ?? rating)
                                   ? "fill-yellow-400 stroke-yellow-500"
-                                  : "fill-transparent stroke-slate-250"
+                                  : "fill-transparent stroke-slate-200"
                               }`}
                             />
                           </button>
@@ -270,7 +270,7 @@ export function Testimonials() {
                       key={i} 
                       className={`h-3.5 w-3.5 ${
                         i < (item.rating ?? 5) 
-                          ? "fill-yellow-550 stroke-yellow-550" 
+                          ? "fill-yellow-500 stroke-yellow-500" 
                           : "fill-transparent stroke-slate-200"
                       }`} 
                     />

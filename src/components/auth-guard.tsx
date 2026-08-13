@@ -7,44 +7,52 @@ import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "../app/firebase/config"
 
+/**
+ * Porteiro das rotas de /admin: só renderiza o painel com uma sessão do Firebase.
+ * A autorização fina (papel, perfil ativo) fica no AuthContext e nas regras do
+ * Firestore — aqui é apenas o corte entre "logado" e "não logado".
+ */
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true)
+  const [status, setStatus] = useState<"checking" | "authenticated" | "error">("checking")
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    // Verificar se o Firebase Auth está inicializado
     if (!auth) {
       setError("Erro ao inicializar o sistema de autenticação")
+      setStatus("error")
       return
     }
 
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
-        if (!user && typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-          router.push("/login")
+        if (user) {
+          setStatus("authenticated")
         } else {
-          setLoading(false)
+          // Sem exceção para localhost: liberar o painel em dev mascara bugs de
+          // autenticação e é fácil de esquecer ligado ao publicar.
+          setStatus("checking")
+          router.replace("/login")
         }
       },
-      (error) => {
-        console.error("Erro na autenticação:", error)
+      (err) => {
+        console.error("Erro na autenticação:", err)
         setError("Ocorreu um erro na verificação de autenticação")
-        setLoading(false)
-      },
+        setStatus("error")
+      }
     )
 
     return () => unsubscribe()
   }, [router])
 
-  if (error) {
+  if (status === "error") {
     return (
-      <div className="flex items-center justify-center min-h-screen flex-col">
-        <div className="text-red-500 mb-4">{error}</div>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4 text-center">
+        <p className="text-sm font-semibold text-red-600">{error}</p>
         <button
           onClick={() => router.push("/login")}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="h-11 rounded-xl bg-sky-600 px-5 text-sm font-bold text-white transition-colors hover:bg-sky-700"
         >
           Voltar para o login
         </button>
@@ -52,10 +60,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (loading) {
+  if (status === "checking") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div
+          role="status"
+          aria-label="Verificando autenticação"
+          className="h-12 w-12 animate-spin rounded-full border-4 border-sky-600 border-t-transparent"
+        />
       </div>
     )
   }

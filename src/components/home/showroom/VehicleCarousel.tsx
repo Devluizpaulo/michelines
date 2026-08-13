@@ -39,13 +39,13 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
         <div className="absolute -top-14 right-0 flex items-center gap-2">
           <button 
             onClick={scrollPrev}
-            className="p-2.5 rounded-full bg-white border border-slate-200 text-slate-450 hover:text-slate-800 hover:border-slate-300 shadow-sm transition-all"
+            className="p-2.5 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-300 shadow-sm transition-all"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button 
             onClick={scrollNext}
-            className="p-2.5 rounded-full bg-white border border-slate-200 text-slate-450 hover:text-slate-800 hover:border-slate-300 shadow-sm transition-all"
+            className="p-2.5 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-300 shadow-sm transition-all"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -65,7 +65,7 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                 {/* Photo Header */}
                 <div 
                   onClick={() => onOpenGallery(car)}
-                  className="relative aspect-[16/10] w-full bg-gradient-to-b from-slate-50 to-slate-100/20 p-4 pb-1 flex flex-col justify-end overflow-hidden border-b border-slate-150 cursor-pointer"
+                  className="relative aspect-[16/10] w-full bg-gradient-to-b from-slate-50 to-slate-100/20 p-4 pb-1 flex flex-col justify-end overflow-hidden border-b border-slate-100 cursor-pointer"
                 >
                   {/* Floating Tags */}
                   <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">

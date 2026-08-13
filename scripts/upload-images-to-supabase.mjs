@@ -16,7 +16,7 @@ import { dirname } from "path"
 const SUPABASE_URL = "https://cbynwzxalzcaownnouwp.supabase.co"
 
 // Lê a service role key do env (com correção do 'l' extra no início)
-const rawKey = process.env.NEXT_PUBLIC_SUPABASE_service_role_key || ""
+const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_service_role_key || ""
 // Corrige typo: 'leyJ...' → 'eyJ...'
 const SERVICE_ROLE_KEY = rawKey.startsWith("leyJ") ? rawKey.slice(1) : rawKey
 

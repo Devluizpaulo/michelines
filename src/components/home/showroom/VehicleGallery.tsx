@@ -29,7 +29,7 @@ export function ShowroomVehicleGallery({ images, name, isOpen, onClose }: Showro
       <DialogContent className="bg-slate-950/95 border-slate-900 text-slate-100 max-w-4xl w-full p-4 flex flex-col justify-center items-center rounded-2xl" descriptionId="vehicle-gallery-dialog-description">
         <DialogHeader className="w-full text-left pb-2 border-b border-slate-900">
           <DialogTitle className="text-lg font-black text-white">{name}</DialogTitle>
-          <DialogDescription id="vehicle-gallery-dialog-description" className="text-xs text-slate-450">Galeria de imagens oficiais e detalhes do interior.</DialogDescription>
+          <DialogDescription id="vehicle-gallery-dialog-description" className="text-xs text-slate-400">Galeria de imagens oficiais e detalhes do interior.</DialogDescription>
         </DialogHeader>
 
         {/* Main Image Slideshow */}
@@ -61,7 +61,7 @@ export function ShowroomVehicleGallery({ images, name, isOpen, onClose }: Showro
           )}
 
           {/* Image index counter */}
-          <div className="absolute bottom-4 right-4 bg-slate-950/70 border border-slate-850 px-3 py-1 rounded-full text-xs font-bold text-slate-300">
+          <div className="absolute bottom-4 right-4 bg-slate-950/70 border border-slate-800 px-3 py-1 rounded-full text-xs font-bold text-slate-300">
             {currentIndex + 1} / {images.length}
           </div>
         </div>
@@ -74,7 +74,7 @@ export function ShowroomVehicleGallery({ images, name, isOpen, onClose }: Showro
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
                 className={`relative w-20 h-14 rounded-lg overflow-hidden border bg-slate-900 transition-all shrink-0 ${
-                  currentIndex === idx ? "border-sky-500 scale-95" : "border-slate-850 hover:border-slate-700"
+                  currentIndex === idx ? "border-sky-500 scale-95" : "border-slate-800 hover:border-slate-700"
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

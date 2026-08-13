@@ -107,7 +107,7 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
       </div>
 
       <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 mt-1 pl-1">
-        <span className="text-[10px] text-slate-450 font-bold flex items-center gap-1">
+        <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           {dateString} {elapsed && <span className="text-slate-400 font-medium">{elapsed}</span>}
         </span>

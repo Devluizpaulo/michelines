@@ -151,7 +151,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
           type="button" 
           variant="outline" 
           onClick={onCancel}
-          className="border-slate-250 hover:border-slate-350 text-slate-700 bg-white h-9 px-3 shadow-sm hover:bg-slate-50 transition-all"
+          className="border-slate-200 hover:border-slate-300 text-slate-700 bg-white h-9 px-3 shadow-sm hover:bg-slate-50 transition-all"
         >
           <ChevronLeft className="h-4 w-4 mr-1" /> Voltar
         </Button>
@@ -344,7 +344,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               id="isHybrid" 
               checked={formData.isHybrid || false} 
               onChange={(e) => setFormData(prev => ({ ...prev, isHybrid: e.target.checked }))}
-              className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+              className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
             />
             <label htmlFor="isHybrid" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Híbrido 🔋</label>
           </div>
@@ -355,7 +355,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               id="hasGNV" 
               checked={formData.hasGNV || false} 
               onChange={(e) => setFormData(prev => ({ ...prev, hasGNV: e.target.checked }))}
-              className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+              className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
             />
             <label htmlFor="hasGNV" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Kit GNV ⛽</label>
           </div>
@@ -366,7 +366,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               id="isDTaxiApproved" 
               checked={formData.isDTaxiApproved || false} 
               onChange={(e) => setFormData(prev => ({ ...prev, isDTaxiApproved: e.target.checked }))}
-              className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+              className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
             />
             <label htmlFor="isDTaxiApproved" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">D-TAXI Aeroporto ✈️</label>
           </div>
@@ -377,7 +377,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               id="featured" 
               checked={formData.featured || false} 
               onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
-              className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+              className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
             />
             <label htmlFor="featured" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Destaque Geral ★</label>
           </div>
@@ -388,7 +388,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               id="showroomFeatured" 
               checked={formData.showroomFeatured || false} 
               onChange={(e) => setFormData(prev => ({ ...prev, showroomFeatured: e.target.checked }))}
-              className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+              className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
             />
             <label htmlFor="showroomFeatured" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Menu Showroom</label>
           </div>
@@ -399,7 +399,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
               id="available" 
               checked={formData.available || false} 
               onChange={(e) => setFormData(prev => ({ ...prev, available: e.target.checked }))}
-              className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+              className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
             />
             <label htmlFor="available" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Disponível Locação</label>
           </div>
@@ -411,7 +411,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
         <div className="space-y-3">
           <Label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <span>Parâmetros de Acessibilidade & Homologação ♿</span>
-            <span className="text-[10px] text-slate-450 font-semibold">(Preencha estes campos adicionais caso o veículo seja adaptado)</span>
+            <span className="text-[10px] text-slate-400 font-semibold">(Preencha estes campos adicionais caso o veículo seja adaptado)</span>
           </Label>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 bg-slate-50/50 p-4 border border-slate-200 rounded-xl">
             <div className="flex items-center gap-3">
@@ -426,7 +426,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
                   }
                   return updated;
                 })}
-                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+                className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
               />
               <label htmlFor="isAccessible" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Táxi Acessível Adaptado ♿</label>
             </div>
@@ -437,7 +437,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
                 id="isAtendeApproved" 
                 checked={formData.isAtendeApproved || false} 
                 onChange={(e) => setFormData(prev => ({ ...prev, isAtendeApproved: e.target.checked }))}
-                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+                className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
               />
               <label htmlFor="isAtendeApproved" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Homologado no ATENDE ♿</label>
             </div>
@@ -448,7 +448,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
                 id="hasRadioAssociation" 
                 checked={formData.hasRadioAssociation || false} 
                 onChange={(e) => setFormData(prev => ({ ...prev, hasRadioAssociation: e.target.checked }))}
-                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+                className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
               />
               <label htmlFor="hasRadioAssociation" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Associação com Rádio 📻</label>
             </div>
@@ -459,7 +459,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
                 id="isDTPApproved" 
                 checked={formData.isDTPApproved || false} 
                 onChange={(e) => setFormData(prev => ({ ...prev, isDTPApproved: e.target.checked }))}
-                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+                className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
               />
               <label htmlFor="isDTPApproved" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Credenciado DTP / DETAXI 🏢</label>
             </div>
@@ -470,7 +470,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
                 id="hasDTPCourseSupport" 
                 checked={formData.hasDTPCourseSupport || false} 
                 onChange={(e) => setFormData(prev => ({ ...prev, hasDTPCourseSupport: e.target.checked }))}
-                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
+                className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-violet-600 focus:ring-violet-500 cursor-pointer"
               />
               <label htmlFor="hasDTPCourseSupport" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">Suporte Curso Mobilidade 🎓</label>
             </div>
@@ -584,7 +584,7 @@ export function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
             type="button" 
             variant="outline" 
             onClick={onCancel}
-            className="border-slate-200 hover:border-slate-350 text-slate-700 hover:bg-slate-50 shadow-sm"
+            className="border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 shadow-sm"
           >
             Cancelar
           </Button>

@@ -45,7 +45,7 @@ export const THEME_TOKENS = {
     h2: "text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900",
     h3: "text-lg sm:text-xl font-bold text-slate-900",
     h4: "text-sm sm:text-base font-bold text-slate-800",
-    body: "text-sm text-slate-650 leading-relaxed",
+    body: "text-sm text-slate-600 leading-relaxed",
     label: "text-xs font-semibold uppercase tracking-wider text-slate-500",
     caption: "text-xs text-slate-500"
   },
@@ -77,7 +77,7 @@ export const THEME_TOKENS = {
 
   // Card layouts presets
   cards: {
-    executive: "bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-350 hover:shadow-md transition-all duration-300",
+    executive: "bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300",
     surface: "bg-slate-50/50 border border-slate-200/80 rounded-xl p-5",
     metric: "bg-white border border-slate-200 rounded-xl p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] flex flex-col justify-between",
     section: "bg-white border border-slate-200 rounded-xl overflow-hidden"
@@ -87,7 +87,7 @@ export const THEME_TOKENS = {
   gradients: {
     executive: "bg-[#F8FAFC]",
     navyBlue: "bg-[#EFF6FF]",
-    accentSky: "from-sky-600 via-sky-500 to-sky-450",
+    accentSky: "from-sky-600 via-sky-500 to-sky-400",
     accentAmber: "from-amber-600 via-amber-500 to-orange-500",
     accentEmerald: "from-emerald-600 via-teal-600 to-green-600"
   },

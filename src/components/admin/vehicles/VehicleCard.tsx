@@ -15,7 +15,7 @@ interface VehicleCardProps {
 
 export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardProps) {
   return (
-    <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden flex flex-col justify-between hover:border-slate-350 hover:shadow-md transition-all duration-300">
+    <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden flex flex-col justify-between hover:border-slate-300 hover:shadow-md transition-all duration-300">
       
       {/* Thumbnail */}
       <div className="relative h-44 bg-slate-50 flex items-center justify-center overflow-hidden">
@@ -51,7 +51,7 @@ export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardPr
 
         {/* Featured Flag */}
         {vehicle.featured && (
-          <Badge className="absolute top-2 right-2 bg-amber-50 text-amber-700 border border-amber-250 text-[9px] font-black uppercase py-0.5 px-2 shadow-sm">
+          <Badge className="absolute top-2 right-2 bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-black uppercase py-0.5 px-2 shadow-sm">
             ★ Destaque
           </Badge>
         )}
@@ -70,17 +70,17 @@ export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardPr
 
         {/* Price & Specs row */}
         <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-          <div className="text-xs text-slate-650 font-bold">
-            Diária: <span className="text-emerald-650 font-extrabold">R$ {vehicle.dailyPrice?.toLocaleString('pt-BR')}</span>
+          <div className="text-xs text-slate-600 font-bold">
+            Diária: <span className="text-emerald-600 font-extrabold">R$ {vehicle.dailyPrice?.toLocaleString('pt-BR')}</span>
           </div>
-          <div className="text-xs text-slate-650 font-bold">
-            Mensal: <span className="text-emerald-650 font-extrabold">R$ {vehicle.monthlyPrice?.toLocaleString('pt-BR')}</span>
+          <div className="text-xs text-slate-600 font-bold">
+            Mensal: <span className="text-emerald-600 font-extrabold">R$ {vehicle.monthlyPrice?.toLocaleString('pt-BR')}</span>
           </div>
         </div>
       </CardContent>
 
       {/* Footer Actions */}
-      <div className="bg-slate-50 border-t border-slate-150 p-3 flex justify-end gap-2">
+      <div className="bg-slate-50 border-t border-slate-100 p-3 flex justify-end gap-2">
         <Button 
           size="sm" 
           variant="ghost" 
@@ -93,7 +93,7 @@ export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardPr
           size="sm" 
           variant="ghost" 
           onClick={() => onEdit(vehicle)}
-          className="text-sky-650 hover:text-sky-750 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
+          className="text-sky-600 hover:text-sky-700 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
         >
           <Edit3 className="h-3.5 w-3.5" /> Editar
         </Button>
@@ -101,7 +101,7 @@ export function VehicleCard({ vehicle, onView, onEdit, onDelete }: VehicleCardPr
           size="sm" 
           variant="ghost" 
           onClick={() => vehicle.id && onDelete(vehicle.id)}
-          className="text-red-650 hover:text-red-750 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
+          className="text-red-600 hover:text-red-700 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
         >
           <Trash2 className="h-3.5 w-3.5" /> Excluir
         </Button>

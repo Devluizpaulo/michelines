@@ -349,19 +349,19 @@ export function OperationManager() {
         <Button 
           variant="outline" 
           onClick={loadData} 
-          className="border-slate-200 hover:border-slate-350 bg-white text-slate-500 hover:text-slate-700 h-10 w-10 p-0 shadow-sm"
+          className="border-slate-200 hover:border-slate-300 bg-white text-slate-500 hover:text-slate-700 h-10 w-10 p-0 shadow-sm"
         >
           <RefreshCw className="h-4.5 w-4.5" />
         </Button>
       </div>
 
       {/* Sub-tabs Selection */}
-      <div className="flex gap-2 border-b border-slate-250 pb-px">
+      <div className="flex gap-2 border-b border-slate-200 pb-px">
         <button
           onClick={() => { setActiveSubTab("pricing"); setIsEditingPricing(false); setIsEditingFeature(false); }}
           className={`px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all ${
             activeSubTab === "pricing" 
-              ? "border-sky-500 text-sky-650" 
+              ? "border-sky-500 text-sky-600" 
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -371,7 +371,7 @@ export function OperationManager() {
           onClick={() => { setActiveSubTab("features"); setIsEditingPricing(false); setIsEditingFeature(false); }}
           className={`px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all ${
             activeSubTab === "features" 
-              ? "border-sky-500 text-sky-650" 
+              ? "border-sky-500 text-sky-600" 
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -381,7 +381,7 @@ export function OperationManager() {
           onClick={() => { setActiveSubTab("scenarios"); setIsEditingPricing(false); setIsEditingFeature(false); }}
           className={`px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all ${
             activeSubTab === "scenarios" 
-              ? "border-sky-500 text-sky-650" 
+              ? "border-sky-500 text-sky-600" 
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -403,7 +403,7 @@ export function OperationManager() {
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Configurar Regras de Faturamento</h3>
-                <p className="text-xs text-sky-650 font-semibold mt-0.5">{selectedVehicle.name}</p>
+                <p className="text-xs text-sky-600 font-semibold mt-0.5">{selectedVehicle.name}</p>
               </div>
               <Badge className="bg-sky-50 text-sky-700 border-sky-200 uppercase text-[9px] font-black">
                 pricing_settings
@@ -456,7 +456,7 @@ export function OperationManager() {
                 id="weekendExempt" 
                 checked={pricingForm.weekendExempt || false}
                 onChange={(e) => setPricingForm(prev => ({ ...prev, weekendExempt: e.target.checked }))}
-                className="h-4.5 w-4.5 rounded border-slate-250 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+                className="h-4.5 w-4.5 rounded border-slate-200 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
               />
               <div>
                 <label htmlFor="weekendExempt" className="text-xs font-bold text-slate-800 cursor-pointer select-none">
@@ -481,7 +481,7 @@ export function OperationManager() {
                         id={`pm-${method}`}
                         checked={isChecked}
                         onChange={() => handleTogglePaymentMethod(method)}
-                        className="h-4 w-4 rounded border-slate-250 text-sky-600 cursor-pointer"
+                        className="h-4 w-4 rounded border-slate-200 text-sky-600 cursor-pointer"
                       />
                       <label htmlFor={`pm-${method}`} className="text-xs font-bold text-slate-700 uppercase cursor-pointer">
                         {method}
@@ -511,7 +511,7 @@ export function OperationManager() {
                 id="active"
                 checked={pricingForm.active || false}
                 onChange={(e) => setPricingForm(prev => ({ ...prev, active: e.target.checked }))}
-                className="h-4.5 w-4.5 rounded border-slate-250 text-sky-600"
+                className="h-4.5 w-4.5 rounded border-slate-200 text-sky-600"
               />
               <label htmlFor="active" className="text-xs font-bold text-slate-700 cursor-pointer">
                 Ativar este plano de precificação no showroom
@@ -524,13 +524,13 @@ export function OperationManager() {
                 type="button" 
                 variant="outline" 
                 onClick={() => { setIsEditingPricing(false); setSelectedVehicle(null); }}
-                className="border-slate-250 text-slate-700 bg-white"
+                className="border-slate-200 text-slate-700 bg-white"
               >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
-                className="bg-sky-650 hover:bg-sky-555 text-white font-bold flex items-center gap-1.5"
+                className="bg-sky-600 hover:bg-sky-555 text-white font-bold flex items-center gap-1.5"
               >
                 <Save className="h-4 w-4" /> Salvar Configurações
               </Button>
@@ -541,7 +541,7 @@ export function OperationManager() {
           /* VEHICLES LIST VIEW */
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
             <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-xs uppercase font-black tracking-widest text-slate-450">Tabela de Preços e Isenções</h3>
+              <h3 className="text-xs uppercase font-black tracking-widest text-slate-400">Tabela de Preços e Isenções</h3>
             </div>
             
             <div className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
@@ -571,20 +571,20 @@ export function OperationManager() {
                           </div>
                           <div>
                             <span className="text-[8px] text-slate-400 uppercase font-black block">Mensal</span>
-                            <span className="font-extrabold text-emerald-650">R$ {config.monthlyRate}/m</span>
+                            <span className="font-extrabold text-emerald-600">R$ {config.monthlyRate}/m</span>
                           </div>
                         </div>
                       ) : (
-                        <div className="text-slate-450 italic">Utilizando preços padrão do showroom</div>
+                        <div className="text-slate-400 italic">Utilizando preços padrão do showroom</div>
                       )}
 
                       <div className="flex items-center gap-2">
                         {config?.weekendExempt ? (
-                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-250 text-[9px] font-bold">
+                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[9px] font-bold">
                             📅 Domingos & Feriados Isentos
                           </Badge>
                         ) : (
-                          <Badge className="bg-slate-100 text-slate-550 border-slate-250 text-[9px] font-bold">
+                          <Badge className="bg-slate-100 text-slate-500 border-slate-200 text-[9px] font-bold">
                             Diárias Corridas
                           </Badge>
                         )}
@@ -592,7 +592,7 @@ export function OperationManager() {
                         {config?.active ? (
                           <span className="h-2 w-2 rounded-full bg-emerald-500" />
                         ) : (
-                          <span className="h-2 w-2 rounded-full bg-slate-350" />
+                          <span className="h-2 w-2 rounded-full bg-slate-300" />
                         )}
                       </div>
 
@@ -687,7 +687,7 @@ export function OperationManager() {
                   id="feat-feat"
                   checked={featureForm.featured || false}
                   onChange={(e) => setFeatureForm(prev => ({ ...prev, featured: e.target.checked }))}
-                  className="h-4.5 w-4.5 rounded border-slate-250 text-sky-600 cursor-pointer"
+                  className="h-4.5 w-4.5 rounded border-slate-200 text-sky-600 cursor-pointer"
                 />
                 <label htmlFor="feat-feat" className="text-xs font-bold text-slate-700 cursor-pointer">
                   Destaque Principal (Exibição Premium)
@@ -700,7 +700,7 @@ export function OperationManager() {
                   id="feat-active"
                   checked={featureForm.active || false}
                   onChange={(e) => setFeatureForm(prev => ({ ...prev, active: e.target.checked }))}
-                  className="h-4.5 w-4.5 rounded border-slate-250 text-sky-600 cursor-pointer"
+                  className="h-4.5 w-4.5 rounded border-slate-200 text-sky-600 cursor-pointer"
                 />
                 <label htmlFor="feat-active" className="text-xs font-bold text-slate-700 cursor-pointer">
                   Diferencial Ativo
@@ -713,13 +713,13 @@ export function OperationManager() {
                 type="button" 
                 variant="outline" 
                 onClick={() => { setIsEditingFeature(false); setSelectedFeature(null); }}
-                className="border-slate-250 text-slate-700 bg-white"
+                className="border-slate-200 text-slate-700 bg-white"
               >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
-                className="bg-sky-650 hover:bg-sky-550 text-white font-bold flex items-center gap-1.5"
+                className="bg-sky-600 hover:bg-sky-500 text-white font-bold flex items-center gap-1.5"
               >
                 <Save className="h-4 w-4" /> Salvar Diferencial
               </Button>
@@ -732,7 +732,7 @@ export function OperationManager() {
               {operationalFeatures.length === 0 && (
                 <Button 
                   onClick={handleSeedFeatures}
-                  className="bg-emerald-650 hover:bg-emerald-555 text-white font-bold text-xs h-10 px-4 flex items-center gap-2 rounded-lg shadow-sm"
+                  className="bg-emerald-600 hover:bg-emerald-555 text-white font-bold text-xs h-10 px-4 flex items-center gap-2 rounded-lg shadow-sm"
                 >
                   <Sparkles className="h-4.5 w-4.5" /> Semear Diferenciais Padrão
                 </Button>
@@ -747,7 +747,7 @@ export function OperationManager() {
 
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
               <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="text-xs uppercase font-black tracking-widest text-slate-450">Diferenciais Operacionais Cadastrados</h3>
+                <h3 className="text-xs uppercase font-black tracking-widest text-slate-400">Diferenciais Operacionais Cadastrados</h3>
               </div>
 
               <div className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
@@ -760,7 +760,7 @@ export function OperationManager() {
                         </Badge>
                         <p className="text-sm font-extrabold text-slate-900">{feat.title}</p>
                         {feat.featured && (
-                          <Badge className="bg-amber-50 text-amber-700 border-amber-250 text-[9px] font-black">
+                          <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[9px] font-black">
                             Destaque
                           </Badge>
                         )}
@@ -777,7 +777,7 @@ export function OperationManager() {
                         size="sm" 
                         variant="ghost" 
                         onClick={() => handleEditFeature(feat)}
-                        className="text-sky-650 hover:text-sky-750 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
+                        className="text-sky-600 hover:text-sky-700 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
                       >
                         <Edit3 className="h-3.5 w-3.5" /> Editar
                       </Button>
@@ -785,7 +785,7 @@ export function OperationManager() {
                         size="sm" 
                         variant="ghost" 
                         onClick={() => feat.id && handleDeleteFeature(feat.id)}
-                        className="text-red-650 hover:text-red-750 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
+                        className="text-red-600 hover:text-red-700 hover:bg-slate-100 h-8 px-2.5 flex items-center gap-1 font-bold rounded-lg text-xs"
                       >
                         <Trash2 className="h-3.5 w-3.5" /> Excluir
                       </Button>
@@ -808,7 +808,7 @@ export function OperationManager() {
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center bg-slate-50/50 -m-6 mb-2 p-5 rounded-t-2xl">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Modelos Convencionais de App</h3>
-                <p className="text-[10px] text-slate-550 font-semibold">Cenário representativo da concorrência</p>
+                <p className="text-[10px] text-slate-500 font-semibold">Cenário representativo da concorrência</p>
               </div>
               <Badge className="bg-slate-100 text-slate-600 border-slate-200 uppercase text-[8px] font-black">
                 category_convencional
@@ -862,7 +862,7 @@ export function OperationManager() {
                   id="conv-dep"
                   checked={convencionalForm.hasDeposit || false}
                   onChange={(e) => setConvencionalForm(prev => ({ ...prev, hasDeposit: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="conv-dep" className="text-xs font-semibold text-slate-700 cursor-pointer">Exige Caução Alto</Label>
               </div>
@@ -873,7 +873,7 @@ export function OperationManager() {
                   id="conv-rod"
                   checked={convencionalForm.rodizioExempt || false}
                   onChange={(e) => setConvencionalForm(prev => ({ ...prev, rodizioExempt: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="conv-rod" className="text-xs font-semibold text-slate-700 cursor-pointer">Isento de Rodízio SP</Label>
               </div>
@@ -884,7 +884,7 @@ export function OperationManager() {
                   id="conv-sup"
                   checked={convencionalForm.support24h || false}
                   onChange={(e) => setConvencionalForm(prev => ({ ...prev, support24h: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="conv-sup" className="text-xs font-semibold text-slate-700 cursor-pointer">Suporte Humano 24h</Label>
               </div>
@@ -895,7 +895,7 @@ export function OperationManager() {
                   id="conv-exec"
                   checked={convencionalForm.executiveOperation || false}
                   onChange={(e) => setConvencionalForm(prev => ({ ...prev, executiveOperation: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="conv-exec" className="text-xs font-semibold text-slate-700 cursor-pointer">Fila Rápida Congonhas</Label>
               </div>
@@ -971,7 +971,7 @@ export function OperationManager() {
                   id="mich-dep"
                   checked={michelinesForm.hasDeposit || false}
                   onChange={(e) => setMichelinesForm(prev => ({ ...prev, hasDeposit: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="mich-dep" className="text-xs font-semibold text-slate-700 cursor-pointer">Exige Caução Alto</Label>
               </div>
@@ -982,7 +982,7 @@ export function OperationManager() {
                   id="mich-rod"
                   checked={michelinesForm.rodizioExempt || false}
                   onChange={(e) => setMichelinesForm(prev => ({ ...prev, rodizioExempt: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="mich-rod" className="text-xs font-semibold text-slate-700 cursor-pointer">Isento de Rodízio SP</Label>
               </div>
@@ -993,7 +993,7 @@ export function OperationManager() {
                   id="mich-sup"
                   checked={michelinesForm.support24h || false}
                   onChange={(e) => setMichelinesForm(prev => ({ ...prev, support24h: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="mich-sup" className="text-xs font-semibold text-slate-700 cursor-pointer">Suporte Humano 24h</Label>
               </div>
@@ -1004,7 +1004,7 @@ export function OperationManager() {
                   id="mich-exec"
                   checked={michelinesForm.executiveOperation || false}
                   onChange={(e) => setMichelinesForm(prev => ({ ...prev, executiveOperation: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-250 text-sky-600"
+                  className="h-4 w-4 rounded border-slate-200 text-sky-600"
                 />
                 <Label htmlFor="mich-exec" className="text-xs font-semibold text-slate-700 cursor-pointer">Fila Rápida Congonhas</Label>
               </div>

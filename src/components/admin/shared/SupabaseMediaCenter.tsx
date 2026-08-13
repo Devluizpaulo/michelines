@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { supabase, BUCKETS } from "@/lib/supabase"
 import { deleteFiles } from "@/lib/supabase-crud"
+import { authFetch } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/toast-simple"
@@ -91,7 +92,7 @@ export function SupabaseMediaCenter() {
       setLoading(true)
       
       const fetchFolderContents = async (path = ""): Promise<StorageFile[]> => {
-        const res = await fetch(`/api/media?bucket=${activeBucket}&folder=${path}`)
+        const res = await authFetch(`/api/media?bucket=${activeBucket}&folder=${path}`)
         const json = await res.json()
         
         if (!res.ok || json.error) {
@@ -187,7 +188,7 @@ export function SupabaseMediaCenter() {
         formData.append("path", uploadPath)
         formData.append("file", file)
 
-        const res = await fetch("/api/media", {
+        const res = await authFetch("/api/media", {
           method: "POST",
           body: formData,
         })
@@ -309,7 +310,7 @@ export function SupabaseMediaCenter() {
               variant="outline"
               onClick={loadFiles}
               disabled={loading}
-              className="border-slate-200 hover:border-slate-350 bg-white text-slate-500 hover:text-slate-700 h-9 w-9 p-0 shadow-sm"
+              className="border-slate-200 hover:border-slate-300 bg-white text-slate-500 hover:text-slate-700 h-9 w-9 p-0 shadow-sm"
               title="Atualizar lista"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -372,7 +373,7 @@ export function SupabaseMediaCenter() {
 
       {/* Grid of Files */}
       {loading ? (
-        <div className="h-64 border border-slate-200 bg-white rounded-2xl flex flex-col gap-3 items-center justify-center text-slate-450 font-bold">
+        <div className="h-64 border border-slate-200 bg-white rounded-2xl flex flex-col gap-3 items-center justify-center text-slate-400 font-bold">
           <Loader2 className="h-7 w-7 text-sky-600 animate-spin" />
           <p className="text-xs">Carregando galeria do Supabase...</p>
         </div>
@@ -427,7 +428,7 @@ export function SupabaseMediaCenter() {
                     <button
                       type="button"
                       onClick={() => triggerDelete(file)}
-                      className="p-2 rounded-lg bg-red-600/80 hover:bg-red-650 text-white transition-colors"
+                      className="p-2 rounded-lg bg-red-600/80 hover:bg-red-600 text-white transition-colors"
                       title="Excluir arquivo permanentemente"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -446,7 +447,7 @@ export function SupabaseMediaCenter() {
                     </p>
                   </div>
                   
-                  <div className="flex items-center justify-between text-[9px] text-slate-450 font-bold mt-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-[9px] text-slate-400 font-bold mt-2 pt-2 border-t border-slate-100">
                     <span>{formatBytes(file.size)}</span>
                     <span>{formatDate(file.updatedAt)}</span>
                   </div>
@@ -482,7 +483,7 @@ export function SupabaseMediaCenter() {
               </div>
               <button 
                 onClick={() => setLightboxUrl(null)}
-                className="p-1 rounded-lg hover:bg-slate-200 text-slate-450 hover:text-slate-800 transition-colors"
+                className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-800 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -512,7 +513,7 @@ export function SupabaseMediaCenter() {
               <div className="space-y-1">
                 <h3 className="text-sm font-black text-slate-900">Confirmar exclusão de mídia?</h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-semibold">
-                  Esta ação excluirá permanentemente o arquivo <code className="bg-slate-150 px-1 py-0.5 rounded text-red-700 text-[10px] font-bold break-all">{deletingFile.name}</code> do Supabase Storage.
+                  Esta ação excluirá permanentemente o arquivo <code className="bg-slate-100 px-1 py-0.5 rounded text-red-700 text-[10px] font-bold break-all">{deletingFile.name}</code> do Supabase Storage.
                 </p>
                 <p className="text-[10px] text-amber-600 font-extrabold bg-amber-50 border border-amber-100 rounded-lg p-2 mt-2 leading-relaxed">
                   ⚠️ Cuidado: Se este arquivo estiver sendo usado no cadastro de algum veículo ou no banner do Hero, o site exibirá uma imagem quebrada.
@@ -525,14 +526,14 @@ export function SupabaseMediaCenter() {
                 variant="outline"
                 disabled={isDeleting}
                 onClick={() => setDeletingFile(null)}
-                className="border-slate-200 hover:border-slate-350 text-slate-500 hover:text-slate-700 h-9 font-bold text-xs"
+                className="border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700 h-9 font-bold text-xs"
               >
                 Cancelar
               </Button>
               <Button
                 disabled={isDeleting}
                 onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-650 text-white h-9 font-bold text-xs flex items-center gap-1.5"
+                className="bg-red-600 hover:bg-red-600 text-white h-9 font-bold text-xs flex items-center gap-1.5"
               >
                 {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                 Excluir Definitivamente

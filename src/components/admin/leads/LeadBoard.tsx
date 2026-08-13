@@ -281,7 +281,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
           }}
           className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 shrink-0 ${
             archiveView === "rejected_archived"
-              ? "border-red-500 text-red-650 font-extrabold"
+              ? "border-red-500 text-red-600 font-extrabold"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
@@ -289,7 +289,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
           <Badge
             className={`text-[10px] px-1.5 py-0.2 font-black rounded-full ${
               archiveView === "rejected_archived"
-                ? "bg-red-50 text-red-750 border border-red-100 hover:bg-red-50"
+                ? "bg-red-50 text-red-700 border border-red-100 hover:bg-red-50"
                 : "bg-slate-100 text-slate-500 hover:bg-slate-100"
             }`}
           >
@@ -334,7 +334,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
                   <th className="px-6 py-4 text-right">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-650">
+              <tbody className="divide-y divide-slate-100 text-slate-600">
                 {filteredLeads.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
@@ -372,7 +372,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
                             lead.status === "converted" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
-                            lead.status === "lost" ? "bg-red-50 text-red-750 border border-red-200" :
+                            lead.status === "lost" ? "bg-red-50 text-red-700 border border-red-200" :
                             lead.status === "new" ? "bg-sky-50 text-sky-700 border border-sky-200" :
                             "bg-amber-50 text-amber-700 border border-amber-200"
                           }`}>
@@ -496,7 +496,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
                 type="button" 
                 variant="outline" 
                 onClick={() => setCreateDialogOpen(false)}
-                className="border-slate-200 hover:border-slate-350 text-slate-700 hover:bg-slate-50"
+                className="border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50"
               >
                 Cancelar
               </Button>

@@ -1,52 +1,87 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { requireAdmin, authErrorResponse } from "@/lib/firebase-admin"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_service_role_key || ""
 
-// Corrige o potencial typo 'leyJ' da chave se presente, garantindo robustez
-const finalServiceKey = supabaseServiceKey && supabaseServiceKey.startsWith("leyJ")
+// A service_role ignora as políticas de RLS: ela NUNCA pode levar o prefixo
+// NEXT_PUBLIC_, senão o Next embute a chave no bundle enviado ao navegador.
+// O nome antigo (NEXT_PUBLIC_SUPABASE_service_role_key) segue aceito como
+// fallback temporário para não quebrar ambientes ainda não migrados.
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_service_role_key ||
+  ""
+
+if (process.env.NEXT_PUBLIC_SUPABASE_service_role_key && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn(
+    "[api/media] Usando NEXT_PUBLIC_SUPABASE_service_role_key. Renomeie a variável para " +
+      "SUPABASE_SERVICE_ROLE_KEY e rotacione a chave: o prefixo NEXT_PUBLIC_ a expõe ao cliente."
+  )
+}
+
+// Tolera o typo 'leyJ' no início da chave (todo JWT começa com 'eyJ')
+const finalServiceKey = supabaseServiceKey.startsWith("leyJ")
   ? supabaseServiceKey.slice(1)
   : supabaseServiceKey
 
-// Inicializa o cliente com service_role para ignorar políticas RLS
-let supabaseAdmin: any = null
+let supabaseAdmin: SupabaseClient | null = null
 if (supabaseUrl && finalServiceKey) {
   try {
     supabaseAdmin = createClient(supabaseUrl, finalServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+      auth: { autoRefreshToken: false, persistSession: false },
     })
   } catch (e) {
     console.error("Erro ao inicializar Supabase Admin:", e)
   }
 }
 
+const NOT_CONFIGURED = NextResponse.json(
+  { error: "Supabase não configurado no servidor." },
+  { status: 503 }
+)
+
+/** Buckets que esta rota pode manipular — impede acesso a qualquer bucket do projeto. */
+const ALLOWED_BUCKETS = new Set(["vehicles", "banners", "logos"])
+
+function assertBucket(bucket: string | null): string | NextResponse {
+  if (!bucket) {
+    return NextResponse.json({ error: "O parâmetro 'bucket' é obrigatório." }, { status: 400 })
+  }
+  if (!ALLOWED_BUCKETS.has(bucket)) {
+    return NextResponse.json({ error: `Bucket '${bucket}' não permitido.` }, { status: 400 })
+  }
+  return bucket
+}
+
 /**
  * GET /api/media?bucket=...&folder=...
- * Lista arquivos de uma determinada pasta em um bucket
+ * Lista arquivos de uma pasta. Exige sessão administrativa (é a navegação da
+ * Central de Mídia do painel, não um recurso público).
  */
 export async function GET(request: Request) {
   try {
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: "Supabase não configurado localmente." }, { status: 503 })
-    }
+    await requireAdmin(request)
+  } catch (err) {
+    const { status, body } = authErrorResponse(err)
+    return NextResponse.json(body, { status })
+  }
+
+  try {
+    if (!supabaseAdmin) return NOT_CONFIGURED
+
     const { searchParams } = new URL(request.url)
-    const bucket = searchParams.get("bucket")
+    const bucket = assertBucket(searchParams.get("bucket"))
+    if (bucket instanceof NextResponse) return bucket
     const folder = searchParams.get("folder") || ""
 
-    if (!bucket) {
-      return NextResponse.json({ error: "O parâmetro 'bucket' é obrigatório." }, { status: 400 })
-    }
-
-    const { data, error } = await supabaseAdmin.storage
-      .from(bucket)
-      .list(folder, {
-        limit: 100,
-        sortBy: { column: "name", order: "asc" }
-      })
+    const { data, error } = await supabaseAdmin.storage.from(bucket).list(folder, {
+      limit: 100,
+      sortBy: { column: "name", order: "asc" },
+    })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
@@ -55,86 +90,122 @@ export async function GET(request: Request) {
     return NextResponse.json({ data })
   } catch (err: any) {
     console.error("[API Media GET] Erro:", err)
-    return NextResponse.json({ error: err.message || "Erro interno do servidor." }, { status: 500 })
+    return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 })
   }
 }
 
+/** Tamanho máximo aceito por upload (10 MB). */
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+const ALLOWED_MIME = /^image\/(png|jpeg|webp|avif|gif|svg\+xml)$/
+
 /**
  * POST /api/media
- * Faz upload de um arquivo para um bucket do Supabase Storage
+ * Faz upload de uma imagem para um bucket do Supabase Storage.
  */
 export async function POST(request: Request) {
   try {
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: "Supabase não configurado localmente." }, { status: 503 })
-    }
+    await requireAdmin(request)
+  } catch (err) {
+    const { status, body } = authErrorResponse(err)
+    return NextResponse.json(body, { status })
+  }
+
+  try {
+    if (!supabaseAdmin) return NOT_CONFIGURED
+
     const formData = await request.formData()
-    const bucket = formData.get("bucket") as string
+    const bucket = assertBucket(formData.get("bucket") as string | null)
+    if (bucket instanceof NextResponse) return bucket
     const path = formData.get("path") as string
     const file = formData.get("file") as File
 
-    if (!bucket || !path || !file) {
+    if (!path || !file) {
       return NextResponse.json(
         { error: "Os parâmetros 'bucket', 'path' e 'file' são obrigatórios." },
         { status: 400 }
       )
     }
 
-    // Converte o arquivo recebido em Buffer para realizar o upload
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
+    // Impede subir de diretório e escapar do bucket
+    if (path.includes("..") || path.startsWith("/")) {
+      return NextResponse.json({ error: "Caminho de destino inválido." }, { status: 400 })
+    }
 
-    const { data, error } = await supabaseAdmin.storage
-      .from(bucket)
-      .upload(path, buffer, {
-        contentType: file.type || "application/octet-stream",
-        upsert: true,
-        cacheControl: "31536000"
-      })
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: "Arquivo maior que o limite de 10 MB." },
+        { status: 413 }
+      )
+    }
+
+    if (file.type && !ALLOWED_MIME.test(file.type)) {
+      return NextResponse.json(
+        { error: `Tipo de arquivo não permitido: ${file.type}.` },
+        { status: 415 }
+      )
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer())
+
+    const { data, error } = await supabaseAdmin.storage.from(bucket).upload(path, buffer, {
+      contentType: file.type || "application/octet-stream",
+      upsert: true,
+      cacheControl: "31536000",
+    })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    // Recupera a URL pública do arquivo recém enviado
     const { data: urlData } = supabaseAdmin.storage.from(bucket).getPublicUrl(data.path)
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       path: data.path,
-      url: urlData.publicUrl 
+      url: urlData.publicUrl,
     })
   } catch (err: any) {
     console.error("[API Media POST] Erro:", err)
-    return NextResponse.json({ error: err.message || "Erro interno do servidor." }, { status: 500 })
+    return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 })
   }
 }
 
 /**
  * DELETE /api/media?bucket=...&paths=...
- * Exclui um ou mais arquivos do bucket do Supabase Storage
+ * Exclui arquivos do bucket. Restrito a super_admin e gerente.
  */
 export async function DELETE(request: Request) {
   try {
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: "Supabase não configurado localmente." }, { status: 503 })
-    }
+    await requireAdmin(request, ["super_admin", "gerente"])
+  } catch (err) {
+    const { status, body } = authErrorResponse(err)
+    return NextResponse.json(body, { status })
+  }
+
+  try {
+    if (!supabaseAdmin) return NOT_CONFIGURED
+
     const { searchParams } = new URL(request.url)
-    const bucket = searchParams.get("bucket")
+    const bucket = assertBucket(searchParams.get("bucket"))
+    if (bucket instanceof NextResponse) return bucket
     const pathsParam = searchParams.get("paths")
 
-    if (!bucket || !pathsParam) {
+    if (!pathsParam) {
       return NextResponse.json(
         { error: "Os parâmetros 'bucket' e 'paths' são obrigatórios." },
         { status: 400 }
       )
     }
 
-    const paths = pathsParam.split(",")
+    const paths = pathsParam.split(",").map((p) => p.trim()).filter(Boolean)
+    if (paths.length === 0) {
+      return NextResponse.json({ error: "Nenhum caminho informado." }, { status: 400 })
+    }
+    if (paths.some((p) => p.includes("..") || p.startsWith("/"))) {
+      return NextResponse.json({ error: "Caminho inválido na lista." }, { status: 400 })
+    }
 
-    const { data, error } = await supabaseAdmin.storage
-      .from(bucket)
-      .remove(paths)
+    const { data, error } = await supabaseAdmin.storage.from(bucket).remove(paths)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
@@ -143,6 +214,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true, data })
   } catch (err: any) {
     console.error("[API Media DELETE] Erro:", err)
-    return NextResponse.json({ error: err.message || "Erro interno do servidor." }, { status: 500 })
+    return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 })
   }
 }

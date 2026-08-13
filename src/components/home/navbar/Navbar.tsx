@@ -48,7 +48,7 @@ export function Navbar({ landingSettings }: NavbarProps) {
           >
             {/* Logo and institutional badge */}
             <Link href="/" className="flex items-center gap-2 group relative transition-transform duration-300 hover:scale-[1.01]">
-              <div className="bg-white py-1 px-2.5 rounded-xl flex items-center justify-center shadow-sm border border-slate-150">
+              <div className="bg-white py-1 px-2.5 rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
                 <Image
                   src="/images/logos/logo-grupo-michelines.png"
                   alt="Logo Grupo Micheline's"
@@ -77,7 +77,7 @@ export function Navbar({ landingSettings }: NavbarProps) {
                   href={item.href}
                   className={`text-sm font-semibold transition-colors duration-300 relative group py-1.5 ${
                     scrolled 
-                      ? "text-slate-650 hover:text-sky-600" 
+                      ? "text-slate-600 hover:text-sky-600" 
                       : "text-white/80 hover:text-white"
                   }`}
                 >

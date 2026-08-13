@@ -147,7 +147,7 @@ export function TestimonialManager() {
 
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-          <span className="animate-spin h-6 w-6 border-2 border-sky-550 border-t-transparent rounded-full" />
+          <span className="animate-spin h-6 w-6 border-2 border-sky-500 border-t-transparent rounded-full" />
           <span className="text-xs font-semibold">Buscando avaliações...</span>
         </div>
       ) : filteredTestimonials.length === 0 ? (
@@ -212,7 +212,7 @@ export function TestimonialManager() {
                 </div>
 
                 {/* Testimony */}
-                <p className="text-slate-650 text-xs md:text-sm leading-relaxed font-semibold italic text-justify text-slate-600">
+                <p className="text-slate-600 text-xs md:text-sm leading-relaxed font-semibold italic text-justify text-slate-600">
                   "{item.testimony}"
                 </p>
               </div>
@@ -220,7 +220,7 @@ export function TestimonialManager() {
               {/* Author & Actions Footer */}
               <div className="pt-4 border-t border-slate-100 mt-5 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-sky-50 border border-sky-150 flex items-center justify-center shrink-0">
+                  <div className="h-9 w-9 rounded-full bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
                     <span className="text-xs font-black text-sky-700">
                       {item.name?.charAt(0).toUpperCase()}
                     </span>

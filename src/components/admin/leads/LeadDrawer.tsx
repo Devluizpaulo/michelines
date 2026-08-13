@@ -31,6 +31,7 @@ import { calculateLeadScore } from "@/lib/lead-score"
 import { useToast } from "@/components/ui/toast-simple"
 import { useAuth } from "@/contexts/AuthContext"
 import { getElapsedTime } from "./LeadCard"
+import { authFetch } from "@/lib/api-client"
 
 interface LeadDrawerProps {
   lead: Lead | null
@@ -344,7 +345,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
       formData.append("path", remotePath)
       formData.append("file", file)
 
-      const res = await fetch("/api/media", {
+      const res = await authFetch("/api/media", {
         method: "POST",
         body: formData,
       })
@@ -412,7 +413,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
       // 1. Delete from Supabase Storage
       if (docToDelete.path) {
-        const deleteRes = await fetch(`/api/media?bucket=vehicles&paths=${encodeURIComponent(docToDelete.path)}`, {
+        const deleteRes = await authFetch(`/api/media?bucket=vehicles&paths=${encodeURIComponent(docToDelete.path)}`, {
           method: "DELETE"
         })
         const deleteJson = await deleteRes.json()
@@ -1215,7 +1216,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         isActive && !isLost && "bg-sky-600 text-white border-sky-600 shadow-sm",
                         isActive && isLost && "bg-red-500 text-white border-red-500 shadow-sm",
                         isPast && !isActive && "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        !isActive && !isPast && "bg-white text-slate-400 border-slate-200 hover:border-slate-350 hover:text-slate-600",
+                        !isActive && !isPast && "bg-white text-slate-400 border-slate-200 hover:border-slate-300 hover:text-slate-600",
                       ].filter(Boolean).join(" ")}
                     >
                       {isPast && !isActive && <CheckCircle className="h-3 w-3 text-emerald-500" />}
@@ -1238,7 +1239,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
           <TabsList className="w-full md:w-1/4 h-auto md:h-full bg-slate-50/40 border-b md:border-b-0 md:border-r border-slate-100 p-4 flex flex-row md:flex-col justify-start items-stretch gap-1 rounded-none select-none overflow-x-auto md:overflow-x-visible md:overflow-y-auto">
             <TabsTrigger 
               value="perfil" 
-              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-750 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-550 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
+              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-500 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
             >
               <User className="h-4 w-4 shrink-0" />
               <span>Dados Cadastrais</span>
@@ -1246,7 +1247,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
             
             <TabsTrigger 
               value="funil" 
-              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-750 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-550 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
+              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-500 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
             >
               <FileText className="h-4 w-4 shrink-0" />
               <span>Diagnóstico Funil</span>
@@ -1254,7 +1255,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
             
             <TabsTrigger 
               value="compliance" 
-              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-750 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-550 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
+              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-500 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
             >
               <ShieldCheck className="h-4 w-4 shrink-0" />
               <span>Fases & Decisão</span>
@@ -1262,7 +1263,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
             
             <TabsTrigger 
               value="documentos" 
-              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-750 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-550 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
+              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-500 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
             >
               <FileText className="h-4 w-4 shrink-0" />
               <span>Anexos & PDFs</span>
@@ -1270,7 +1271,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
             
             <TabsTrigger 
               value="historico" 
-              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-750 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-550 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
+              className="justify-start gap-2 px-3 py-2.5 text-xs font-extrabold rounded-xl transition-all data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700 data-[state=active]:border data-[state=active]:border-sky-100 text-slate-500 hover:bg-slate-100 hover:text-slate-700 data-[state=active]:shadow-none shrink-0"
             >
               <Clock className="h-4 w-4 shrink-0" />
               <span>Notas & Timeline</span>
@@ -1293,7 +1294,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                     onClick={() => setIsEditing(!isEditing)}
                     variant="outline"
                     size="sm"
-                    className="h-7 text-[10px] font-extrabold border-slate-200 text-slate-650 hover:bg-slate-50 flex items-center gap-1 rounded-lg"
+                    className="h-7 text-[10px] font-extrabold border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-1 rounded-lg"
                   >
                     <span>{isEditing ? "Cancelar Edição ❌" : "Editar Ficha ✏️"}</span>
                   </Button>
@@ -1369,7 +1370,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Veículo de Interesse</label>
                         <Select value={editVehicleInterest} onValueChange={setEditVehicleInterest}>
-                          <SelectTrigger className="bg-white text-slate-850 text-xs h-9 rounded-lg border-slate-200">
+                          <SelectTrigger className="bg-white text-slate-800 text-xs h-9 rounded-lg border-slate-200">
                             <SelectValue placeholder="Selecione o veículo" />
                           </SelectTrigger>
                           <SelectContent className="bg-white border border-slate-200 text-slate-700">
@@ -1549,22 +1550,22 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                   /* Preview layout */
                   <div className="space-y-5 text-left text-xs">
                     <div>
-                      <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">Nome do Lead</label>
+                      <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">Nome do Lead</label>
                       <p className="text-base font-extrabold text-slate-900">{lead.fullName}</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">Celular de Contato</label>
+                        <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">Celular de Contato</label>
                         <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mt-0.5">
                           <Phone className="h-3.5 w-3.5 text-slate-400" />
                           {lead.phone}
                         </p>
                       </div>
                       <div>
-                        <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">Interesse</label>
+                        <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">Interesse</label>
                         <div>
-                          <Badge variant="outline" className="bg-sky-50 border-sky-200 text-sky-750 text-[10px] font-bold mt-1">
+                          <Badge variant="outline" className="bg-sky-50 border-sky-200 text-sky-700 text-[10px] font-bold mt-1">
                             {lead.vehicleInterest}
                           </Badge>
                         </div>
@@ -1575,13 +1576,13 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-slate-50">
                         {lead.cpf && (
                           <div>
-                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">CPF</label>
+                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">CPF</label>
                             <p className="text-xs font-bold text-slate-700 mt-0.5">{lead.cpf}</p>
                           </div>
                         )}
                         {lead.rg && (
                           <div>
-                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">RG</label>
+                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">RG</label>
                             <p className="text-xs font-bold text-slate-700 mt-0.5">{lead.rg}</p>
                           </div>
                         )}
@@ -1592,7 +1593,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-slate-50">
                         {lead.whatsapp && (
                           <div>
-                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">WhatsApp</label>
+                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">WhatsApp</label>
                             <p className="text-xs font-bold text-slate-755 flex items-center gap-1 mt-0.5">
                               <MessageSquare className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                               {lead.whatsapp}
@@ -1601,7 +1602,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         )}
                         {lead.email && (
                           <div>
-                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">E-mail</label>
+                            <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">E-mail</label>
                             <p className="text-xs font-bold text-slate-700 truncate mt-0.5" title={lead.email}>{lead.email}</p>
                           </div>
                         )}
@@ -1610,7 +1611,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
                     {(lead.addressStreet || lead.address) && (
                       <div className="pt-2 border-t border-slate-50 space-y-2">
-                        <label className="text-[9px] uppercase font-black tracking-widest text-slate-450 flex items-center gap-1">
+                        <label className="text-[9px] uppercase font-black tracking-widest text-slate-400 flex items-center gap-1">
                           <MapPin className="h-3 w-3 text-sky-500" /> Dados de Endereço
                         </label>
                         <div className="text-xs text-slate-700 space-y-1">
@@ -1653,8 +1654,8 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                     )}
 
                     {(lead.messagePhone1 || lead.messagePhone2) && (
-                      <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
-                        <p className="text-[9px] uppercase font-black text-slate-550 flex items-center gap-1">
+                      <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2.5">
+                        <p className="text-[9px] uppercase font-black text-slate-500 flex items-center gap-1">
                           <Phone className="h-3.5 w-3.5 text-amber-500" /> Referências de Recado
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -1677,8 +1678,8 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                     )}
 
                     {lead.cnhNumber && (
-                      <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
-                        <p className="text-[9px] uppercase font-black text-slate-550 flex items-center gap-1">
+                      <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2.5">
+                        <p className="text-[9px] uppercase font-black text-slate-500 flex items-center gap-1">
                           <ShieldCheck className="h-3.5 w-3.5 text-sky-600" /> Habilitação & Profissional
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -1693,7 +1694,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                             <p className="text-[10px] text-slate-400 font-bold">Já trabalhou de táxi?</p>
                             <p className="font-bold text-slate-700 mt-0.5">{lead.isTaxiDriver ? "Sim" : "Não"}</p>
                             {lead.isTaxiDriver && lead.condutaxNumber && (
-                              <p className="text-[10px] text-slate-550 font-medium mt-0.5">Condutax: {lead.condutaxNumber}</p>
+                              <p className="text-[10px] text-slate-500 font-medium mt-0.5">Condutax: {lead.condutaxNumber}</p>
                             )}
                           </div>
                         </div>
@@ -1703,7 +1704,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                             <p className="text-[10px] text-slate-400 font-bold">Vínculo com Licença / Alvará</p>
                             <p className="font-bold text-slate-700 mt-0.5">Sim</p>
                             {lead.licenseDetails && (
-                              <p className="text-[10px] text-slate-550 font-medium mt-0.5">Detalhes: {lead.licenseDetails}</p>
+                              <p className="text-[10px] text-slate-500 font-medium mt-0.5">Detalhes: {lead.licenseDetails}</p>
                             )}
                           </div>
                         )}
@@ -1711,15 +1712,15 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                     )}
 
                     <div className="space-y-1.5 pt-1">
-                      <label className="text-[9px] uppercase font-black tracking-widest text-slate-450">Segmentação Comercial</label>
+                      <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">Segmentação Comercial</label>
                       <div className="flex flex-wrap gap-1.5">
                         {lead.interestDTaxi && (
-                          <Badge className="bg-sky-50 border border-sky-200 text-sky-750 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
+                          <Badge className="bg-sky-50 border border-sky-200 text-sky-700 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
                             ✈️ Homologado Congonhas
                           </Badge>
                         )}
                         {lead.interestAirport && (
-                          <Badge className="bg-blue-50 border border-blue-200 text-blue-750 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
+                          <Badge className="bg-blue-50 border border-blue-200 text-blue-700 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
                             💼 Operação Executiva
                           </Badge>
                         )}
@@ -1751,17 +1752,17 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {lead.utm.source && (
-                            <Badge variant="outline" className="bg-white border-slate-250 text-slate-600 text-[9px] font-bold shadow-sm">
+                            <Badge variant="outline" className="bg-white border-slate-200 text-slate-600 text-[9px] font-bold shadow-sm">
                               Source: {lead.utm.source}
                             </Badge>
                           )}
                           {lead.utm.medium && (
-                            <Badge variant="outline" className="bg-white border-slate-250 text-slate-600 text-[9px] font-bold shadow-sm">
+                            <Badge variant="outline" className="bg-white border-slate-200 text-slate-600 text-[9px] font-bold shadow-sm">
                               Medium: {lead.utm.medium}
                             </Badge>
                           )}
                           {lead.utm.campaign && (
-                            <Badge variant="outline" className="bg-white border-slate-250 text-slate-600 text-[9px] font-bold shadow-sm">
+                            <Badge variant="outline" className="bg-white border-slate-200 text-slate-600 text-[9px] font-bold shadow-sm">
                               Campaign: {lead.utm.campaign}
                             </Badge>
                           )}
@@ -1885,7 +1886,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                     </div>
                   </div>
                 ) : (
-                  <div className="h-40 border border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-xs text-slate-450 space-y-1.5 bg-slate-50/40">
+                  <div className="h-40 border border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-xs text-slate-400 space-y-1.5 bg-slate-50/40">
                     <span>📝 Ficha de criação manual</span>
                     <span className="text-[10px] text-slate-400">Esta ficha não foi preenchida pelo funil automático do site.</span>
                   </div>
@@ -1909,7 +1910,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       <SelectTrigger className="bg-white border-slate-200 text-slate-800">
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border-slate-200 text-slate-750">
+                      <SelectContent className="bg-white border-slate-200 text-slate-700">
                         <SelectItem value="new">Novo Lead</SelectItem>
                         <SelectItem value="contacted">Contatado</SelectItem>
                         <SelectItem value="negotiating">Em Negociação</SelectItem>
@@ -1923,7 +1924,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => setContacted(!contacted)}
-                      className="flex items-center gap-2 p-2.5 bg-white border border-slate-200 hover:border-slate-350 rounded-xl text-xs font-bold text-slate-700 transition-all select-none text-left"
+                      className="flex items-center gap-2 p-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-all select-none text-left"
                     >
                       {contacted ? (
                         <CheckSquare className="h-4 w-4 text-sky-600 shrink-0" />
@@ -1935,7 +1936,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
                     <button
                       onClick={() => setWhatsappSent(!whatsappSent)}
-                      className="flex items-center gap-2 p-2.5 bg-white border border-slate-200 hover:border-slate-350 rounded-xl text-xs font-bold text-slate-700 transition-all select-none text-left"
+                      className="flex items-center gap-2 p-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-all select-none text-left"
                     >
                       {whatsappSent ? (
                         <CheckSquare className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -1970,7 +1971,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         onClick={() => setRegistrationStatus("complete")}
                         className={`text-[10px] font-bold p-1 rounded-lg border transition-all ${registrationStatus === "complete"
                             ? "bg-emerald-600 border-emerald-600 text-white shadow-sm font-extrabold"
-                            : "bg-white border-slate-200 text-slate-650 hover:bg-slate-50"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                           }`}
                       >
                         Completo
@@ -1979,7 +1980,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         onClick={() => setRegistrationStatus("incomplete")}
                         className={`text-[10px] font-bold p-1 rounded-lg border transition-all ${registrationStatus === "incomplete"
                             ? "bg-amber-500 border-amber-500 text-white shadow-sm font-extrabold"
-                            : "bg-white border-slate-200 text-slate-650 hover:bg-slate-50"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                           }`}
                       >
                         Incompleto
@@ -1988,7 +1989,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         onClick={() => setRegistrationStatus("pending_contact")}
                         className={`text-[10px] font-bold p-1 rounded-lg border transition-all ${registrationStatus === "pending_contact"
                             ? "bg-blue-600 border-blue-600 text-white shadow-sm font-extrabold"
-                            : "bg-white border-slate-200 text-slate-650 hover:bg-slate-50"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                           }`}
                       >
                         Pendente
@@ -2034,9 +2035,9 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         Análise de Crédito (Externa)
                       </span>
                       <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${creditAnalysisStatus === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                          creditAnalysisStatus === "rejected" ? "bg-red-50 text-red-750 border-red-100" :
+                          creditAnalysisStatus === "rejected" ? "bg-red-50 text-red-700 border-red-100" :
                             creditAnalysisStatus === "needs_authorization" ? "bg-amber-50 text-amber-700 border-amber-100" :
-                              "bg-slate-100 text-slate-650 border-slate-200"
+                              "bg-slate-100 text-slate-600 border-slate-200"
                         }`}>
                         {creditAnalysisStatus === "approved" ? "Aprovada" :
                           creditAnalysisStatus === "rejected" ? "Reprovada" :
@@ -2049,7 +2050,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         onClick={() => setCreditAnalysisStatus("approved")}
                         className={`text-[10px] font-bold p-1.5 rounded-lg border transition-all ${creditAnalysisStatus === "approved"
                             ? "bg-emerald-600 border-emerald-600 text-white shadow-sm font-extrabold"
-                            : "bg-white border-slate-200 text-slate-650 hover:bg-slate-50"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                           }`}
                       >
                         ✓ Aprovada
@@ -2057,8 +2058,8 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       <button
                         onClick={() => setCreditAnalysisStatus("rejected")}
                         className={`text-[10px] font-bold p-1.5 rounded-lg border transition-all ${creditAnalysisStatus === "rejected"
-                            ? "bg-red-650 border-red-650 text-white shadow-sm font-extrabold"
-                            : "bg-white border-slate-200 text-slate-650 hover:bg-slate-50"
+                            ? "bg-red-600 border-red-600 text-white shadow-sm font-extrabold"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                           }`}
                       >
                         ✗ Reprovada
@@ -2067,7 +2068,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         onClick={() => setCreditAnalysisStatus("needs_authorization")}
                         className={`text-[10px] font-bold p-1.5 rounded-lg border transition-all col-span-2 ${creditAnalysisStatus === "needs_authorization"
                             ? "bg-amber-500 border-amber-500 text-white shadow-sm font-extrabold"
-                            : "bg-white border-slate-200 text-slate-650 hover:bg-slate-50"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                           }`}
                       >
                         ⚠ Score Baixo - Requer Autorização Especial
@@ -2077,7 +2078,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
                   {/* FASE 3: EXCEÇÃO */}
                   {(creditAnalysisStatus === "needs_authorization" || authorizedBy) && (
-                    <div className="space-y-2 p-3 bg-amber-50/40 border border-amber-250/50 rounded-xl animate-fadeIn">
+                    <div className="space-y-2 p-3 bg-amber-50/40 border border-amber-200/50 rounded-xl animate-fadeIn">
                       <span className="text-[10px] font-black text-amber-700 uppercase tracking-wide flex items-center gap-1.5">
                         <span className="w-4 h-4 rounded-full bg-amber-200/60 flex items-center justify-center text-[9px] text-amber-800 font-bold">3</span>
                         Exceção & Autorização Interna
@@ -2095,7 +2096,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
                       {lead.authorizationRecordedBy && (
                         <div className="text-[9px] text-slate-400 font-bold pt-1 leading-tight">
-                          🔒 Registrado por: <span className="text-slate-650">{lead.authorizationRecordedBy}</span> em {lead.authorizationDate ? new Date(lead.authorizationDate).toLocaleDateString("pt-BR") : ""}
+                          🔒 Registrado por: <span className="text-slate-600">{lead.authorizationRecordedBy}</span> em {lead.authorizationDate ? new Date(lead.authorizationDate).toLocaleDateString("pt-BR") : ""}
                         </div>
                       )}
                     </div>
@@ -2112,7 +2113,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       </span>
                       <Badge
                         className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${approvalStatus === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                            approvalStatus === "rejected" ? "bg-red-50 text-red-750 border-red-200" :
+                            approvalStatus === "rejected" ? "bg-red-50 text-red-700 border-red-200" :
                               "bg-amber-50 text-amber-700 border-amber-200"
                           }`}
                       >
@@ -2125,14 +2126,14 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       <Button
                         onClick={handleApprove}
                         disabled={saving}
-                        className="bg-emerald-650 hover:bg-emerald-600 hover:shadow text-white font-extrabold text-xs flex items-center justify-center gap-1.5 h-10 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                        className="bg-emerald-600 hover:bg-emerald-600 hover:shadow text-white font-extrabold text-xs flex items-center justify-center gap-1.5 h-10 rounded-xl transition-all shadow-sm active:scale-[0.98]"
                       >
                         <CheckCircle className="h-4 w-4" /> Aprovar Ficha
                       </Button>
                       <Button
                         onClick={handleReject}
                         disabled={saving}
-                        className="bg-red-650 hover:bg-red-600 hover:shadow text-white font-extrabold text-xs flex items-center justify-center gap-1.5 h-10 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                        className="bg-red-600 hover:bg-red-600 hover:shadow text-white font-extrabold text-xs flex items-center justify-center gap-1.5 h-10 rounded-xl transition-all shadow-sm active:scale-[0.98]"
                       >
                         <XCircle className="h-4 w-4" /> Rejeitar Ficha
                       </Button>
@@ -2140,7 +2141,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
                     {lead.approvedBy && (
                       <div className="text-[9px] text-slate-400 font-bold text-center leading-tight mt-1">
-                        🏆 Ficha aprovada comercialmente por <span className="text-slate-550">{lead.approvedBy}</span> em {lead.approvalDate ? new Date(lead.approvalDate).toLocaleString("pt-BR") : ""}
+                        🏆 Ficha aprovada comercialmente por <span className="text-slate-500">{lead.approvedBy}</span> em {lead.approvalDate ? new Date(lead.approvalDate).toLocaleString("pt-BR") : ""}
                       </div>
                     )}
 
@@ -2151,7 +2152,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                           disabled={saving}
                           className={`w-full font-bold text-xs h-9 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm ${
                             archived
-                              ? "bg-slate-650 hover:bg-slate-600 text-white"
+                              ? "bg-slate-600 hover:bg-slate-600 text-white"
                               : "bg-amber-600 hover:bg-amber-500 text-white animate-pulse"
                           }`}
                         >
@@ -2186,7 +2187,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                             <FileText className="h-5 w-5 text-sky-600 shrink-0" />
                             <div className="text-left">
                               <p className="text-xs font-bold text-slate-800">CNH Enviada</p>
-                              <p className="text-[9px] text-slate-450 font-semibold">Habilitação do taxista</p>
+                              <p className="text-[9px] text-slate-400 font-semibold">Habilitação do taxista</p>
                             </div>
                           </div>
                           <a href={lead.fileUrls.cnh} target="_blank" rel="noopener noreferrer">
@@ -2202,7 +2203,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                             <User className="h-5 w-5 text-sky-600 shrink-0" />
                             <div className="text-left">
                               <p className="text-xs font-bold text-slate-800">Foto de Perfil</p>
-                              <p className="text-[9px] text-slate-450 font-semibold">Foto de identificação</p>
+                              <p className="text-[9px] text-slate-400 font-semibold">Foto de identificação</p>
                             </div>
                           </div>
                           <a href={lead.fileUrls.profilePhoto} target="_blank" rel="noopener noreferrer">
@@ -2214,7 +2215,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-450 italic text-left pl-1">Nenhum documento básico anexado no cadastro inicial.</p>
+                    <p className="text-xs text-slate-400 italic text-left pl-1">Nenhum documento básico anexado no cadastro inicial.</p>
                   )}
                 </div>
 
@@ -2248,14 +2249,14 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                   {lead.attachedDocs && lead.attachedDocs.length > 0 ? (
                     <div className="space-y-2">
                       {lead.attachedDocs.map((docItem, idx) => (
-                        <div key={idx} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between hover:border-slate-350 transition-colors shadow-sm">
+                        <div key={idx} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between hover:border-slate-300 transition-colors shadow-sm">
                           <div className="flex items-center gap-2.5 min-w-0 text-left">
                             <FileText className="h-5 w-5 text-slate-400 shrink-0" />
                             <div className="min-w-0">
                               <p className="text-xs font-bold text-slate-800 truncate" title={docItem.name}>
                                 {docItem.name}
                               </p>
-                              <p className="text-[9px] text-slate-450 font-medium">
+                              <p className="text-[9px] text-slate-400 font-medium">
                                 Enviado em {new Date(docItem.uploadedAt).toLocaleString("pt-BR")}
                               </p>
                             </div>
@@ -2280,9 +2281,9 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       ))}
                     </div>
                   ) : (
-                    <div className="h-32 border border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-xs text-slate-450 space-y-1 bg-slate-50/40">
+                    <div className="h-32 border border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-xs text-slate-400 space-y-1 bg-slate-50/40">
                       <span>Nenhum documento anexo</span>
-                      <span className="text-[10px] text-slate-450">Anexe extratos bancários, certidões ou CNH manual.</span>
+                      <span className="text-[10px] text-slate-400">Anexe extratos bancários, certidões ou CNH manual.</span>
                     </div>
                   )}
                 </div>
@@ -2299,7 +2300,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
                 {/* CRM Notes Textarea */}
                 <div className="space-y-2 text-left">
-                  <label className="text-xs font-bold text-slate-750">Anotações Internas do Atendimento</label>
+                  <label className="text-xs font-bold text-slate-700">Anotações Internas do Atendimento</label>
                   <Textarea
                     placeholder="Digite aqui observações adicionais sobre o motorista, CNH, visitas agendadas..."
                     value={notes}
@@ -2318,7 +2319,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                   </h4>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-450">Selecione o Template</label>
+                    <label className="text-[10px] font-bold text-slate-400">Selecione o Template</label>
                     <Select value={selectedTemplateId} onValueChange={handleTemplateChange}>
                       <SelectTrigger className="bg-white border-slate-200 text-slate-700 h-9 text-xs">
                         <SelectValue placeholder="Selecione o template" />
@@ -2341,7 +2342,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-450">Mensagem</label>
+                    <label className="text-[10px] font-bold text-slate-400">Mensagem</label>
                     <Textarea
                       value={customMessage}
                       onChange={(e) => setCustomMessage(e.target.value)}
@@ -2363,7 +2364,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                     }}
                     className="block pt-1"
                   >
-                    <Button className="w-full bg-emerald-650 hover:bg-emerald-600 text-white flex items-center justify-center gap-2 rounded-xl font-bold text-xs h-10 shadow-sm active:scale-[0.99] transition-all">
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-600 text-white flex items-center justify-center gap-2 rounded-xl font-bold text-xs h-10 shadow-sm active:scale-[0.99] transition-all">
                       <Send className="h-3.5 w-3.5" /> Enviar Template WhatsApp
                     </Button>
                   </a>
@@ -2393,7 +2394,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                                 interaction.type === "credit_check" ? "bg-red-500" : "bg-sky-500"
                           }`} />
                         <p className="text-[11px] font-bold text-slate-800">{interaction.content}</p>
-                        <p className="text-[9px] text-slate-450 mt-0.5 font-bold">
+                        <p className="text-[9px] text-slate-400 mt-0.5 font-bold">
                           Operador: <span className="text-slate-655">{interaction.agentName}</span> • {new Date(interaction.createdAt).toLocaleString("pt-BR")}
                         </p>
                       </div>
@@ -2455,7 +2456,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
           <Button
             onClick={onClose}
             variant="outline"
-            className="flex-1 border-slate-200 hover:border-slate-350 text-slate-700 hover:bg-slate-50 font-bold"
+            className="flex-1 border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 font-bold"
           >
             Fechar
           </Button>

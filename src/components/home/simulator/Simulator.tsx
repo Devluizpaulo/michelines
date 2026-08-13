@@ -191,7 +191,7 @@ export function Simulator() {
             <div className="col-span-3 md:col-span-4 text-center text-slate-400">Modelos Convencionais</div>
             <div className="col-span-4 md:col-span-4 text-center text-sky-700 flex justify-center items-center gap-1.5">
               <span>Grupo Michelines</span>
-              <Badge className="bg-sky-100 text-sky-850 text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 border border-sky-200 shadow-xs">Premium</Badge>
+              <Badge className="bg-sky-100 text-sky-800 text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 border border-sky-200 shadow-xs">Premium</Badge>
             </div>
           </div>
 
@@ -207,7 +207,7 @@ export function Simulator() {
                 <div className="col-span-5 md:col-span-4 text-left flex items-start gap-1.5 pr-2">
                   <span className="text-slate-800 font-bold leading-tight">{row.feature}</span>
                   <div className="group relative cursor-help shrink-0 mt-0.5 hidden sm:block">
-                    <HelpCircle className="h-3.5 w-3.5 text-slate-350 hover:text-slate-500" />
+                    <HelpCircle className="h-3.5 w-3.5 text-slate-300 hover:text-slate-500" />
                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-48 p-2.5 bg-slate-900 text-white text-[10px] font-semibold leading-relaxed rounded-xl shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
                       {row.help}
                     </div>
@@ -231,7 +231,7 @@ export function Simulator() {
                     <Check className="h-4 w-4 text-slate-400 mx-auto" />
                   ) : (
                     <span className="inline-flex items-center justify-center gap-1.5">
-                      <X className="h-3.5 w-3.5 text-rose-450/80 shrink-0" />
+                      <X className="h-3.5 w-3.5 text-rose-400/80 shrink-0" />
                       <span>{row.convencional}</span>
                     </span>
                   )}
@@ -272,11 +272,11 @@ export function Simulator() {
           </p>
           <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-6 max-w-4xl mx-auto text-left shadow-xs">
             <div className="space-y-1">
-              <p className="text-xs font-black text-slate-450 uppercase tracking-widest">Encontre a sua estrutura</p>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Encontre a sua estrutura</p>
               <h4 className="text-base font-extrabold text-slate-900 leading-tight">
                 Nossa equipe ajuda você a encontrar a melhor operação para sua realidade.
               </h4>
-              <p className="text-xs text-slate-550 font-medium text-justify">
+              <p className="text-xs text-slate-500 font-medium text-justify">
                 O modelo ideal depende da sua rotina, perfil operacional e objetivo profissional.
               </p>
             </div>

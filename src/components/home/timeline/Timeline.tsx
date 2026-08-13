@@ -282,7 +282,7 @@ export function Timeline() {
             <div className="absolute top-1/2 left-[28px] right-[28px] h-[3px] -translate-y-1/2 z-0">
               <div className="w-full h-full bg-slate-200 rounded-full" />
               <div 
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-sky-600 to-indigo-650 transition-all duration-700 ease-out rounded-full"
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-sky-600 to-indigo-600 transition-all duration-700 ease-out rounded-full"
                 style={{ width: `${(activeStep / (stepsData.length - 1)) * 100}%` }}
               />
             </div>
@@ -296,7 +296,7 @@ export function Timeline() {
                     onClick={() => setActiveStep(idx)}
                     className={`w-14 h-14 rounded-2xl border-2 font-black text-sm flex flex-col items-center justify-center transition-all duration-500 shadow-sm relative group bg-white ${idx <= activeStep
                       ? "border-sky-600 text-sky-600 scale-105"
-                      : "border-slate-250 text-slate-400 hover:border-slate-350 hover:text-slate-650"
+                      : "border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600"
                       }`}
                   >
                     <IconComponent className="h-5 w-5 mb-0.5" />
@@ -346,7 +346,7 @@ export function Timeline() {
                           {step.title}
                         </p>
                       </div>
-                      <ChevronRight className={`h-4.5 w-4.5 transition-transform duration-350 ${activeStep === idx ? "text-sky-600 translate-x-1" : "text-white/40 group-hover:text-white group-hover:translate-x-0.5"
+                      <ChevronRight className={`h-4.5 w-4.5 transition-transform duration-300 ${activeStep === idx ? "text-sky-600 translate-x-1" : "text-white/40 group-hover:text-white group-hover:translate-x-0.5"
                         }`} />
                     </button>
                   )
@@ -408,7 +408,7 @@ export function Timeline() {
                     {/* Description copy & Visual splitting */}
                     <div className="grid md:grid-cols-2 gap-6 items-stretch">
                       <div className="flex flex-col justify-between space-y-4 h-full">
-                        <p className="text-xs md:text-sm text-slate-650 font-semibold leading-relaxed text-justify">
+                        <p className="text-xs md:text-sm text-slate-600 font-semibold leading-relaxed text-justify">
                           {stepsData[activeStep].description}
                         </p>
                         <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl shadow-xs mt-auto">
@@ -455,7 +455,7 @@ export function Timeline() {
                           </Button>
                         </Link>
                         <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                          <Button variant="outline" className="w-full border-slate-250 hover:bg-slate-50 text-slate-700 font-bold rounded-xl h-11 px-6 shadow-xs flex items-center justify-center gap-1.5">
+                          <Button variant="outline" className="w-full border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl h-11 px-6 shadow-xs flex items-center justify-center gap-1.5">
                             Falar com Nossa Equipe
                           </Button>
                         </a>
@@ -486,7 +486,7 @@ export function Timeline() {
               </Button>
             </Link>
             <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="border-slate-250 hover:bg-slate-50 text-slate-700 rounded-2xl font-bold text-xs h-10 px-6 shadow-xs">
+              <Button variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 rounded-2xl font-bold text-xs h-10 px-6 shadow-xs">
                 Falar com Atendente
               </Button>
             </a>

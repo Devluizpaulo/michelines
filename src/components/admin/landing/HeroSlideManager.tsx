@@ -141,7 +141,7 @@ export function HeroSlideManager({ slides, loading, onRefresh }: HeroSlideManage
             <Layers className="h-3.5 w-3.5 text-sky-600" />
             Estrutura de Exibição
           </h4>
-          <p className="text-[10px] text-slate-450 mt-0.5 font-bold">
+          <p className="text-[10px] text-slate-400 mt-0.5 font-bold">
             {slides.length === 0
               ? "Nenhum slide — exibindo slide padrão."
               : `${slides.length} slide${slides.length > 1 ? "s" : ""} cadastrado${slides.length > 1 ? "s" : ""} · ${activeCount} ativo${activeCount !== 1 ? "s" : ""}`}
@@ -178,7 +178,7 @@ export function HeroSlideManager({ slides, loading, onRefresh }: HeroSlideManage
       ) : slides.length === 0 ? (
         <div
           onClick={openCreate}
-          className="h-28 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-450 bg-slate-50/50 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-500 cursor-pointer transition-all group"
+          className="h-28 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-400 bg-slate-50/50 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-500 cursor-pointer transition-all group"
         >
           <Plus className="h-5 w-5 group-hover:scale-110 transition-transform" />
           <p className="text-xs font-semibold">Criar primeiro slide</p>

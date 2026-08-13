@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, createContext, useContext } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext } from "react"
 import { CheckCircle2, AlertCircle, Info, X, AlertTriangle } from "lucide-react"
 
 type ToastType = "success" | "error" | "warning" | "info"
@@ -14,7 +14,6 @@ interface Toast {
 }
 
 interface ToastContextType {
-  toasts: Toast[]
   toast: (opts: Omit<Toast, "id">) => void
   success: (title: string, message?: string) => void
   error: (title: string, message?: string) => void
@@ -23,23 +22,46 @@ interface ToastContextType {
   dismiss: (id: string) => void
 }
 
+/**
+ * O contexto guarda apenas as AÇÕES, nunca a lista de toasts.
+ * A lista vive no estado do provider e é lida só pelo <ToastContainer/>, de modo que
+ * exibir um toast não re-renderize toda a árvore de consumidores do painel.
+ */
 const ToastContext = createContext<ToastContextType | null>(null)
+
+/** Limite de toasts simultâneos — evita empilhar a tela inteira no mobile. */
+const MAX_VISIBLE_TOASTS = 3
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
   const dismiss = useCallback((id: string) => {
+    const timer = timersRef.current.get(id)
+    if (timer) {
+      clearTimeout(timer)
+      timersRef.current.delete(id)
+    }
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
   const addToast = useCallback((opts: Omit<Toast, "id">) => {
     const id = Math.random().toString(36).slice(2)
     const duration = opts.duration ?? 4000
-    setToasts((prev) => [...prev, { ...opts, id }])
+    setToasts((prev) => [...prev, { ...opts, id }].slice(-MAX_VISIBLE_TOASTS))
     if (duration > 0) {
-      setTimeout(() => dismiss(id), duration)
+      timersRef.current.set(id, setTimeout(() => dismiss(id), duration))
     }
   }, [dismiss])
+
+  // Limpa timers pendentes ao desmontar (evita setState em componente desmontado)
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      timers.forEach(clearTimeout)
+      timers.clear()
+    }
+  }, [])
 
   const success = useCallback((title: string, message?: string) =>
     addToast({ type: "success", title, message }), [addToast])
@@ -50,8 +72,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const info = useCallback((title: string, message?: string) =>
     addToast({ type: "info", title, message }), [addToast])
 
+  // Todas as dependências são estáveis, logo `value` nunca muda de identidade:
+  // consumidores de useToast() não re-renderizam quando um toast aparece ou some.
+  const value = useMemo<ToastContextType>(
+    () => ({ toast: addToast, success, error, warning, info, dismiss }),
+    [addToast, success, error, warning, info, dismiss]
+  )
+
   return (
-    <ToastContext.Provider value={{ toasts, toast: addToast, success, error, warning, info, dismiss }}>
+    <ToastContext.Provider value={value}>
       {children}
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </ToastContext.Provider>
@@ -103,7 +132,12 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id
 
   return (
     <div
-      className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 pointer-events-none"
+      className="
+        pointer-events-none fixed z-[9999] flex flex-col gap-2
+        inset-x-3 bottom-3
+        sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-auto
+        pb-[env(safe-area-inset-bottom)]
+      "
       aria-live="polite"
       role="status"
     >
@@ -129,7 +163,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     <div
       className={`
         pointer-events-auto
-        min-w-[300px] max-w-[380px]
+        w-full sm:w-auto sm:min-w-[300px] sm:max-w-[380px]
         flex items-start gap-3
         border rounded-xl shadow-lg px-4 py-3
         transition-all duration-300
@@ -151,7 +185,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       </div>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+        className="-m-2 flex h-9 w-9 shrink-0 items-center justify-center text-slate-400 transition-colors hover:text-slate-600"
         aria-label="Fechar notificação"
       >
         <X className="h-3.5 w-3.5" />

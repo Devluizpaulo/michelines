@@ -42,7 +42,7 @@ export function LeadFilters({
             <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-700 focus:ring-sky-500">
               <SelectValue placeholder="Origem" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200 text-slate-750">
+            <SelectContent className="bg-white border-slate-200 text-slate-700">
               <SelectItem value="all">Todas Origens</SelectItem>
               <SelectItem value="Google">Google Ads</SelectItem>
               <SelectItem value="Facebook">Facebook/Meta</SelectItem>
@@ -59,7 +59,7 @@ export function LeadFilters({
             <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-700 focus:ring-sky-500">
               <SelectValue placeholder="Veículo de Interesse" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200 text-slate-750">
+            <SelectContent className="bg-white border-slate-200 text-slate-700">
               <SelectItem value="all">Todos Veículos</SelectItem>
               <SelectItem value="Corolla Cross">Corolla Cross</SelectItem>
               <SelectItem value="Corolla Sedan">Corolla Sedan</SelectItem>

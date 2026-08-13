@@ -623,27 +623,27 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
           {/* KPI Cards Grid */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Card className="bg-white border-slate-200 shadow-xs rounded-xl p-4 text-center">
-              <span className="text-[9px] font-black text-slate-450 uppercase block tracking-wider">Visualizações (Views)</span>
-              <p className="text-xl font-black text-slate-850 mt-1">{totalMarketingViews}</p>
+              <span className="text-[9px] font-black text-slate-400 uppercase block tracking-wider">Visualizações (Views)</span>
+              <p className="text-xl font-black text-slate-800 mt-1">{totalMarketingViews}</p>
               <span className="text-[8px] text-slate-400 font-bold block mt-1">Soma de slides + banners</span>
             </Card>
             <Card className="bg-white border-slate-200 shadow-xs rounded-xl p-4 text-center">
-              <span className="text-[9px] font-black text-slate-450 uppercase block tracking-wider">Cliques Totais</span>
-              <p className="text-xl font-black text-slate-850 mt-1">{totalMarketingClicks}</p>
+              <span className="text-[9px] font-black text-slate-400 uppercase block tracking-wider">Cliques Totais</span>
+              <p className="text-xl font-black text-slate-800 mt-1">{totalMarketingClicks}</p>
               <span className="text-[8px] text-slate-400 font-bold block mt-1">Origem orgânica & links</span>
             </Card>
             <Card className="bg-white border-slate-200 shadow-xs rounded-xl p-4 text-center animate-pulse">
-              <span className="text-[9px] font-black text-slate-450 uppercase block tracking-wider">Taxa de Cliques (CTR)</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase block tracking-wider">Taxa de Cliques (CTR)</span>
               <p className="text-xl font-black text-sky-600 mt-1">{totalMarketingCTR}</p>
               <span className="text-[8px] text-sky-500/80 font-bold block mt-1">Eficiência de atratividade</span>
             </Card>
             <Card className="bg-white border-slate-200 shadow-xs rounded-xl p-4 text-center">
-              <span className="text-[9px] font-black text-slate-450 uppercase block tracking-wider">Leads Gerados</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase block tracking-wider">Leads Gerados</span>
               <p className="text-xl font-black text-violet-600 mt-1">{campaignLeadsCount}</p>
               <span className="text-[8px] text-violet-500/80 font-bold block mt-1">Registrados no CRM</span>
             </Card>
             <Card className="bg-white border-slate-200 shadow-xs rounded-xl p-4 text-center">
-              <span className="text-[9px] font-black text-slate-450 uppercase block tracking-wider">Conversão em Cadastro</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase block tracking-wider">Conversão em Cadastro</span>
               <p className="text-xl font-black text-emerald-600 mt-1">{leadConversionRate}</p>
               <span className="text-[8px] text-emerald-500/80 font-bold block mt-1">Cadastros vs. Cliques</span>
             </Card>
@@ -818,10 +818,10 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                           key={ev.id} 
                           className={cn(
                             "p-3 rounded-xl border flex items-center justify-between gap-4 font-bold text-xs transition-all",
-                            ev.color === "sky" && "bg-sky-50/60 border-sky-100 text-sky-850",
-                            ev.color === "amber" && "bg-amber-50/60 border-amber-100 text-amber-850",
-                            ev.color === "emerald" && "bg-emerald-50/60 border-emerald-100 text-emerald-850",
-                            ev.color === "violet" && "bg-violet-50/60 border-violet-100 text-violet-850"
+                            ev.color === "sky" && "bg-sky-50/60 border-sky-100 text-sky-800",
+                            ev.color === "amber" && "bg-amber-50/60 border-amber-100 text-amber-800",
+                            ev.color === "emerald" && "bg-emerald-50/60 border-emerald-100 text-emerald-800",
+                            ev.color === "violet" && "bg-violet-50/60 border-violet-100 text-violet-800"
                           )}
                         >
                           <div>
@@ -884,7 +884,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                   id="showCampaign" 
                   checked={showCampaignBanner} 
                   onChange={(e) => setShowCampaignBanner(e.target.checked)}
-                  className="h-5 w-5 rounded border-slate-250 bg-slate-50 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                  className="h-5 w-5 rounded border-slate-200 bg-slate-50 text-sky-600 focus:ring-sky-500 cursor-pointer"
                 />
                 <label htmlFor="showCampaign" className="text-sm font-bold text-slate-800 cursor-pointer select-none">
                   Exibir banner promocional na página principal
@@ -985,7 +985,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                         
                         <div className="space-y-1">
                           <label className="text-[10px] text-slate-500 font-bold uppercase block">Carregar Foto do Computador</label>
-                          <div className="relative border-2 border-dashed border-slate-200 hover:border-slate-350 rounded-xl p-4 bg-white flex flex-col items-center justify-center transition-all cursor-pointer group min-h-[96px]">
+                          <div className="relative border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl p-4 bg-white flex flex-col items-center justify-center transition-all cursor-pointer group min-h-[96px]">
                             <input 
                               type="file" 
                               accept="image/*"
@@ -993,7 +993,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             />
                             <span className="text-xl">📷</span>
-                            <p className="text-[10px] font-bold text-slate-650 group-hover:text-slate-800 mt-1">
+                            <p className="text-[10px] font-bold text-slate-600 group-hover:text-slate-800 mt-1">
                               Clique para carregar imagem
                             </p>
                             <p className="text-[8px] text-slate-400 mt-0.5 font-medium">
@@ -1061,7 +1061,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                             className={`p-2 rounded-lg border text-xs font-bold transition-all h-9 ${
                               campaignImagePosition === "right"
                                 ? "border-sky-500 bg-sky-50 text-sky-700"
-                                : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                                : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                             }`}
                           >
                             Direita
@@ -1072,7 +1072,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                             className={`p-2 rounded-lg border text-xs font-bold transition-all h-9 ${
                               campaignImagePosition === "left"
                                 ? "border-sky-500 bg-sky-50 text-sky-700"
-                                : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                                : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                             }`}
                           >
                             Esquerda
@@ -1091,7 +1091,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                               className={`p-1 rounded-lg border text-[10px] font-bold capitalize transition-all h-9 ${
                                 campaignImageSize === sz
                                   ? "border-sky-500 bg-sky-50 text-sky-700"
-                                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                               }`}
                             >
                               {sz === "sm" && "Pequeno"}
@@ -1113,7 +1113,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                               className={`p-0.5 rounded-lg border text-[8px] font-black uppercase transition-all h-9 ${
                                 campaignImageAspectRatio === ratio
                                   ? "border-sky-500 bg-sky-50 text-sky-700"
-                                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-650"
+                                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
                               }`}
                             >
                               {ratio === "video" && "16:9"}
@@ -1129,7 +1129,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
 
                   {/* PREVIEW EM TEMPO REAL DENTRO DO FORMULÁRIO */}
                   <div className="space-y-3 pt-5 border-t border-slate-200">
-                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Prévia em Tempo Real (Live Preview)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Prévia em Tempo Real (Live Preview)</label>
                     {(() => {
                       const cfg = campaignTemplateId === 1
                         ? { containerClass: "from-sky-50/85 to-indigo-50/50 border-sky-100", tagClass: "bg-sky-100 text-sky-700 border-sky-200", tagText: "Campanha D-Taxi", btnClass: "bg-sky-600 text-white", img: "/images/banners/banner-1.png" }
@@ -1219,7 +1219,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
                     <Card key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-2xs transition-shadow">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[8px] bg-sky-550/15 text-sky-850 px-2 py-0.5 rounded font-black uppercase tracking-wider">
+                          <span className="text-[8px] bg-sky-500/15 text-sky-800 px-2 py-0.5 rounded font-black uppercase tracking-wider">
                             {copy.category}
                           </span>
                         </div>

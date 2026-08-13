@@ -18,6 +18,7 @@ import {
 import { useToast } from "@/components/ui/toast-simple"
 import { Eye, EyeOff, Image as ImageIcon, Film, UploadCloud, Loader2 } from "lucide-react"
 import { MediaSelectorDialog } from "../shared/MediaSelectorDialog"
+import { authFetch } from "@/lib/api-client"
 
 interface HeroSlideDialogProps {
   open: boolean
@@ -35,7 +36,7 @@ const EMPTY_FORM: Partial<HeroSlideType> = {
   subtitle: "",
   ctaText: "Quero Faturar Agora",
   ctaUrl: "/cadastro",
-  image: "/images/banners/1.jpg",
+  image: "/images/banners/banner-1.png",
   mobileImage: "",
   video: "",
   badge: "",
@@ -102,7 +103,7 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
       formData.append("path", remotePath)
       formData.append("file", file)
 
-      const res = await fetch("/api/media", {
+      const res = await authFetch("/api/media", {
         method: "POST",
         body: formData,
       })
@@ -535,7 +536,7 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
                   <Input
                     value={form.image || ""}
                     onChange={(e) => set("image", e.target.value)}
-                    placeholder="/images/banners/1.jpg"
+                    placeholder="/images/banners/banner-1.png"
                     className="bg-white border-slate-200 text-slate-800 h-9 text-xs flex-1"
                     required
                   />

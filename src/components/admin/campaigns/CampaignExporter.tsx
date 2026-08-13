@@ -540,7 +540,7 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
                       onClick={() => setBannerFormat("feed")}
                       className={`text-[10px] font-bold h-7 px-2.5 rounded-md ${bannerFormat === "feed"
                           ? "bg-amber-600 hover:bg-amber-500 text-white"
-                          : "border-slate-250 text-slate-700 hover:bg-slate-50 bg-white"
+                          : "border-slate-200 text-slate-700 hover:bg-slate-50 bg-white"
                         }`}
                     >
                       Feed (1:1)
@@ -551,7 +551,7 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
                       onClick={() => setBannerFormat("story")}
                       className={`text-[10px] font-bold h-7 px-2.5 rounded-md ${bannerFormat === "story"
                           ? "bg-amber-600 hover:bg-amber-500 text-white"
-                          : "border-slate-250 text-slate-700 hover:bg-slate-50 bg-white"
+                          : "border-slate-200 text-slate-700 hover:bg-slate-50 bg-white"
                         }`}
                     >
                       Stories (9:16)
@@ -562,7 +562,7 @@ export function CampaignExporter({ landingSettings }: CampaignExporterProps) {
                       onClick={() => setBannerFormat("facebook")}
                       className={`text-[10px] font-bold h-7 px-2.5 rounded-md ${bannerFormat === "facebook"
                           ? "bg-amber-600 hover:bg-amber-500 text-white"
-                          : "border-slate-250 text-slate-700 hover:bg-slate-50 bg-white"
+                          : "border-slate-200 text-slate-700 hover:bg-slate-50 bg-white"
                         }`}
                     >
                       Facebook (4:5)

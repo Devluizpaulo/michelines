@@ -1,23 +1,10 @@
 "use client"
 
-import { 
-  LayoutDashboard, 
-  Target, 
-  Megaphone, 
-  Monitor, 
-  Car, 
-  BarChart3, 
-  Settings, 
-  LogOut,
-  Users,
-  Sliders,
-  MessageSquare,
-  CalendarDays,
-  LucideIcon
-} from "lucide-react"
+import { LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 import { TabId } from "@/lib/permissions"
+import { ADMIN_MENU_ITEMS } from "./menu-items"
 
 interface AdminSidebarProps {
   activeTab: TabId
@@ -25,35 +12,17 @@ interface AdminSidebarProps {
   onLogout: () => void
 }
 
-interface MenuItem {
-  id: TabId
-  label: string
-  icon: LucideIcon
-}
-
-const ALL_MENU_ITEMS: MenuItem[] = [
-  { id: "dashboard",     label: "Dashboard",        icon: LayoutDashboard },
-  { id: "leads",         label: "Leads Funil",      icon: Target },
-  { id: "agenda",        label: "Agenda",           icon: CalendarDays },
-  { id: "campanhas",     label: "Campanhas",        icon: Megaphone },
-  { id: "landing",       label: "Landing Page",     icon: Monitor },
-  { id: "depoimentos",   label: "Depoimentos",      icon: MessageSquare },
-  { id: "frota",         label: "Frota",            icon: Car },
-  { id: "operacao",      label: "Operação & Preços", icon: Sliders },
-  { id: "analytics",     label: "Analytics",        icon: BarChart3 },
-  { id: "usuarios",      label: "Usuários",         icon: Users },
-  { id: "configuracoes", label: "Configurações",    icon: Settings },
-]
-
 export function AdminSidebar({ activeTab, setActiveTab, onLogout }: AdminSidebarProps) {
   const { canAccess, adminUser } = useAuth()
 
   // Filter menu to only accessible tabs
-  const visibleItems = ALL_MENU_ITEMS.filter(item => canAccess(item.id))
+  const visibleItems = ADMIN_MENU_ITEMS.filter(item => canAccess(item.id))
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:block min-h-[calc(100vh-64px)] shadow-sm">
-      <div className="flex h-full flex-col justify-between p-4">
+    <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:block shadow-sm">
+      {/* sticky: a lista de menu acompanha a rolagem do conteúdo, que pode ser
+          bem mais alto que a viewport (pipeline de leads, tabelas de frota). */}
+      <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col justify-between overflow-y-auto p-4">
         <div className="flex flex-col gap-1">
           {visibleItems.map((item) => {
             const isActive = activeTab === item.id

@@ -7,6 +7,7 @@
  */
 
 import { supabase, supabaseUrl } from "@/lib/supabase"
+import { authFetch } from "@/lib/api-client"
 
 export { supabase, supabaseUrl }
 
@@ -136,7 +137,7 @@ export async function deleteFiles(
   paths: string[]
 ): Promise<StorageResult<boolean>> {
   try {
-    const res = await fetch(`/api/media?bucket=${bucket}&paths=${encodeURIComponent(paths.join(","))}`, {
+    const res = await authFetch(`/api/media?bucket=${bucket}&paths=${encodeURIComponent(paths.join(","))}`, {
       method: "DELETE",
     })
     const json = await res.json()

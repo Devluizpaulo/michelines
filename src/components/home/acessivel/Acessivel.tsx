@@ -139,7 +139,7 @@ export function Acessivel() {
             Programa Michelines de Táxi Acessível
           </h2>
 
-          <p className="text-sm font-semibold leading-relaxed text-slate-550 md:text-base max-w-3xl mx-auto">
+          <p className="text-sm font-semibold leading-relaxed text-slate-500 md:text-base max-w-3xl mx-auto">
             O táxi acessível conecta pessoas à saúde, ao trabalho, à educação e à independência. Além do impacto social, o motorista acessível atua em um segmento especializado, com menor oferta de veículos preparados e possibilidade de construir relações duradouras com passageiros, instituições e operações específicas.
           </p>
         </div>
@@ -151,7 +151,7 @@ export function Acessivel() {
             return (
               <div 
                 key={idx}
-                className="flex flex-col justify-between p-5 rounded-2xl border border-slate-150 bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 space-y-4 text-left"
+                className="flex flex-col justify-between p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 space-y-4 text-left"
               >
                 <div className="flex items-center justify-between">
                   <div className={`h-8.5 w-8.5 rounded-xl border flex items-center justify-center ${card.iconBg}`}>
@@ -183,7 +183,7 @@ export function Acessivel() {
             <h3 className="text-2xl font-black text-slate-900 leading-tight">
               Nossa Frota Acessível
             </h3>
-            <p className="text-xs font-semibold leading-relaxed text-slate-550">
+            <p className="text-xs font-semibold leading-relaxed text-slate-500">
               Veículos modernos adaptados com o que há de mais seguro no mercado, garantindo conformidade com as normas técnicas e total conforto ao passageiro.
             </p>
           </div>
@@ -196,7 +196,7 @@ export function Acessivel() {
               "Revisões periódicas",
               "Suporte operacional"
             ].map((badge, bIdx) => (
-              <div key={bIdx} className="flex items-center gap-2.5 p-3.5 bg-white border border-slate-150 rounded-2xl shadow-2xs hover:border-slate-350 hover:shadow-xs transition-all">
+              <div key={bIdx} className="flex items-center gap-2.5 p-3.5 bg-white border border-slate-100 rounded-2xl shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all">
                 <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
                   ✓
                 </div>
@@ -214,10 +214,10 @@ export function Acessivel() {
               <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
               Serviço Essencial e Especializado
             </h3>
-            <p className="text-xs font-semibold leading-relaxed text-slate-650">
+            <p className="text-xs font-semibold leading-relaxed text-slate-600">
               A acessibilidade é um direito fundamental. Em grandes centros urbanos como São Paulo, milhões de pessoas com deficiência ou dificuldades de locomoção enfrentam desafios constantes para se deslocar diariamente.
             </p>
-            <p className="text-xs font-semibold leading-relaxed text-slate-650">
+            <p className="text-xs font-semibold leading-relaxed text-slate-600">
               Diante de uma oferta ainda muito limitada de veículos preparados, a capacitação e a profissionalização dos motoristas acessíveis tornam-se de extrema relevância social. O Grupo Michelines fomenta essa operação, fornecendo frotas adaptadas modernas e homologadas para que o taxista atue em um segmento diferenciado, combinando propósito humano com estabilidade operacional.
             </p>
             <p className="text-xs font-bold text-sky-600 italic">
@@ -226,7 +226,7 @@ export function Acessivel() {
           </div>
 
           {/* Emotional Quote Block */}
-          <div className="lg:col-span-6 flex flex-col justify-center bg-slate-50 border border-slate-150 p-8 rounded-3xl relative overflow-hidden text-left shadow-sm">
+          <div className="lg:col-span-6 flex flex-col justify-center bg-slate-50 border border-slate-100 p-8 rounded-3xl relative overflow-hidden text-left shadow-sm">
             <span className="absolute right-6 top-4 text-7xl font-serif text-slate-200 select-none pointer-events-none">&ldquo;</span>
             <blockquote className="space-y-4 relative z-10">
               <p className="text-sm font-bold leading-relaxed text-slate-700 italic">
@@ -234,7 +234,7 @@ export function Acessivel() {
               </p>
               <footer className="pt-2 border-t border-slate-200 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <cite className="text-[10px] font-black uppercase text-slate-450 tracking-wider not-italic">
+                <cite className="text-[10px] font-black uppercase text-slate-400 tracking-wider not-italic">
                   Acessibilidade Michelines
                 </cite>
               </footer>
@@ -258,7 +258,7 @@ export function Acessivel() {
                     <th className="px-6 py-4 text-sky-700 bg-sky-50/20">Táxi Acessível Michelines</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-650 font-semibold">
+                <tbody className="divide-y divide-slate-100 text-slate-600 font-semibold">
                   {comparisons.map((row, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 font-bold text-slate-800">{row.label}</td>
@@ -280,7 +280,7 @@ export function Acessivel() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 Nossos Veículos Adaptados
               </h3>
-              <p className="text-xs font-semibold leading-relaxed text-slate-450 mt-1">
+              <p className="text-xs font-semibold leading-relaxed text-slate-400 mt-1">
                 Visualização detalhada dos itens de acessibilidade e rampa de acesso do veículo.
               </p>
             </div>
@@ -295,7 +295,7 @@ export function Acessivel() {
                     "px-3 py-1.5 rounded-lg border text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 shrink-0",
                     activePhoto === idx
                       ? "border-sky-300 bg-sky-50 text-sky-700 shadow-sm"
-                      : "border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700"
+                      : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   )}
                 >
                   {ph.title}
@@ -308,7 +308,7 @@ export function Acessivel() {
             
             {/* Active Display Panel */}
             <div className="lg:col-span-8 flex flex-col rounded-3xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-              <div className="group relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-slate-150 bg-slate-50 shadow-inner">
+              <div className="group relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-inner">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photosList[activePhoto]?.src}
@@ -337,8 +337,8 @@ export function Acessivel() {
                     <div className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
                       accessibleVehicles[activePhoto].isAccessible 
-                        ? "bg-violet-50 border-violet-200 text-violet-750 font-black" 
-                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                        ? "bg-violet-50 border-violet-200 text-violet-700 font-black" 
+                        : "bg-slate-50 border-slate-100 text-slate-400 opacity-60"
                     )}>
                       <span>♿ Acessível</span>
                     </div>
@@ -346,8 +346,8 @@ export function Acessivel() {
                     <div className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
                       accessibleVehicles[activePhoto].isAtendeApproved 
-                        ? "bg-purple-50 border-purple-200 text-purple-750 font-black" 
-                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                        ? "bg-purple-50 border-purple-200 text-purple-700 font-black" 
+                        : "bg-slate-50 border-slate-100 text-slate-400 opacity-60"
                     )}>
                       <span>♿ ATENDE</span>
                     </div>
@@ -355,8 +355,8 @@ export function Acessivel() {
                     <div className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
                       accessibleVehicles[activePhoto].hasRadioAssociation 
-                        ? "bg-indigo-50 border-indigo-200 text-indigo-750 font-black" 
-                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                        ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-black" 
+                        : "bg-slate-50 border-slate-100 text-slate-400 opacity-60"
                     )}>
                       <span>📻 Rádio</span>
                     </div>
@@ -364,8 +364,8 @@ export function Acessivel() {
                     <div className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
                       accessibleVehicles[activePhoto].isDTPApproved 
-                        ? "bg-blue-50 border-blue-200 text-blue-750 font-black" 
-                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                        ? "bg-blue-50 border-blue-200 text-blue-700 font-black" 
+                        : "bg-slate-50 border-slate-100 text-slate-400 opacity-60"
                     )}>
                       <span>🏢 DTP/DETAXI</span>
                     </div>
@@ -373,8 +373,8 @@ export function Acessivel() {
                     <div className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-bold transition-all justify-center text-center",
                       accessibleVehicles[activePhoto].hasDTPCourseSupport 
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-750 font-black" 
-                        : "bg-slate-50 border-slate-150 text-slate-450 opacity-60"
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-black" 
+                        : "bg-slate-50 border-slate-100 text-slate-400 opacity-60"
                     )}>
                       <span>🎓 Curso DTP</span>
                     </div>
@@ -393,10 +393,10 @@ export function Acessivel() {
                     "flex items-center gap-3 p-2.5 rounded-2xl border transition-all text-left shadow-sm",
                     activePhoto === idx
                       ? "border-sky-400 bg-sky-50/30 ring-1 ring-sky-300"
-                      : "border-slate-200 bg-white hover:border-slate-350"
+                      : "border-slate-200 bg-white hover:border-slate-300"
                   )}
                 >
-                  <div className="relative aspect-[4/3] w-20 overflow-hidden rounded-lg border border-slate-150 bg-slate-50 shrink-0">
+                  <div className="relative aspect-[4/3] w-20 overflow-hidden rounded-lg border border-slate-100 bg-slate-50 shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={ph.src}
@@ -426,7 +426,7 @@ export function Acessivel() {
               <span className="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
               Como se Credenciar no Programa
             </h3>
-            <p className="text-xs font-semibold leading-relaxed text-slate-450 mt-1">
+            <p className="text-xs font-semibold leading-relaxed text-slate-400 mt-1">
               Fluxo simplificado para motoristas ingressarem no segmento de táxi acessível Michelines.
             </p>
           </div>
@@ -448,11 +448,11 @@ export function Acessivel() {
                 description: "Após aprovação e recebimento do veículo adaptado Michelines, você estará credenciado para atuar no segmento especializado com o suporte da nossa central."
               }
             ].map((item, idx) => (
-              <div key={idx} className="relative p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-3.5 hover:border-slate-350 hover:bg-white transition-all shadow-2xs">
+              <div key={idx} className="relative p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-3.5 hover:border-slate-300 hover:bg-white transition-all shadow-2xs">
                 <span className="text-3xl font-black text-slate-200 block font-mono">{item.step}</span>
                 <div className="space-y-1">
                   <h4 className="text-sm font-black text-slate-800 uppercase tracking-wide">{item.title}</h4>
-                  <p className="text-xs font-semibold leading-relaxed text-slate-550">{item.description}</p>
+                  <p className="text-xs font-semibold leading-relaxed text-slate-500">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -483,7 +483,7 @@ export function Acessivel() {
 
             <div className="pt-2">
               <Link href="/cadastro">
-                <Button className="bg-sky-500 hover:bg-sky-450 text-white font-extrabold text-xs h-11 px-6 rounded-xl shadow-md flex items-center gap-1.5 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0">
+                <Button className="bg-sky-500 hover:bg-sky-400 text-white font-extrabold text-xs h-11 px-6 rounded-xl shadow-md flex items-center gap-1.5 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0">
                   <span>Quero me Credenciar no Programa</span>
                   <ChevronRight className="h-4 w-4" />
                 </Button>

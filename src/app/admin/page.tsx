@@ -19,6 +19,7 @@ import { ToastProvider, useToast } from "@/components/ui/toast-simple"
 // Admin components
 import { AdminHeader } from "@/components/admin/shared/AdminHeader"
 import { AdminSidebar } from "@/components/admin/shared/AdminSidebar"
+import { AdminBottomNav } from "@/components/admin/shared/AdminBottomNav"
 import { DashboardOverview } from "@/components/admin/dashboard/DashboardOverview"
 import { LeadBoard } from "@/components/admin/leads/LeadBoard"
 import { LeadDrawer } from "@/components/admin/leads/LeadDrawer"
@@ -33,16 +34,41 @@ import { TestimonialManager } from "@/components/admin/testimonials/TestimonialM
 import { AgendaManager } from "@/components/admin/agenda/AgendaManager"
 import { Shield } from "lucide-react"
 
+// Ícone usado nas notificações nativas do painel (mesmo ícone do PWA admin)
+const PWA_ICON_192 = "/icons/admin-192.png"
+
+const VALID_TABS: TabId[] = [
+  "dashboard", "leads", "campanhas", "landing", "frota", "analytics",
+  "configuracoes", "usuarios", "operacao", "depoimentos", "agenda",
+]
+
+/**
+ * Aba inicial a partir de `?tab=` — usado pelos atalhos do manifest do PWA
+ * (ex.: /admin?tab=leads). O guard de permissão abaixo corrige a escolha caso o
+ * papel do usuário não tenha acesso à aba pedida.
+ */
+function readInitialTab(): TabId {
+  if (typeof window === "undefined") return "dashboard"
+  const requested = new URLSearchParams(window.location.search).get("tab") as TabId | null
+  return requested && VALID_TABS.includes(requested) ? requested : "dashboard"
+}
+
 // Inner component that uses auth context
 function AdminContent() {
-  const { adminUser, role, canAccess, loading: authLoading } = useAuth()
+  const { adminUser, role, canAccess, loading: authLoading, profileError, firebaseUser } = useAuth()
   const { success } = useToast()
   const mountTimeRef = useRef(Date.now())
+  // IDs de leads já anunciados nesta sessão — evita re-alertar o mesmo lead caso o
+  // listener do Firestore seja re-inscrito (o snapshot inicial reemite todos como "added").
+  const announcedLeadIdsRef = useRef<Set<string>>(new Set())
   const [activeTab, setActiveTab] = useState<TabId>("dashboard")
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  // Menu lateral do mobile — controlado aqui porque tanto o header quanto a
+  // barra inferior ("Mais") precisam abri-lo.
+  const [menuOpen, setMenuOpen] = useState(false)
   const [newLeadsQueue, setNewLeadsQueue] = useState<Lead[]>([])
   const [landingSettings, setLandingSettings] = useState<LandingSettings>({
     heroTitle: "",
@@ -73,18 +99,26 @@ function AdminContent() {
     }
   }
 
-  // Guard: redirect if not authenticated
+  // Guard: sem sessão do Firebase → login. Com sessão mas sem perfil válido,
+  // NÃO redirecionamos (viraria ping-pong com o /login): mostramos o aviso abaixo.
   useEffect(() => {
-    if (!authLoading && !adminUser) {
+    if (!authLoading && !firebaseUser) {
       router.push("/login")
     }
-  }, [authLoading, adminUser, router])
+  }, [authLoading, firebaseUser, router])
 
-  // Guard: if activeTab is not accessible, switch to dashboard
+  // Deep link dos atalhos do PWA (/admin?tab=leads). Aplicado após a hidratação
+  // para não divergir do HTML renderizado no servidor.
   useEffect(() => {
-    if (role && !canAccess(activeTab)) {
-      setActiveTab("dashboard")
-    }
+    const initial = readInitialTab()
+    if (initial !== "dashboard") setActiveTab(initial)
+  }, [])
+
+  // Guard: se a aba ativa deixou de ser acessível, cai para a primeira aba permitida
+  useEffect(() => {
+    if (!role || canAccess(activeTab)) return
+    const fallback = (["dashboard", "leads", "agenda", "campanhas"] as TabId[]).find(canAccess)
+    if (fallback && fallback !== activeTab) setActiveTab(fallback)
   }, [role, activeTab, canAccess])
 
   // Fetch landing settings — apenas quando a tab relevante é ativada
@@ -106,9 +140,16 @@ function AdminContent() {
     }
   }, [activeTab, fetchLandingSettings])
 
-  // Carrega leads sob demanda — apenas quando tab de leads ou dashboard é ativa
-  const loadCRMData = useCallback(async () => {
-    if (leads.length > 0) return // já carregado, não buscar novamente
+  // Carrega leads sob demanda — apenas quando tab de leads ou dashboard é ativa.
+  // Usa refs (e não `leads.length`) para o controle de "já carregado", de modo que a
+  // identidade da função permaneça estável e não reinicie os efeitos que dependem dela.
+  const crmLoadedRef = useRef(false)
+  const crmLoadingRef = useRef(false)
+
+  const loadCRMData = useCallback(async ({ force = false }: { force?: boolean } = {}) => {
+    if (crmLoadingRef.current) return // requisição em voo, não duplicar
+    if (crmLoadedRef.current && !force) return // já carregado
+    crmLoadingRef.current = true
     try {
       setLoading(true)
       const qLeads = query(collection(db, "leads"), orderBy("createdAt", "desc"))
@@ -160,12 +201,14 @@ function AdminContent() {
       })
 
       setLeads(leadsList)
+      crmLoadedRef.current = true
     } catch (e) {
       console.error("Erro ao buscar dados do CRM:", e)
     } finally {
+      crmLoadingRef.current = false
       setLoading(false)
     }
-  }, [leads.length])
+  }, [])
 
   useEffect(() => {
     if (activeTab === "leads" || activeTab === "dashboard" || activeTab === "analytics" || activeTab === "frota" || activeTab === "campanhas") {
@@ -248,36 +291,42 @@ function AdminContent() {
       const newAddedLeads: Lead[] = []
 
       snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const data = change.doc.data()
-          const leadTime = data.createdAt?.seconds 
-            ? data.createdAt.seconds * 1000 
-            : new Date(data.createdAt || Date.now()).getTime()
+        if (change.type !== "added") return
 
-          if (leadTime > mountTimeRef.current) {
-            newAddedLeads.push({ id: change.doc.id, ...data } as Lead)
-          }
+        // Ignora leads já anunciados — o snapshot inicial de uma re-inscrição
+        // reemite todos os documentos como "added".
+        if (announcedLeadIdsRef.current.has(change.doc.id)) return
+
+        const data = change.doc.data()
+        const leadTime = data.createdAt?.seconds
+          ? data.createdAt.seconds * 1000
+          : new Date(data.createdAt || Date.now()).getTime()
+
+        if (leadTime > mountTimeRef.current) {
+          announcedLeadIdsRef.current.add(change.doc.id)
+          newAddedLeads.push({ id: change.doc.id, ...data } as Lead)
         }
       })
 
-      if (newAddedLeads.length > 0) {
-        playNotificationChime()
-        setNewLeadsQueue((prev) => [...prev, ...newAddedLeads])
+      if (newAddedLeads.length === 0) return
 
-        newAddedLeads.forEach((lead) => {
-          success(`Novo Lead Recebido! 🚗`, `${lead.fullName} está interessado em ${lead.vehicleInterest}.`)
+      playNotificationChime()
+      setNewLeadsQueue((prev) => [...prev, ...newAddedLeads])
 
-          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-            new Notification("Novo Lead Recebido! 🚗", {
-              body: `${lead.fullName} está interessado em ${lead.vehicleInterest}.`,
-              icon: "/icon-light-32x32.png"
-            })
-          }
-        })
+      newAddedLeads.forEach((lead) => {
+        success(`Novo Lead Recebido! 🚗`, `${lead.fullName} está interessado em ${lead.vehicleInterest}.`)
 
-        setLeads([])
-        loadCRMData()
-      }
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+          new Notification("Novo Lead Recebido! 🚗", {
+            body: `${lead.fullName} está interessado em ${lead.vehicleInterest}.`,
+            icon: PWA_ICON_192,
+          })
+        }
+      })
+
+      // Recarrega o CRM para trazer o lead completo (com dados de drivers/score).
+      // `force` porque os dados em cache ficaram desatualizados.
+      loadCRMData({ force: true })
     }, (err) => {
       console.warn("Erro no listener de leads em tempo real:", err)
     })
@@ -296,6 +345,52 @@ function AdminContent() {
     )
   }
 
+  // Autenticado no Firebase, mas sem perfil administrativo utilizável.
+  if (firebaseUser && !adminUser) {
+    const MESSAGES: Record<string, { title: string; body: string }> = {
+      "no-profile": {
+        title: "Acesso ainda não liberado",
+        body: "Sua conta foi autenticada, mas ainda não possui perfil no painel. Peça a um super administrador para liberar seu acesso na aba Usuários.",
+      },
+      disabled: {
+        title: "Conta desativada",
+        body: "Seu perfil administrativo foi desativado. Entre em contato com um super administrador para reativá-lo.",
+      },
+      unavailable: {
+        title: "Não foi possível verificar seu acesso",
+        body: "Falha ao carregar seu perfil administrativo. Verifique sua conexão e tente novamente.",
+      },
+    }
+    const msg = MESSAGES[profileError ?? "no-profile"] ?? MESSAGES["no-profile"]
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <Shield className="mx-auto mb-4 h-10 w-10 text-slate-300" />
+          <h1 className="text-base font-black text-slate-900">{msg.title}</h1>
+          <p className="mt-2 text-xs font-medium leading-relaxed text-slate-500">{msg.body}</p>
+          <p className="mt-3 truncate text-[11px] font-semibold text-slate-400">{firebaseUser.email}</p>
+          <div className="mt-5 flex flex-col gap-2">
+            {profileError === "unavailable" && (
+              <button
+                onClick={() => window.location.reload()}
+                className="h-11 rounded-xl bg-sky-600 text-sm font-bold text-white transition-colors hover:bg-sky-700"
+              >
+                Tentar novamente
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="h-11 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100"
+            >
+              Sair da conta
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
 
@@ -304,6 +399,8 @@ function AdminContent() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onLogout={handleLogout}
+        menuOpen={menuOpen}
+        onMenuOpenChange={setMenuOpen}
       />
 
       <div className="flex flex-1">
@@ -315,8 +412,12 @@ function AdminContent() {
           onLogout={handleLogout}
         />
 
-        {/* Main Content */}
-        <main className="flex-1 p-6 md:p-8 lg:p-10 bg-[#F8FAFC] overflow-y-auto">
+        {/*
+          min-w-0: sem isto, tabelas e cards largos esticam o flex item e fazem a
+          página inteira rolar na horizontal no celular.
+          pb-20 no mobile: espaço para a barra de navegação inferior fixa.
+        */}
+        <main className="min-w-0 flex-1 overflow-x-hidden bg-[#F8FAFC] p-4 pb-24 sm:p-6 md:p-8 md:pb-8 lg:p-10">
 
           {/* Access denied guard */}
           {!canAccess(activeTab) ? (
@@ -410,6 +511,13 @@ function AdminContent() {
         </main>
       </div>
 
+      {/* Navegação inferior — apenas mobile */}
+      <AdminBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenMenu={() => setMenuOpen(true)}
+      />
+
       {/* Drawer do Lead Compartilhado */}
       <LeadDrawer
         lead={selectedLead}
@@ -425,11 +533,11 @@ function AdminContent() {
       {newLeadsQueue.length > 0 && (() => {
         const currentAlertLead = newLeadsQueue[0]
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-md animate-fade-in">
             {/* Pulsing screen border for maximum attention */}
             <div className="absolute inset-0 border-[6px] border-red-500/30 animate-pulse pointer-events-none" />
 
-            <div className="relative w-full max-w-md bg-white border border-red-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center p-6 text-slate-800 animate-slide-up">
+            <div className="relative my-auto flex w-full max-w-md flex-col items-center overflow-hidden rounded-3xl border border-red-200 bg-white p-5 text-slate-800 shadow-2xl animate-slide-up sm:p-6">
               {/* Top glowing bar */}
               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 animate-pulse" />
 
@@ -501,7 +609,7 @@ function AdminContent() {
                     setSelectedLead(currentAlertLead)
                     setDrawerOpen(true)
                   }}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-650 hover:to-orange-600 text-white font-extrabold text-xs h-11 rounded-xl transition-all shadow-md shadow-red-100 active:scale-[0.98]"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-extrabold text-xs h-11 rounded-xl transition-all shadow-md shadow-red-100 active:scale-[0.98]"
                 >
                   Atender Agora
                 </button>

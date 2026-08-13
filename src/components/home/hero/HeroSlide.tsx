@@ -37,9 +37,9 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
   )
 
   const glowTitleClass = cn(
-    slide.theme === "navy" && "from-sky-450 via-sky-400 to-indigo-400",
-    slide.theme === "amber" && "from-amber-400 via-amber-350 to-orange-400",
-    slide.theme === "emerald" && "from-emerald-450 via-teal-400 to-green-400"
+    slide.theme === "navy" && "from-sky-400 via-sky-400 to-indigo-400",
+    slide.theme === "amber" && "from-amber-400 via-amber-300 to-orange-400",
+    slide.theme === "emerald" && "from-emerald-400 via-teal-400 to-green-400"
   )
 
   const handleSlideClick = () => {

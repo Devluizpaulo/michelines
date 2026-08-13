@@ -1,0 +1,14 @@
+{
+  "indexes": [
+    {
+      "//": "Depoimentos aprovados na home: where(approved == true) + orderBy(createdAt desc). Sem este índice a query falha e a seção cai no conteúdo padrão.",
+      "collectionGroup": "testimonials",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "approved", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

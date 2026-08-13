@@ -80,7 +80,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
           
           {/* Main Photo Spotlight */}
           {vehicle.thumbnail && (
-            <div className="relative aspect-[16/9] w-full bg-gradient-to-b from-slate-50 to-slate-100/10 rounded-2xl overflow-hidden flex items-center justify-center p-6 border border-slate-150 shadow-inner">
+            <div className="relative aspect-[16/9] w-full bg-gradient-to-b from-slate-50 to-slate-100/10 rounded-2xl overflow-hidden flex items-center justify-center p-6 border border-slate-100 shadow-inner">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={optimizeImageUrl(vehicle.thumbnail, 900, 85)} 
@@ -126,7 +126,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
 
           {/* Description */}
           <div className="space-y-2.5">
-            <h4 className="text-xs uppercase font-black tracking-widest text-slate-450">Sobre o Veículo</h4>
+            <h4 className="text-xs uppercase font-black tracking-widest text-slate-400">Sobre o Veículo</h4>
             <p className="text-sm text-slate-600 leading-relaxed font-semibold text-justify">
               {vehicle.fullDescription || vehicle.shortDescription}
             </p>
@@ -138,13 +138,13 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             {/* Positive points */}
             {vehicle.positivePoints && vehicle.positivePoints.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-xs uppercase font-black tracking-widest text-slate-450 flex items-center gap-1.5">
+                <h4 className="text-xs uppercase font-black tracking-widest text-slate-400 flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   Destaques de Rentabilidade
                 </h4>
                 <ul className="space-y-2">
                   {vehicle.positivePoints.map((pt, idx) => (
-                    <li key={idx} className="text-xs font-bold text-slate-650 flex items-center gap-2">
+                    <li key={idx} className="text-xs font-bold text-slate-600 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       {pt}
                     </li>
@@ -156,13 +156,13 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
             {/* highlights */}
             {vehicle.highlights && vehicle.highlights.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-xs uppercase font-black tracking-widest text-slate-450 flex items-center gap-1.5">
+                <h4 className="text-xs uppercase font-black tracking-widest text-slate-400 flex items-center gap-1.5">
                   <Star className="h-4 w-4 text-sky-600" />
                   Conforto & Tecnologia
                 </h4>
                 <ul className="space-y-2">
                   {vehicle.highlights.map((h, idx) => (
-                    <li key={idx} className="text-xs font-bold text-slate-650 flex items-center gap-2">
+                    <li key={idx} className="text-xs font-bold text-slate-600 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
                       {h}
                     </li>
@@ -177,16 +177,16 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
 
           {/* Detailed Pricing & Operational Model Box */}
           <div className="space-y-4 pt-2">
-            <h4 className="text-xs uppercase font-black tracking-widest text-slate-450">Opções de Contrato e Planos</h4>
+            <h4 className="text-xs uppercase font-black tracking-widest text-slate-400">Opções de Contrato e Planos</h4>
             
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-slate-50 border border-slate-200/60 p-3.5 rounded-xl text-center space-y-1">
-                <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block">Por Diária</span>
+                <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Por Diária</span>
                 <span className="text-base font-black text-slate-800 block">R$ {Number(vehicle.dailyPrice || 150).toLocaleString('pt-BR')}/dia</span>
                 <span className="text-[8px] text-slate-500 font-bold leading-tight block">Flexibilidade diária</span>
               </div>
               <div className="bg-slate-50 border border-slate-200/60 p-3.5 rounded-xl text-center space-y-1">
-                <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block">Semanal</span>
+                <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Semanal</span>
                 <span className="text-base font-black text-slate-800 block">R$ {Number(vehicle.weeklyPrice || Math.round((vehicle.monthlyPrice || 2400) / 4)).toLocaleString('pt-BR')}/sem</span>
                 <span className="text-[8px] text-slate-500 font-bold leading-tight block">Ajuste semanal</span>
               </div>
@@ -205,7 +205,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
                 <p className="text-slate-800 flex items-center gap-1.5 font-extrabold text-[11px]">
                   📅 {vehicle.pricing?.weekendExempt ? "Domingos & Feriados Isentos" : "Diárias Normais"}
                 </p>
-                <p className="text-[10px] text-slate-550 font-semibold leading-tight text-justify">
+                <p className="text-[10px] text-slate-500 font-semibold leading-tight text-justify">
                   {vehicle.pricing?.weekendExempt ? "Cobrança de segunda a sábado. Domingos e feriados nacionais são 100% isentos de diária." : "Diárias calculadas de forma corrida durante o contrato."}
                 </p>
               </div>

@@ -27,6 +27,7 @@ import {
 import { motion } from "framer-motion"
 import { THEME_TOKENS } from "@/theme/design-system"
 import { Textarea } from "@/components/ui/textarea"
+import { authFetch } from "@/lib/api-client"
 
 const TAB_LABELS: Record<TabId, string> = {
   dashboard:     "Dashboard",
@@ -265,7 +266,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
     if (!confirm(`Remover "${email}" do painel admin? O acesso será bloqueado imediatamente.`)) return
     try {
       // 1. Tentar deletar o usuário do Firebase Auth via API
-      const response = await fetch("/api/usuarios/deletar", {
+      const response = await authFetch("/api/usuarios/deletar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -394,7 +395,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
                             type="checkbox"
                             checked={isAllowed}
                             onChange={() => handleTogglePermission(r, tab)}
-                            className="h-4 w-4 rounded border-slate-350 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
+                            className="h-4 w-4 rounded border-slate-300 bg-white text-sky-600 focus:ring-sky-500 cursor-pointer"
                           />
                         </td>
                       )
@@ -414,7 +415,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
                         type="checkbox"
                         checked={true}
                         disabled={true}
-                        className="h-4 w-4 rounded border-slate-350 bg-slate-200 text-slate-400 cursor-not-allowed"
+                        className="h-4 w-4 rounded border-slate-300 bg-slate-200 text-slate-400 cursor-not-allowed"
                       />
                     </td>
                   ))}
@@ -431,7 +432,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
                   setPermissionsConfig(ROLE_PERMISSIONS)
                 }
               }}
-              className="border-slate-200 hover:border-slate-350 text-slate-500 hover:text-slate-700 h-9 font-bold text-xs shadow-sm bg-white"
+              className="border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700 h-9 font-bold text-xs shadow-sm bg-white"
             >
               Restaurar Padrões
             </Button>
@@ -832,7 +833,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
             </DialogHeader>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-black tracking-widest text-slate-450">Mensagem do Convite (Editável)</label>
+              <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Mensagem do Convite (Editável)</label>
               <Textarea
                 value={shareData.message}
                 onChange={(e) => setShareData(prev => ({ ...prev, message: e.target.value }))}

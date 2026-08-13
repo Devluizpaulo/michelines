@@ -219,7 +219,7 @@ export function DashboardOverview({ leads, onLeadClick, role }: DashboardOvervie
             <div className="space-y-2.5">
               {sourceConversionList.map(({ source, total, converted, rate }) => (
                 <div key={source} className="space-y-1">
-                  <div className="flex justify-between text-xs font-bold text-slate-650">
+                  <div className="flex justify-between text-xs font-bold text-slate-600">
                     <span>{source}</span>
                     <span className="text-slate-500">{converted}/{total} leads ({rate}%)</span>
                   </div>
@@ -310,7 +310,7 @@ export function DashboardOverview({ leads, onLeadClick, role }: DashboardOvervie
                 const percent = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0
                 return (
                   <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-bold text-slate-650">
+                    <div className="flex justify-between text-xs font-bold text-slate-600">
                       <span>{vehicle}</span>
                       <span>{count} ({percent}%)</span>
                     </div>
@@ -337,7 +337,7 @@ export function DashboardOverview({ leads, onLeadClick, role }: DashboardOvervie
                 const percent = totalLeads > 0 ? Math.round((total / totalLeads) * 100) : 0
                 return (
                   <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-bold text-slate-650">
+                    <div className="flex justify-between text-xs font-bold text-slate-600">
                       <span>{source}</span>
                       <span>{total} ({percent}%)</span>
                     </div>

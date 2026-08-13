@@ -93,7 +93,7 @@ export function AnalyticsDashboard({ leads }: AnalyticsDashboardProps) {
               </div>
 
               <div className="space-y-2.5 pt-4">
-                <div className="flex justify-between text-xs text-slate-650 font-bold">
+                <div className="flex justify-between text-xs text-slate-600 font-bold">
                   <span>Meta de Conversão Semanal</span>
                   <span>{convertedCount} de 10 Alugados</span>
                 </div>
@@ -128,7 +128,7 @@ export function AnalyticsDashboard({ leads }: AnalyticsDashboardProps) {
           <div className="space-y-4">
             {/* New */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-650 font-bold">
+              <div className="flex justify-between text-xs text-slate-600 font-bold">
                 <span>Novos Contatos</span>
                 <span className="text-slate-900">{newCount} ({percentNew}%)</span>
               </div>
@@ -139,7 +139,7 @@ export function AnalyticsDashboard({ leads }: AnalyticsDashboardProps) {
 
             {/* Contacted */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-650 font-bold">
+              <div className="flex justify-between text-xs text-slate-600 font-bold">
                 <span>Contatos Efetuados</span>
                 <span className="text-slate-900">{contactedCount} ({percentContacted}%)</span>
               </div>
@@ -150,7 +150,7 @@ export function AnalyticsDashboard({ leads }: AnalyticsDashboardProps) {
 
             {/* Negotiating */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-650 font-bold">
+              <div className="flex justify-between text-xs text-slate-600 font-bold">
                 <span>Em Negociação</span>
                 <span className="text-slate-900">{negotiatingCount} ({percentNegotiating}%)</span>
               </div>
@@ -161,7 +161,7 @@ export function AnalyticsDashboard({ leads }: AnalyticsDashboardProps) {
 
             {/* Scheduled */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-650 font-bold">
+              <div className="flex justify-between text-xs text-slate-600 font-bold">
                 <span>Visitas Agendadas</span>
                 <span className="text-slate-900">{scheduledCount} ({percentScheduled}%)</span>
               </div>
@@ -172,7 +172,7 @@ export function AnalyticsDashboard({ leads }: AnalyticsDashboardProps) {
 
             {/* Converted */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-650 font-bold">
+              <div className="flex justify-between text-xs text-slate-600 font-bold">
                 <span>Convertidos (Alugados)</span>
                 <span className="text-slate-900">{convertedCount} ({percentConverted}%)</span>
               </div>
@@ -183,7 +183,7 @@ export function AnalyticsDashboard({ leads }: AnalyticsDashboardProps) {
 
             {/* Lost */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-650 font-bold">
+              <div className="flex justify-between text-xs text-slate-600 font-bold">
                 <span>Perdidos</span>
                 <span className="text-slate-900">{lostCount} ({percentLost}%)</span>
               </div>

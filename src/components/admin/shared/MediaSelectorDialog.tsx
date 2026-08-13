@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, RefreshCw, Loader2, ImageIcon, Check } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/api-client"
 
 interface StorageFile {
   name: string
@@ -51,7 +52,7 @@ export function MediaSelectorDialog({
       setLoading(true)
       
       const fetchFolderContents = async (path = ""): Promise<StorageFile[]> => {
-        const res = await fetch(`/api/media?bucket=${bucket}&folder=${path}`)
+        const res = await authFetch(`/api/media?bucket=${bucket}&folder=${path}`)
         const json = await res.json()
         
         if (!res.ok || json.error) {
@@ -171,7 +172,7 @@ export function MediaSelectorDialog({
             </div>
           ) : filteredFiles.length === 0 ? (
             <div className="h-64 border-2 border-dashed border-slate-100 bg-slate-50/50 rounded-xl flex flex-col gap-2 items-center justify-center text-slate-400 font-semibold text-xs select-none">
-              <ImageIcon className="h-8 w-8 text-slate-350" />
+              <ImageIcon className="h-8 w-8 text-slate-300" />
               <span>Nenhuma imagem disponível no bucket "{bucket}"</span>
             </div>
           ) : (
@@ -205,7 +206,7 @@ export function MediaSelectorDialog({
                     <p className="text-[10px] font-black text-slate-800 truncate" title={file.name}>
                       {file.name}
                     </p>
-                    <p className="text-[8px] text-slate-450 truncate mt-0.5" title={file.fullPath}>
+                    <p className="text-[8px] text-slate-400 truncate mt-0.5" title={file.fullPath}>
                       {file.fullPath}
                     </p>
                   </div>

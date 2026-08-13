@@ -2,22 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import {
-  Car,
-  Menu,
-  ChevronDown,
-  LogOut,
-  LayoutDashboard,
-  Target,
-  Megaphone,
-  Monitor,
-  BarChart3,
-  Settings,
-  Users,
-  Sliders,
-  MessageSquare,
-  LucideIcon,
-} from "lucide-react"
+import { Menu, ChevronDown, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -30,41 +15,38 @@ import {
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { TabId, ROLE_LABELS } from "@/lib/permissions"
+import { ADMIN_MENU_ITEMS } from "./menu-items"
 
 interface AdminHeaderProps {
   activeTab: TabId
   setActiveTab: (tab: TabId) => void
   onLogout: () => void
+  /** Controle externo do menu lateral — a barra inferior do mobile também o abre. */
+  menuOpen?: boolean
+  onMenuOpenChange?: (open: boolean) => void
 }
 
-interface MenuItem {
-  id: TabId
-  label: string
-  icon: LucideIcon
-}
+export function AdminHeader({
+  activeTab,
+  setActiveTab,
+  onLogout,
+  menuOpen,
+  onMenuOpenChange,
+}: AdminHeaderProps) {
+  // Estado interno usado apenas quando o componente não é controlado de fora
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = menuOpen !== undefined
+  const mobileOpen = isControlled ? menuOpen : internalOpen
+  const setMobileOpen = isControlled ? (onMenuOpenChange ?? (() => {})) : setInternalOpen
 
-const ALL_MENU_ITEMS: MenuItem[] = [
-  { id: "dashboard",     label: "Dashboard",     icon: LayoutDashboard },
-  { id: "leads",         label: "Leads Funil",   icon: Target },
-  { id: "campanhas",     label: "Campanhas",     icon: Megaphone },
-  { id: "landing",       label: "Landing Page",  icon: Monitor },
-  { id: "depoimentos",   label: "Depoimentos",   icon: MessageSquare },
-  { id: "frota",         label: "Frota",         icon: Car },
-  { id: "operacao",      label: "Operação & Preços", icon: Sliders },
-  { id: "analytics",     label: "Analytics",     icon: BarChart3 },
-  { id: "usuarios",      label: "Usuários",      icon: Users },
-  { id: "configuracoes", label: "Configurações", icon: Settings },
-]
-
-export function AdminHeader({ activeTab, setActiveTab, onLogout }: AdminHeaderProps) {
-  const [mobileOpen, setMobileOpen] = useState(false)
   const { adminUser, canAccess } = useAuth()
 
-  const visibleItems = ALL_MENU_ITEMS.filter(item => canAccess(item.id))
+  const visibleItems = ADMIN_MENU_ITEMS.filter(item => canAccess(item.id))
   const roleInfo = adminUser?.role ? ROLE_LABELS[adminUser.role] : null
+  const activeItem = ADMIN_MENU_ITEMS.find(item => item.id === activeTab)
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 bg-white px-4 md:px-6 justify-between select-none shadow-sm">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-3 pt-[env(safe-area-inset-top)] sm:px-4 md:px-6 justify-between select-none shadow-sm">
 
       {/* Left: Mobile trigger + Brand */}
       <div className="flex items-center gap-4">
@@ -88,7 +70,7 @@ export function AdminHeader({ activeTab, setActiveTab, onLogout }: AdminHeaderPr
             </SheetHeader>
 
             {/* Mobile nav — filtered by role */}
-            <div className="flex flex-1 flex-col gap-1.5 py-4">
+            <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto py-4">
               {visibleItems.map((item) => {
                 const isActive = activeTab === item.id
                 return (
@@ -98,10 +80,11 @@ export function AdminHeader({ activeTab, setActiveTab, onLogout }: AdminHeaderPr
                       setActiveTab(item.id)
                       setMobileOpen(false)
                     }}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-left transition-all ${
+                    aria-current={isActive ? "page" : undefined}
+                    className={`flex min-h-11 items-center gap-3 rounded-xl px-4 py-2.5 text-left text-sm font-bold transition-all ${
                       isActive
                         ? "bg-sky-600 text-white shadow-md shadow-sky-100"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
@@ -124,8 +107,8 @@ export function AdminHeader({ activeTab, setActiveTab, onLogout }: AdminHeaderPr
           </SheetContent>
         </Sheet>
 
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
+        {/* Brand Logo — some no mobile para dar espaço ao nome da aba atual */}
+        <Link href="/" className="hidden items-center gap-2.5 sm:flex">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://cbynwzxalzcaownnouwp.supabase.co/storage/v1/object/public/logos/logo-grupo-michelines.png"
@@ -133,20 +116,36 @@ export function AdminHeader({ activeTab, setActiveTab, onLogout }: AdminHeaderPr
             className="h-8 w-auto object-contain"
           />
         </Link>
+
+        {/* No mobile a sidebar não existe: sem isto não há indicação de onde se está */}
+        {activeItem && (
+          <div className="flex min-w-0 items-center gap-2 sm:hidden">
+            <activeItem.icon className="h-4 w-4 shrink-0 text-sky-600" />
+            <span className="truncate text-sm font-black text-slate-900">{activeItem.label}</span>
+          </div>
+        )}
       </div>
 
       {/* Right: User dropdown */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         {roleInfo && (
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border hidden sm:inline-flex ${roleInfo.color}`}>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border hidden md:inline-flex ${roleInfo.color}`}>
             {roleInfo.label}
           </span>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2 bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700 font-bold h-9 max-w-[180px]">
-              <span className="truncate text-xs">{adminUser?.displayName || "Admin"}</span>
-              <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+            <Button
+              variant="outline"
+              aria-label="Menu da conta"
+              className="flex h-10 max-w-[140px] items-center gap-2 border-slate-200 bg-slate-50 px-2.5 font-bold text-slate-700 hover:bg-slate-100 sm:max-w-[180px] sm:px-3"
+            >
+              {/* No mobile mostra só a inicial: o nome completo espremeria a barra */}
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-600 text-[11px] font-black text-white sm:hidden">
+                {(adminUser?.displayName || "A").charAt(0).toUpperCase()}
+              </span>
+              <span className="hidden truncate text-xs sm:inline">{adminUser?.displayName || "Admin"}</span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-white border border-slate-200 text-slate-700 shadow-lg w-48">

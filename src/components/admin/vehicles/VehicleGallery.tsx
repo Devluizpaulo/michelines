@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Image as ImageIcon, Trash2, Star, UploadCloud, Badge } from "lucide-react"
 import { MediaSelectorDialog } from "../shared/MediaSelectorDialog"
+import { authFetch } from "@/lib/api-client"
 
 interface VehicleGalleryProps {
   images: string[]
@@ -62,7 +63,7 @@ export function VehicleGallery({ images, thumbnail, slug, onChange }: VehicleGal
         formData.append("path", remotePath)
         formData.append("file", file)
 
-        const res = await fetch("/api/media", {
+        const res = await authFetch("/api/media", {
           method: "POST",
           body: formData,
         })

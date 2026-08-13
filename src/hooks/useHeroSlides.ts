@@ -13,8 +13,10 @@ const BASE_DEFAULT_SLIDE: HeroSlideType = {
   subtitle: "Plataforma de suporte completo, veículos de alta eficiência e total previsibilidade operacional para a sua autonomia nas ruas de São Paulo.",
   ctaText: "Iniciar Cadastro Oficial",
   ctaUrl: "/cadastro",
-  image: "/images/banners/1.jpg",
-  mobileImage: "/images/banners/1.jpg",
+  // Precisa existir em public/: este é o slide de fallback quando o Firestore
+  // não devolve nenhum slide, então uma imagem quebrada aqui aparece no hero.
+  image: "/images/banners/banner-1.png",
+  mobileImage: "/images/banners/banner-1.png",
   video: "https://player.vimeo.com/external/435674703.sd.mp4?s=7fdb2ef485c1c045d025154cf4d75d27d75a6c11&profile_id=165&oauth2_token_id=57447761",
   badge: "Grupo Michelines — Mobilidade Premium",
   overlay: "gradient",

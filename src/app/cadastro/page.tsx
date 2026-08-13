@@ -535,7 +535,7 @@ export default function CadastroPage() {
                 {step === 2 && (
                   <form onSubmit={handleNextStep} className="space-y-5">
                     <div className="space-y-1.5">
-                      <Label htmlFor="fullName" className="text-slate-850 font-extrabold text-xs flex items-center gap-1.5">
+                      <Label htmlFor="fullName" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
                         <User className="h-4 w-4 text-sky-600" /> Nome Completo
                       </Label>
                       <Input
@@ -550,7 +550,7 @@ export default function CadastroPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="cpf" className="text-slate-850 font-extrabold text-xs flex items-center gap-1.5">
+                        <Label htmlFor="cpf" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
                           <FileText className="h-4 w-4 text-sky-600" /> CPF
                         </Label>
                         <Input
@@ -565,7 +565,7 @@ export default function CadastroPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="whatsapp" className="text-slate-850 font-extrabold text-xs flex items-center gap-1.5">
+                        <Label htmlFor="whatsapp" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
                           <Phone className="h-4 w-4 text-sky-600" /> WhatsApp
                         </Label>
                         <Input
@@ -582,7 +582,7 @@ export default function CadastroPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="email" className="text-slate-850 font-extrabold text-xs flex items-center gap-1.5">
+                        <Label htmlFor="email" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
                           <Mail className="h-4 w-4 text-sky-600" /> E-mail
                         </Label>
                         <Input
@@ -596,7 +596,7 @@ export default function CadastroPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="cep" className="text-slate-850 font-extrabold text-xs flex items-center gap-1.5">
+                        <Label htmlFor="cep" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
                           <MapPin className="h-4 w-4 text-sky-600" /> CEP
                         </Label>
                         <div className="relative">
@@ -622,7 +622,7 @@ export default function CadastroPage() {
                       <div className="space-y-4 pt-3 border-t border-slate-100 animate-fadeIn">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <Label htmlFor="addressStreet" className="text-slate-850 font-extrabold text-xs">Rua / Logradouro</Label>
+                            <Label htmlFor="addressStreet" className="text-slate-800 font-extrabold text-xs">Rua / Logradouro</Label>
                             <Input
                               id="addressStreet"
                               value={formData.addressStreet}
@@ -631,7 +631,7 @@ export default function CadastroPage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label htmlFor="addressNeighborhood" className="text-slate-850 font-extrabold text-xs">Bairro</Label>
+                            <Label htmlFor="addressNeighborhood" className="text-slate-800 font-extrabold text-xs">Bairro</Label>
                             <Input
                               id="addressNeighborhood"
                               value={formData.addressNeighborhood}
@@ -643,7 +643,7 @@ export default function CadastroPage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div className="space-y-1.5">
-                            <Label htmlFor="addressCity" className="text-slate-850 font-extrabold text-xs">Cidade</Label>
+                            <Label htmlFor="addressCity" className="text-slate-800 font-extrabold text-xs">Cidade</Label>
                             <Input
                               id="addressCity"
                               value={formData.addressCity}
@@ -652,7 +652,7 @@ export default function CadastroPage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label htmlFor="addressState" className="text-slate-850 font-extrabold text-xs">Estado</Label>
+                            <Label htmlFor="addressState" className="text-slate-800 font-extrabold text-xs">Estado</Label>
                             <Input
                               id="addressState"
                               value={formData.addressState}
@@ -661,7 +661,7 @@ export default function CadastroPage() {
                             />
                           </div>
                           <div className="space-y-1.5 col-span-1">
-                            <Label htmlFor="addressNumber" className="text-slate-850 font-extrabold text-xs">Número</Label>
+                            <Label htmlFor="addressNumber" className="text-slate-800 font-extrabold text-xs">Número</Label>
                             <Input
                               id="addressNumber"
                               placeholder="Ex: 450"
@@ -673,7 +673,7 @@ export default function CadastroPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label htmlFor="addressComplement" className="text-slate-850 font-extrabold text-xs">Complemento</Label>
+                          <Label htmlFor="addressComplement" className="text-slate-800 font-extrabold text-xs">Complemento</Label>
                           <Input
                             id="addressComplement"
                             placeholder="Ex: Bloco B, Apto 23"
@@ -941,7 +941,7 @@ export default function CadastroPage() {
                                   onClick={() => handleCheckboxToggle(opt.id)}
                                   className={`w-full p-3.5 border rounded-xl flex items-center gap-3 text-left transition-all ${
                                     isChecked
-                                      ? "bg-sky-50 border-sky-350 shadow-xs ring-1 ring-sky-500/20"
+                                      ? "bg-sky-50 border-sky-300 shadow-xs ring-1 ring-sky-500/20"
                                       : "bg-slate-50/50 border-slate-200 hover:bg-slate-50"
                                   }`}
                                 >

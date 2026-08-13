@@ -360,7 +360,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
               <Button 
                 variant="outline" 
                 onClick={fetchVehicles} 
-                className="border-slate-200 hover:border-slate-350 bg-white text-slate-500 hover:text-slate-700 h-10 w-10 p-0 shadow-sm"
+                className="border-slate-200 hover:border-slate-300 bg-white text-slate-500 hover:text-slate-700 h-10 w-10 p-0 shadow-sm"
               >
                 <RefreshCw className="h-4.5 w-4.5" />
               </Button>
@@ -411,7 +411,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
               <p className="text-xs">Carregando catálogo de veículos...</p>
             </div>
           ) : vehicles.length === 0 ? (
-            <div className="h-32 border border-dashed border-slate-250 rounded-xl flex items-center justify-center text-xs text-slate-500 font-semibold">
+            <div className="h-32 border border-dashed border-slate-200 rounded-xl flex items-center justify-center text-xs text-slate-500 font-semibold">
               Nenhum veículo cadastrado no showroom.
             </div>
           ) : (
@@ -516,15 +516,15 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
                 
                 {/* Planos de Precificação */}
                 <div className="space-y-2">
-                  <h4 className="text-[10px] font-black tracking-widest text-slate-450 uppercase text-left">Tabela Comercial de Planos</h4>
+                  <h4 className="text-[10px] font-black tracking-widest text-slate-400 uppercase text-left">Tabela Comercial de Planos</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-slate-50 border border-slate-200/70 p-4 rounded-xl text-center">
-                      <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block mb-1">Por Diária</span>
+                      <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block mb-1">Por Diária</span>
                       <span className="text-base font-black text-slate-800">R$ {viewingVehicle.dailyPrice || 0}</span>
                       <span className="text-[8px] text-slate-500 font-semibold block mt-1">Faturamento diário</span>
                     </div>
                     <div className="bg-slate-50 border border-slate-200/70 p-4 rounded-xl text-center">
-                      <span className="text-[9px] text-slate-450 font-black uppercase tracking-wider block mb-1">Semanal</span>
+                      <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block mb-1">Semanal</span>
                       <span className="text-base font-black text-slate-800">R$ {viewingVehicle.weeklyPrice || Math.round((viewingVehicle.monthlyPrice || 0) / 4)}</span>
                       <span className="text-[8px] text-slate-500 font-semibold block mt-1">Ajuste de 6 diárias</span>
                     </div>
@@ -539,13 +539,13 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
                 {/* Descrição */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 text-left">
                   <div className="space-y-1.5">
-                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Resumo do Showroom</span>
+                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Resumo do Showroom</span>
                     <p className="text-xs text-slate-600 font-semibold leading-relaxed bg-slate-50 p-3.5 border border-slate-200/60 rounded-xl text-justify">
                       {viewingVehicle.shortDescription || "Nenhum resumo comercial preenchido."}
                     </p>
                   </div>
                   <div className="space-y-1.5">
-                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Ficha Técnica Completa</span>
+                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Ficha Técnica Completa</span>
                     <p className="text-xs text-slate-600 font-semibold leading-relaxed bg-slate-50 p-3.5 border border-slate-200/60 rounded-xl text-justify">
                       {viewingVehicle.fullDescription || "Nenhuma descrição detalhada preenchida."}
                     </p>
@@ -557,7 +557,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
                   
                   {/* Pontos Positivos */}
                   <div className="space-y-2">
-                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Pontos Positivos (Vantagens)</span>
+                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Pontos Positivos (Vantagens)</span>
                     {viewingVehicle.positivePoints && viewingVehicle.positivePoints.length > 0 ? (
                       <ul className="space-y-1.5">
                         {viewingVehicle.positivePoints.map((pt, idx) => (
@@ -574,7 +574,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
 
                   {/* Highlights Premium */}
                   <div className="space-y-2">
-                    <span className="text-[10px] text-slate-450 font-black uppercase tracking-widest block">Diferenciais Premium</span>
+                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Diferenciais Premium</span>
                     {viewingVehicle.highlights && viewingVehicle.highlights.length > 0 ? (
                       <ul className="space-y-1.5">
                         {viewingVehicle.highlights.map((h, idx) => (
@@ -593,7 +593,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
 
                 {/* Tags, Specs & SEO */}
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 pt-4 text-left">
-                  <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Metadados e SEO</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Metadados e SEO</span>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
                     <div className="space-y-1">
                       <span className="text-[9px] text-slate-400 font-bold uppercase block">Tags do Showroom</span>
@@ -603,7 +603,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
                       <span className="text-[9px] text-slate-400 font-bold uppercase block">Especificações Rápidas</span>
                       <p className="truncate">{viewingVehicle.specs?.join(", ") || "—"}</p>
                     </div>
-                    <div className="space-y-1 md:col-span-2 border-t border-slate-150 pt-2">
+                    <div className="space-y-1 md:col-span-2 border-t border-slate-100 pt-2">
                       <span className="text-[9px] text-slate-400 font-bold uppercase block">Google Meta Title (SEO)</span>
                       <p className="text-slate-800 font-extrabold">{viewingVehicle.seoTitle || "—"}</p>
                     </div>
@@ -620,7 +620,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
                     type="button" 
                     variant="outline" 
                     onClick={() => setViewingVehicle(null)}
-                    className="border-slate-250 hover:border-slate-350 text-slate-700 hover:bg-slate-50 text-xs font-bold shadow-sm"
+                    className="border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-bold shadow-sm"
                   >
                     Fechar
                   </Button>

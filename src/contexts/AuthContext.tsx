@@ -1,16 +1,25 @@
 "use client"
 
-import { useState, useEffect, createContext, useContext } from "react"
+import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react"
 import { onAuthStateChanged, User } from "firebase/auth"
-import { doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
+import { doc, getDoc, onSnapshot } from "firebase/firestore"
 import { auth, db } from "@/app/firebase/config"
-import { AdminUser, UserRole, canAccess, TabId, ROLE_PERMISSIONS } from "@/lib/permissions"
+import { AdminUser, UserRole, TabId, ROLE_PERMISSIONS } from "@/lib/permissions"
+
+/**
+ * Motivo pelo qual um usuário autenticado não possui perfil administrativo utilizável.
+ *   no-profile  — autenticou, mas ninguém provisionou acesso ao painel
+ *   disabled    — perfil existe, porém está desativado
+ *   unavailable — falha de rede ao ler o perfil
+ */
+export type ProfileError = "no-profile" | "disabled" | "unavailable"
 
 interface AuthContextType {
   firebaseUser: User | null
   adminUser: AdminUser | null
   role: UserRole | null
   loading: boolean
+  profileError: ProfileError | null
   canAccess: (tab: TabId) => boolean
   customPermissions: Record<UserRole, TabId[]>
 }
@@ -20,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   adminUser: null,
   role: null,
   loading: true,
+  profileError: null,
   canAccess: () => false,
   customPermissions: ROLE_PERMISSIONS,
 })
@@ -27,6 +37,7 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null)
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
+  const [profileError, setProfileError] = useState<ProfileError | null>(null)
   const [customPermissions, setCustomPermissions] = useState<Record<UserRole, TabId[]>>(ROLE_PERMISSIONS)
   const [loading, setLoading] = useState(true)
 
@@ -54,54 +65,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (user) {
         try {
-          // Busca perfil do usuário no Firestore
+          // Busca perfil do usuário no Firestore.
+          // O perfil é a ÚNICA fonte de verdade do papel: nunca inferimos nem
+          // criamos permissões no cliente — quem provisiona é um super_admin
+          // pela aba Usuários, e as regras do Firestore validam do lado servidor.
           const ref = doc(db, "admin_users", user.uid)
-          
-          // Timeout de 2.5 segundos para evitar travamento em conexões lentas/offline
+
+          // Timeout de 10s para não travar indefinidamente em conexões ruins.
+          // O cache persistente do Firestore já atende leituras offline.
           const snap = await Promise.race([
             getDoc(ref),
             new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error("Timeout de rede")), 2500)
-            )
+              setTimeout(() => reject(new Error("Timeout de rede")), 10000)
+            ),
           ])
 
           if (snap && snap.exists()) {
-            setAdminUser({ uid: user.uid, ...snap.data() } as AdminUser)
+            const data = snap.data() as Omit<AdminUser, "uid">
+            // Conta desativada não recebe perfil — o painel a trata como sem acesso.
+            setAdminUser(data.active === false ? null : ({ uid: user.uid, ...data } as AdminUser))
+            setProfileError(data.active === false ? "disabled" : null)
           } else {
-            // Usuário autenticado mas sem perfil no Firestore → auto-criar como super_admin
-            const newAdminData = {
-              email: user.email || "",
-              displayName: user.displayName || user.email?.split("@")[0] || "Admin",
-              role: "super_admin" as UserRole,
-              active: true,
-              createdAt: new Date().toISOString(),
-            }
-            
-            try {
-              await setDoc(ref, newAdminData)
-            } catch (err) {
-              console.warn("Erro ao auto-criar perfil do admin no Firestore:", err)
-            }
-
-            setAdminUser({
-              uid: user.uid,
-              ...newAdminData,
-            })
+            // Autenticado, porém sem perfil administrativo provisionado.
+            setAdminUser(null)
+            setProfileError("no-profile")
           }
         } catch (e) {
           console.warn("Erro ao buscar perfil do admin:", e)
-          // Fallback local caso dê timeout ou falhe a conexão
-          setAdminUser({
-            uid: user.uid,
-            email: user.email || "",
-            displayName: user.displayName || user.email?.split("@")[0] || "Admin",
-            role: "super_admin",
-            active: true,
-            createdAt: new Date().toISOString(),
-          })
+          setAdminUser(null)
+          setProfileError("unavailable")
         }
       } else {
         setAdminUser(null)
+        setProfileError(null)
       }
 
       setLoading(false)
@@ -110,29 +106,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsub()
   }, [])
 
-  const checkAccess = (tab: TabId): boolean => {
-    if (!adminUser) return false
-    // Super admin sempre tem acesso total
-    if (adminUser.role === "super_admin") return true
-    
-    const permissions = customPermissions[adminUser.role] || ROLE_PERMISSIONS[adminUser.role]
-    return permissions?.includes(tab) ?? false
-  }
+  // Memoizado: consumidores usam `canAccess` em arrays de dependência de efeitos.
+  // Uma nova identidade a cada render reexecutaria esses efeitos continuamente.
+  const checkAccess = useCallback(
+    (tab: TabId): boolean => {
+      if (!adminUser || !adminUser.active) return false
+      // Super admin sempre tem acesso total
+      if (adminUser.role === "super_admin") return true
 
-  return (
-    <AuthContext.Provider
-      value={{
-        firebaseUser,
-        adminUser,
-        role: adminUser?.role ?? null,
-        loading,
-        canAccess: checkAccess,
-        customPermissions,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+      const permissions = customPermissions[adminUser.role] || ROLE_PERMISSIONS[adminUser.role]
+      return permissions?.includes(tab) ?? false
+    },
+    [adminUser, customPermissions]
   )
+
+  const value = useMemo<AuthContextType>(
+    () => ({
+      firebaseUser,
+      adminUser,
+      role: adminUser?.role ?? null,
+      loading,
+      profileError,
+      canAccess: checkAccess,
+      customPermissions,
+    }),
+    [firebaseUser, adminUser, loading, profileError, checkAccess, customPermissions]
+  )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

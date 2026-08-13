@@ -1,7 +1,14 @@
 rules_version = '2';
+
+// BOOTSTRAP: estas regras exigem que já exista pelo menos um super_admin.
+// Para o primeiro acesso, crie manualmente pelo Console do Firebase o documento
+//   admin_users/{uid-do-usuario}  =>  { role: "super_admin", active: true, email, displayName, createdAt }
+// usando o UID gerado em Authentication. A partir daí o provisionamento é feito
+// pela aba Usuários do painel.
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // Helper para verificar se o usuário é um administrador autenticado e ativo
     function isAdmin() {
       return request.auth != null && 
@@ -17,16 +24,29 @@ service cloud.firestore {
         get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.active == true;
     }
 
+    // Campos que só um super admin pode gravar — evitam autopromoção
+    function touchesPrivilegedFields() {
+      return request.resource.data.diff(resource.data)
+        .affectedKeys()
+        .hasAny(['role', 'active', 'uid', 'createdAt', 'createdBy']);
+    }
+
     // 1. Coleção de Administradores
     match /admin_users/{uid} {
-      // Qualquer usuário autenticado pode ler (get) seu próprio perfil inicial
+      // Qualquer autenticado lê o próprio perfil (o painel precisa disso no boot);
+      // admins ativos leem e listam a equipe inteira.
       allow get: if request.auth != null && request.auth.uid == uid;
-      // Usuários autenticados podem criar seu perfil inicial, ou admins ativos podem criar outros usuários
-      allow create: if (request.auth != null && request.auth.uid == uid) || isAdmin();
-      // Administradores ativos podem listar (list) e obter (get) detalhes de todos os usuários da equipe
       allow list, get: if isAdmin();
-      // Admins ativos podem atualizar usuários (incluindo a si mesmos) e super admins podem deletar
-      allow update: if isAdmin();
+
+      // Perfis são PROVISIONADOS por um super admin. Um usuário autenticado não
+      // pode criar o próprio perfil — isso permitiria se autonomear super_admin.
+      allow create: if isSuperAdmin();
+
+      // Cada um edita os próprios dados de exibição; papel, status ativo e
+      // metadados de criação continuam exclusivos do super admin.
+      allow update: if isSuperAdmin()
+        || (isAdmin() && request.auth.uid == uid && !touchesPrivilegedFields());
+
       allow delete: if isSuperAdmin();
     }
 
