@@ -1,7 +1,10 @@
 import { initializeApp, getApps } from "firebase/app"
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
+
+// Firebase Storage NÃO é usado neste projeto: todo arquivo (fotos de veículos,
+// banners, logos, documentos de leads) vive no Supabase Storage, acessado via
+// src/lib/supabase.ts e pela rota /api/media.
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -64,7 +67,5 @@ try {
   db = getFirestore(app)
 }
 
-const storage = getStorage(app)
-
-export { auth, db, storage, secondaryAuth }
+export { auth, db, secondaryAuth }
 

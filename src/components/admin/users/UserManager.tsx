@@ -369,7 +369,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
             </p>
           </div>
 
-          <div className="overflow-x-auto border border-slate-105 rounded-xl">
+          <div className="overflow-x-auto border border-slate-100 rounded-xl">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">

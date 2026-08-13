@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { doc, updateDoc } from "firebase/firestore"
 import { db } from "@/app/firebase/config"
-import { Lead, LeadInteraction } from "@/types/lead"
+import { Lead, LeadInteraction, CreditCheckRecord } from "@/types/lead"
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,9 @@ import {
   ShieldCheck, FileText, CheckCircle, XCircle, Info, Eye, UploadCloud, Trash2,
   Archive, RotateCcw, Star, ArrowRight, CalendarPlus
 } from "lucide-react"
-import { calculateLeadScore } from "@/lib/lead-score"
+import { calculateLeadScore, ScoreCriterion, DOC_CATEGORIES } from "@/lib/lead-score"
+import { LeadScoreBreakdown } from "./LeadScoreBreakdown"
+import { CreditCheckPanel, creditResultMeta } from "./CreditCheckPanel"
 import { useToast } from "@/components/ui/toast-simple"
 import { useAuth } from "@/contexts/AuthContext"
 import { getElapsedTime } from "./LeadCard"
@@ -196,6 +198,10 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
   // Document Upload State
   const [uploadingDoc, setUploadingDoc] = useState(false)
+
+  // Composição de nova anotação (o histórico vive em lead.interactions)
+  const [newNote, setNewNote] = useState("")
+  const [addingNote, setAddingNote] = useState(false)
 
   // Append a logged action into interactions history collection in Firestore
   const logInteraction = async (type: LeadInteraction["type"], content: string) => {
@@ -399,6 +405,208 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
       // Reset input value to allow uploading same file again if deleted
       if (e.target) e.target.value = ""
     }
+  }
+
+  /**
+   * Sobe um arquivo para o Storage e devolve a URL, SEM gravá-lo na ficha.
+   * Usado pela análise de CPF, onde o comprovante só é persistido junto com a
+   * decisão que ele justifica — evita anexo órfão se a consulta for cancelada.
+   */
+  const uploadFileOnly = async (
+    file: File
+  ): Promise<{ url: string; path: string; name: string } | null> => {
+    if (!lead) return null
+
+    if (file.size > 10 * 1024 * 1024) {
+      showError("Arquivo muito grande", "O tamanho máximo permitido é 10MB.")
+      return null
+    }
+
+    try {
+      const cleanName = file.name.replace(/\s+/g, "_").replace(/[()]/g, "").toLowerCase()
+      const formData = new FormData()
+      formData.append("bucket", "vehicles")
+      formData.append("path", `leads_docs/${lead.id}/${Date.now()}_${cleanName}`)
+      formData.append("file", file)
+
+      const res = await authFetch("/api/media", { method: "POST", body: formData })
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        showError("Erro no upload", json.error || "Não foi possível enviar o arquivo.")
+        return null
+      }
+
+      return { url: json.url, path: json.path, name: file.name }
+    } catch (err) {
+      console.error("Erro no upload do comprovante:", err)
+      showError("Erro no upload", "Não foi possível enviar o arquivo.")
+      return null
+    }
+  }
+
+  /**
+   * Grava a consulta de CPF, espelha o status na fase de crédito, indexa o
+   * comprovante entre os anexos (categoria `consulta_cpf`) e registra na timeline.
+   */
+  const handleRegisterCreditCheck = async (
+    record: Omit<CreditCheckRecord, "checkedBy" | "checkedAt">
+  ) => {
+    if (!lead) return
+
+    try {
+      const fullRecord: CreditCheckRecord = {
+        ...record,
+        checkedBy: loggedInUser,
+        checkedAt: new Date().toISOString(),
+      }
+
+      // Mantém `creditAnalysisStatus` coerente com o resultado, já que a fase de
+      // crédito e as travas do funil leem esse campo.
+      const statusMap: Record<CreditCheckRecord["result"], Lead["creditAnalysisStatus"]> = {
+        approved: "approved",
+        rejected: "rejected",
+        restricted: "needs_authorization",
+        inconclusive: "pending",
+      }
+      const nextStatus = statusMap[record.result]
+
+      const updatedDocs = [...(lead.attachedDocs || [])]
+      if (record.documentUrl) {
+        updatedDocs.push({
+          name: record.documentName || "Consulta de CPF",
+          url: record.documentUrl,
+          path: record.documentPath,
+          uploadedAt: fullRecord.checkedAt,
+          category: "consulta_cpf",
+          uploadedBy: loggedInUser,
+        })
+      }
+
+      const resultLabel = creditResultMeta(record.result).label
+      const details = [
+        record.bureau && `birô ${record.bureau}`,
+        typeof record.bureauScore === "number" && `score ${record.bureauScore}`,
+        record.restrictions && `restrições: ${record.restrictions}`,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+
+      const updatedInteractions = [
+        ...(lead.interactions || []),
+        {
+          id: Math.random().toString(36).substring(2, 9),
+          type: "credit_check" as const,
+          agentName: loggedInUser,
+          content: `Consulta de CPF registrada — ${resultLabel}${details ? ` (${details})` : ""}.`,
+          createdAt: fullRecord.checkedAt,
+        },
+      ]
+
+      const patch = {
+        creditCheck: fullRecord,
+        creditAnalysisStatus: nextStatus,
+        attachedDocs: updatedDocs,
+        interactions: updatedInteractions,
+        updatedAt: new Date().toISOString(),
+      }
+
+      await updateDoc(doc(db, "leads", lead.id), patch)
+      setCreditAnalysisStatus(nextStatus)
+      onLeadUpdated({ ...lead, ...patch })
+      success("Consulta registrada!", `Resultado: ${resultLabel}.`)
+    } catch (err) {
+      console.error("Erro ao registrar consulta de CPF:", err)
+      showError("Erro ao registrar", "Não foi possível salvar a consulta.")
+    }
+  }
+
+  /** Registra a anotação na timeline e limpa o campo. */
+  const handleAddNote = async () => {
+    const text = newNote.trim()
+    if (!text) return
+    setAddingNote(true)
+    try {
+      await logInteraction("note", text)
+      setNewNote("")
+      success("Anotação registrada!", "A nota entrou no histórico da ficha.")
+    } finally {
+      setAddingNote(false)
+    }
+  }
+
+  /**
+   * Há edições pendentes de "Salvar Alterações"?
+   * Compara o formulário com o que está gravado no lead — sem isto, fechar a
+   * ficha descartava anotações e mudanças de fase em silêncio.
+   */
+  const hasUnsavedChanges = (): boolean => {
+    if (!lead) return false
+    return (
+      notes !== (lead.notes || "") ||
+      approvalStatus !== (lead.approvalStatus || "pending") ||
+      contacted !== !!lead.contacted ||
+      whatsappSent !== !!lead.whatsappSent ||
+      registrationStatus !== (lead.registrationStatus || "complete") ||
+      needsMoreData !== !!lead.needsMoreData ||
+      contactedForData !== !!lead.contactedForData ||
+      creditAnalysisStatus !== (lead.creditAnalysisStatus || "pending") ||
+      authorizedBy !== (lead.authorizedBy || "") ||
+      isEditing
+    )
+  }
+
+  /** Fecha a ficha, confirmando antes se houver alterações não salvas. */
+  const handleRequestClose = () => {
+    if (hasUnsavedChanges()) {
+      const ok = window.confirm(
+        "Há alterações não salvas nesta ficha.\n\nDeseja fechar mesmo assim e descartá-las?"
+      )
+      if (!ok) return
+    }
+    onClose()
+  }
+
+  /**
+   * Requisitos não cumpridos para marcar o lead como convertido (Alugado).
+   * Lê o estado já persistido no lead, não o formulário em edição.
+   */
+  const pendingConversionRequirements = (): string[] => {
+    if (!lead) return []
+    const pending: string[] = []
+
+    const credit = lead.creditCheck?.result ?? null
+    if (!lead.creditCheck) {
+      pending.push("Consulta de CPF não registrada")
+    } else if (credit === "rejected") {
+      pending.push("Consulta de CPF com resultado negado")
+    } else if (credit === "restricted" && !lead.authorizedBy) {
+      pending.push("CPF com restrição e sem autorização registrada")
+    } else if (credit === "inconclusive") {
+      pending.push("Consulta de CPF inconclusiva")
+    }
+
+    if (lead.registrationStatus && lead.registrationStatus !== "complete") {
+      pending.push("Cadastro marcado como incompleto")
+    }
+    if (!lead.cpf) pending.push("CPF ausente na ficha")
+    if (!lead.cnhNumber) pending.push("Número da CNH ausente")
+
+    return pending
+  }
+
+  /** Abre o WhatsApp já com o pedido do item que está derrubando o score. */
+  const handleRequestScoreItem = (criterion: ScoreCriterion) => {
+    if (!lead) return
+    const firstName = lead.fullName.split(" ")[0]
+    const agentFirstName = adminUser?.displayName?.split(" ")[0] || "pessoal"
+    const message =
+      `Oi ${firstName}! Aqui é o ${agentFirstName} do Grupo Michelines. ` +
+      `Para avançar com sua ficha do ${lead.vehicleInterest}, preciso de um detalhe: ` +
+      `${criterion.actionHint} Consegue me ajudar com isso?`
+
+    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`, "_blank")
+    logInteraction("whatsapp", `Solicitou por WhatsApp: ${criterion.label}.`)
   }
 
   const handleDeleteDocument = async (docToDelete: { name: string; url: string; path?: string }) => {
@@ -1124,7 +1332,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
       : "Recém capturado"
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleRequestClose()}>
       <DialogContent className="max-w-4xl w-[92vw] h-[90vh] md:h-[85vh] flex flex-col p-0 overflow-hidden bg-white border border-slate-200 rounded-3xl shadow-2xl text-slate-800 focus:outline-none" descriptionId="lead-drawer-dialog-description">
         
         {/* Persistent Dialog Header */}
@@ -1167,7 +1375,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
           const FUNNEL_STEPS: { id: Lead["status"]; label: string; shortLabel: string }[] = [
             { id: "new", label: "Novo Lead", shortLabel: "Novo" },
             { id: "contacted", label: "Contatado", shortLabel: "Contatado" },
-            { id: "negotiating", label: "Em Negociao", shortLabel: "Negociao" },
+            { id: "negotiating", label: "Em Negociação", shortLabel: "Negociação" },
             { id: "scheduled", label: "Agendado", shortLabel: "Agendado" },
             { id: "converted", label: "Alugado ✓", shortLabel: "Alugado" },
             { id: "lost", label: "Perdido", shortLabel: "Perdido" },
@@ -1176,6 +1384,24 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
           const handleFunnelStep = async (stepId: Lead["status"]) => {
             if (!lead || stepId === status) return
+
+            // Trava do funil: converter significa entregar um veículo. Não
+            // bloqueamos a operação, mas exigimos ciência explícita das
+            // pendências — e registramos quem passou por cima delas.
+            let overrides: string[] = []
+            if (stepId === "converted") {
+              const pending = pendingConversionRequirements()
+              if (pending.length > 0) {
+                const ok = window.confirm(
+                  `Este lead ainda tem pendências para ser convertido:\n\n` +
+                    pending.map((p) => `  • ${p}`).join("\n") +
+                    `\n\nDeseja marcar como Alugado mesmo assim?`
+                )
+                if (!ok) return
+                overrides = pending
+              }
+            }
+
             try {
               const leadRef = doc(db, "leads", lead.id)
               const newInteractions = [...(lead.interactions || [])]
@@ -1183,7 +1409,11 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                 id: Math.random().toString(36).substring(2, 9),
                 type: "status_change",
                 agentName: loggedInUser,
-                content: `Avanou etapa do funil: ${status} → ${stepId}.`,
+                content:
+                  `Avançou etapa do funil: ${status} → ${stepId}.` +
+                  (overrides.length
+                    ? ` Convertido com pendências assumidas: ${overrides.join("; ")}.`
+                    : ""),
                 createdAt: new Date().toISOString()
               })
               await updateDoc(leadRef, {
@@ -1194,7 +1424,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
               setStatus(stepId)
               onLeadUpdated({ ...lead, status: stepId, interactions: newInteractions, updatedAt: new Date().toISOString() })
             } catch (e) {
-              console.error("Erro ao avanar etapa:", e)
+              console.error("Erro ao avançar etapa:", e)
             }
           }
 
@@ -1594,7 +1824,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                         {lead.whatsapp && (
                           <div>
                             <label className="text-[9px] uppercase font-black tracking-widest text-slate-400">WhatsApp</label>
-                            <p className="text-xs font-bold text-slate-755 flex items-center gap-1 mt-0.5">
+                            <p className="text-xs font-bold text-slate-700 flex items-center gap-1 mt-0.5">
                               <MessageSquare className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                               {lead.whatsapp}
                             </p>
@@ -1725,7 +1955,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                           </Badge>
                         )}
                         {lead.interestExecutive && (
-                          <Badge className="bg-indigo-50 border border-indigo-200 text-indigo-755 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
+                          <Badge className="bg-indigo-50 border border-indigo-200 text-indigo-700 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
                             💎 Executivo Premium
                           </Badge>
                         )}
@@ -1902,25 +2132,22 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                   Fases de Avaliação & Decisão Final
                 </h3>
 
-                {/* Funnel Stage Selector & Checkboxes */}
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700">Etapa do Funil Comercial</label>
-                    <Select value={status} onValueChange={(val: Lead["status"]) => setStatus(val)}>
-                      <SelectTrigger className="bg-white border-slate-200 text-slate-800">
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-slate-200 text-slate-700">
-                        <SelectItem value="new">Novo Lead</SelectItem>
-                        <SelectItem value="contacted">Contatado</SelectItem>
-                        <SelectItem value="negotiating">Em Negociação</SelectItem>
-                        <SelectItem value="scheduled">Visita Agendada</SelectItem>
-                        <SelectItem value="converted">Convertido (Alugado)</SelectItem>
-                        <SelectItem value="lost">Perdido</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Score explicável — o que falta para qualificar o lead */}
+                <LeadScoreBreakdown scoreInfo={scoreInfo} onRequestItem={handleRequestScoreItem} />
 
+                {/* Consulta de CPF auditável, com o comprovante preso à decisão */}
+                <CreditCheckPanel
+                  cpf={lead.cpf}
+                  current={lead.creditCheck}
+                  onRegister={handleRegisterCreditCheck}
+                  onUploadDocument={uploadFileOnly}
+                />
+
+                {/* Marcadores de contato.
+                    A etapa do funil NÃO é editada aqui: ela pertence à barra do
+                    topo, que grava na hora. Manter um segundo seletor em estado
+                    local fazia os dois controles divergirem na mesma tela. */}
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => setContacted(!contacted)}
@@ -2253,11 +2480,19 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                           <div className="flex items-center gap-2.5 min-w-0 text-left">
                             <FileText className="h-5 w-5 text-slate-400 shrink-0" />
                             <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-800 truncate" title={docItem.name}>
-                                {docItem.name}
+                              <p className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                                <span className="truncate" title={docItem.name}>{docItem.name}</span>
+                                {docItem.category && (
+                                  <span
+                                    className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-black uppercase ${DOC_CATEGORIES[docItem.category].color}`}
+                                  >
+                                    {DOC_CATEGORIES[docItem.category].label}
+                                  </span>
+                                )}
                               </p>
                               <p className="text-[9px] text-slate-400 font-medium">
                                 Enviado em {new Date(docItem.uploadedAt).toLocaleString("pt-BR")}
+                                {docItem.uploadedBy && ` por ${docItem.uploadedBy}`}
                               </p>
                             </div>
                           </div>
@@ -2298,16 +2533,43 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                   Notas & Histórico de Atendimento
                 </h3>
 
-                {/* CRM Notes Textarea */}
+                {/* Nova anotação — cada nota vira um registro na timeline, com
+                    autor e data. Antes era um campo único que sobrescrevia a
+                    anotação anterior a cada salvamento. */}
                 <div className="space-y-2 text-left">
-                  <label className="text-xs font-bold text-slate-700">Anotações Internas do Atendimento</label>
+                  <label className="text-xs font-bold text-slate-700">Nova Anotação</label>
                   <Textarea
-                    placeholder="Digite aqui observações adicionais sobre o motorista, CNH, visitas agendadas..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="min-h-[100px] bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 text-xs focus-visible:ring-sky-500"
+                    placeholder="Registre o que foi tratado: retorno do motorista, condição negociada, pendência..."
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    className="min-h-[84px] bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 text-xs focus-visible:ring-sky-500"
                   />
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-semibold text-slate-400">
+                      Fica registrada como {loggedInUser}, com data e hora.
+                    </p>
+                    <Button
+                      onClick={handleAddNote}
+                      disabled={!newNote.trim() || addingNote}
+                      size="sm"
+                      className="shrink-0 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs h-9"
+                    >
+                      {addingNote ? "Registrando..." : "Adicionar nota"}
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Anotação legada: campo único usado antes do histórico */}
+                {lead.notes?.trim() && (
+                  <div className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-left">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-amber-700">
+                      Anotação anterior (campo único)
+                    </p>
+                    <p className="whitespace-pre-wrap text-xs font-medium leading-relaxed text-slate-700">
+                      {lead.notes}
+                    </p>
+                  </div>
+                )}
 
                 <div className="h-px bg-slate-100" />
 
@@ -2324,7 +2586,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                       <SelectTrigger className="bg-white border-slate-200 text-slate-700 h-9 text-xs">
                         <SelectValue placeholder="Selecione o template" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border border-slate-200 text-slate-755">
+                      <SelectContent className="bg-white border border-slate-200 text-slate-700">
                         {WHATSAPP_TEMPLATE_CATEGORIES.map(cat => (
                           <SelectGroup key={cat.category}>
                             <SelectLabel className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-2 py-1">
@@ -2395,7 +2657,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                           }`} />
                         <p className="text-[11px] font-bold text-slate-800">{interaction.content}</p>
                         <p className="text-[9px] text-slate-400 mt-0.5 font-bold">
-                          Operador: <span className="text-slate-655">{interaction.agentName}</span> • {new Date(interaction.createdAt).toLocaleString("pt-BR")}
+                          Operador: <span className="text-slate-600">{interaction.agentName}</span> • {new Date(interaction.createdAt).toLocaleString("pt-BR")}
                         </p>
                       </div>
                     ))}
@@ -2454,7 +2716,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
           </Button>
 
           <Button
-            onClick={onClose}
+            onClick={handleRequestClose}
             variant="outline"
             className="flex-1 border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 font-bold"
           >

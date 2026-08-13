@@ -119,5 +119,21 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // 12. Campanhas com página pública (/c/{slug})
+    match /campaigns/{campaignId} {
+      // A landing precisa ser lida por visitantes anônimos
+      allow read: if true;
+      allow create, delete: if isAdmin();
+
+      // Visitante anônimo só pode incrementar os contadores de views/clicks —
+      // nunca alterar conteúdo, status ou slug da campanha.
+      allow update: if isAdmin()
+        || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'clicks'])
+          && request.resource.data.views >= resource.data.views
+          && request.resource.data.clicks >= resource.data.clicks
+        );
+    }
   }
 }

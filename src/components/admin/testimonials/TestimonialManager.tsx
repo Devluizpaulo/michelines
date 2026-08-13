@@ -102,7 +102,7 @@ export function TestimonialManager() {
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-sky-605" />
+            <MessageSquare className="h-5 w-5 text-sky-600" />
             Gestão de Depoimentos
           </h2>
           <p className="text-xs text-slate-500 mt-0.5 font-semibold">
@@ -239,7 +239,7 @@ export function TestimonialManager() {
                     className={`flex-1 text-xs font-bold h-9 flex items-center justify-center gap-1.5 rounded-xl border active:scale-[0.98] transition-all ${
                       item.approved
                         ? "bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700"
-                        : "bg-sky-50 border-sky-200 hover:bg-sky-100 text-sky-700 hover:border-sky-305"
+                        : "bg-sky-50 border-sky-200 hover:bg-sky-100 text-sky-700 hover:border-sky-300"
                     }`}
                   >
                     {item.approved ? (

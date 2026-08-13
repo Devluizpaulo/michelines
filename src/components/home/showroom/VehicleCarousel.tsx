@@ -80,7 +80,7 @@ export function VehicleCarousel({ vehicles, onSelectVehicle, onOpenGallery }: Ve
                       </Badge>
                     )}
                     {car.pricing?.weekendExempt && (
-                      <Badge className="bg-amber-50 text-amber-700 border border-amber-255 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
+                      <Badge className="bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
                         📅 Domingos & Feriados Isentos
                       </Badge>
                     )}

@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { useAuth } from "@/contexts/AuthContext"
 import { TabId, ROLE_LABELS } from "@/lib/permissions"
 import { ADMIN_MENU_ITEMS } from "./menu-items"
+import { LOGO_IMAGES } from "@/lib/supabase"
 
 interface AdminHeaderProps {
   activeTab: TabId
@@ -61,7 +62,7 @@ export function AdminHeader({
               <SheetTitle className="text-slate-900 font-black text-left">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://cbynwzxalzcaownnouwp.supabase.co/storage/v1/object/public/logos/logo-grupo-michelines.png"
+                  src={LOGO_IMAGES.primary}
                   alt="Grupo Michelines"
                   className="h-8 w-auto object-contain"
                 />
@@ -111,7 +112,7 @@ export function AdminHeader({
         <Link href="/" className="hidden items-center gap-2.5 sm:flex">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://cbynwzxalzcaownnouwp.supabase.co/storage/v1/object/public/logos/logo-grupo-michelines.png"
+            src={LOGO_IMAGES.primary}
             alt="Grupo Michelines"
             className="h-8 w-auto object-contain"
           />

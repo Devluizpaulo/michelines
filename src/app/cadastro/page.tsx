@@ -5,9 +5,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { 
-  ArrowLeft, CheckCircle2, Loader2, Phone, User, ShieldCheck, Check, Clock, 
-  Car, Sparkles, Key, Plane, Battery, Crown, MapPin, Mail, Home, CreditCard, Shield, FileText
+import {
+  ArrowLeft, CheckCircle2, Loader2, Phone, User, ShieldCheck, Check, Clock,
+  Car, Sparkles, Key, Plane, Battery, Crown
 } from "lucide-react"
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "firebase/firestore"
 import { db } from "../firebase/config"
@@ -24,7 +24,6 @@ export default function CadastroPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [vehicles, setVehicles] = useState<any[]>([])
   const [loadingVehicles, setLoadingVehicles] = useState(true)
-  const [loadingCep, setLoadingCep] = useState(false)
   const [protocol, setProtocol] = useState("")
   const [campaignId, setCampaignId] = useState("")
   const [campaignName, setCampaignName] = useState("")
@@ -32,16 +31,7 @@ export default function CadastroPage() {
   const [formData, setFormData] = useState({
     situation: "", // "taxista" | "futuro_taxista"
     fullName: "",
-    cpf: "",
     whatsapp: "",
-    email: "",
-    cep: "",
-    addressStreet: "",
-    addressNeighborhood: "",
-    addressCity: "",
-    addressState: "",
-    addressNumber: "",
-    addressComplement: "",
     
     // Flow A: Já sou taxista
     hasCondutax: "", // "sim" | "nao" | "renovacao"
@@ -61,9 +51,9 @@ export default function CadastroPage() {
     needsHelpWith: [] as string[],
     passengerExperience: "", // "app" | "particular" | "entregas" | "nenhuma"
 
-    // Preferences (Both)
-    paymentPreference: "", // "pix" | "debito" | "credito" | "indefinido"
-    contractType: "", // "diaria" | "semanal" | "mensal" | "indefinido"
+    // Preferences (Both).
+    // Forma de pagamento e ciclo de contratação foram removidos do formulário:
+    // são tema da negociação com o atendente, não do primeiro contato.
     preferredContactTime: "", // "manha" | "tarde" | "noite"
   })
 
@@ -91,32 +81,48 @@ export default function CadastroPage() {
     return () => unsubscribe()
   }, [])
 
-  // Parse tracking parameters on mount
+  // Atribuição de campanha: lida na URL (vinda de /c/{slug}) e guardada por 30
+  // dias. Em sessionStorage a atribuição morria ao fechar a aba — quem via o
+  // story hoje e se cadastrava amanhã chegava sem origem.
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      let cId = params.get("campaignId") || params.get("utm_campaign_id") || ""
-      let cName = params.get("campaignName") || params.get("utm_campaign") || ""
-      const carInterest = params.get("vehicle") || params.get("vehicleInterest") || ""
+    if (typeof window === "undefined") return
 
-      // Fallback/Persist to sessionStorage to prevent loss on refresh
-      if (!cId) {
-        cId = sessionStorage.getItem("utm_campaign_id") || ""
-        cName = sessionStorage.getItem("utm_campaign_name") || ""
+    const STORAGE_KEY = "michelines_attribution"
+    const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000
+
+    const params = new URLSearchParams(window.location.search)
+    let cId = params.get("campaignId") || params.get("utm_campaign_id") || ""
+    let cName = params.get("campaignName") || params.get("utm_campaign") || ""
+    const carInterest = params.get("vehicle") || params.get("vehicleInterest") || ""
+
+    try {
+      if (cId) {
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ id: cId, name: cName, at: Date.now() })
+        )
       } else {
-        sessionStorage.setItem("utm_campaign_id", cId)
-        sessionStorage.setItem("utm_campaign_name", cName)
+        const saved = window.localStorage.getItem(STORAGE_KEY)
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (parsed?.id && Date.now() - (parsed.at ?? 0) < MAX_AGE_MS) {
+            cId = parsed.id
+            cName = parsed.name || ""
+          } else {
+            window.localStorage.removeItem(STORAGE_KEY)
+          }
+        }
       }
+    } catch (e) {
+      // Modo privado ou storage cheio: seguimos só com o que veio na URL
+      console.warn("Atribuição de campanha não pôde ser persistida:", e)
+    }
 
-      setCampaignId(cId)
-      setCampaignName(cName)
+    setCampaignId(cId)
+    setCampaignName(cName)
 
-      if (carInterest) {
-        setFormData(prev => ({
-          ...prev,
-          vehicleInterest: carInterest
-        }))
-      }
+    if (carInterest) {
+      setFormData((prev) => ({ ...prev, vehicleInterest: carInterest }))
     }
   }, [])
 
@@ -129,56 +135,12 @@ export default function CadastroPage() {
     return `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7, 11)}`
   }
 
-  const formatCPF = (val: string) => {
-    const clean = val.replace(/\D/g, "")
-    if (clean.length <= 3) return clean
-    if (clean.length <= 6) return `${clean.slice(0, 3)}.${clean.slice(3)}`
-    if (clean.length <= 9) return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6)}`
-    return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6, 9)}-${clean.slice(9, 11)}`
-  }
-
-  const formatCEP = (val: string) => {
-    const clean = val.replace(/\D/g, "")
-    if (clean.length <= 5) return clean
-    return `${clean.slice(0, 5)}-${clean.slice(5, 8)}`
-  }
-
-  // Fetch address from ViaCEP API
-  const fetchAddress = async (cepValue: string) => {
-    const cleanCep = cepValue.replace(/\D/g, "")
-    if (cleanCep.length === 8) {
-      setLoadingCep(true)
-      try {
-        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
-        const data = await res.json()
-        if (!data.erro) {
-          setFormData((prev) => ({
-            ...prev,
-            addressStreet: data.logradouro || "",
-            addressNeighborhood: data.bairro || "",
-            addressCity: data.localidade || "",
-            addressState: data.uf || "",
-          }))
-        }
-      } catch (err) {
-        console.warn("Erro ao buscar CEP:", err)
-      } finally {
-        setLoadingCep(false)
-      }
-    }
-  }
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
     let formattedValue = value
 
     if (id === "whatsapp") {
       formattedValue = formatPhone(value)
-    } else if (id === "cpf") {
-      formattedValue = formatCPF(value)
-    } else if (id === "cep") {
-      formattedValue = formatCEP(value)
-      fetchAddress(formattedValue)
     }
 
     setFormData((prev) => ({
@@ -231,9 +193,12 @@ export default function CadastroPage() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
+  /** Última etapa do formulário (o passo 1 é a escolha de perfil). */
+  const LAST_STEP = 3
+
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault()
-    if (step < 4) {
+    if (step < LAST_STEP) {
       setStep(step + 1)
       window.scrollTo({ top: 0, behavior: "smooth" })
     }
@@ -264,30 +229,18 @@ export default function CadastroPage() {
     }
 
     try {
-      const fullAddress = [
-        formData.addressStreet,
-        formData.addressNumber && `nº ${formData.addressNumber}`,
-        formData.addressComplement && `(${formData.addressComplement})`,
-        formData.addressNeighborhood,
-        formData.addressCity,
-        formData.addressState
-      ].filter(Boolean).join(", ")
-
+      // CPF, e-mail e endereço não são mais coletados na captação: o atendente
+      // preenche pela ficha do painel. Os campos seguem no documento como vazios
+      // para não quebrar telas e relatórios que já os leem.
       const leadPayload = {
         fullName: formData.fullName,
         phone: formData.whatsapp,
         whatsapp: formData.whatsapp,
-        email: formData.email,
-        cpf: formData.cpf,
-        cep: formData.cep,
-        address: fullAddress,
-        addressStreet: formData.addressStreet,
-        addressNumber: formData.addressNumber,
-        addressComplement: formData.addressComplement,
-        addressNeighborhood: formData.addressNeighborhood,
-        addressCity: formData.addressCity,
-        addressState: formData.addressState,
-        
+        email: "",
+        cpf: "",
+        cep: "",
+        address: "",
+
         situation: formData.situation,
         hasCondutax: formData.situation === "taxista" ? formData.hasCondutax : "",
         hasOwnAlvara: formData.situation === "taxista" ? formData.hasOwnAlvara : "",
@@ -304,18 +257,17 @@ export default function CadastroPage() {
         passengerExperience: formData.situation === "futuro_taxista" ? formData.passengerExperience : "",
         
         operationInterest: formData.interestOper,
-        vehicleInterest: formData.vehicleInterest,
+        // Campo livre e opcional: sem resposta, o atendente define na conversa
+        vehicleInterest: formData.vehicleInterest.trim() || "A definir",
         preferredContactTime: formData.preferredContactTime,
-        paymentPreference: formData.paymentPreference,
-        contractType: formData.contractType,
-        
+
         score,
         protocol: generatedProtocol,
         
         status: "new" as const,
         approvalStatus: "pending" as const,
         source: "Cadastro Site",
-        notes: `Smart Funnel Lead. Perfil: ${formData.situation === "taxista" ? "Já é Taxista" : "Futuro Taxista"}. CPF: ${formData.cpf}. Score calculado: ${score} pts. Protocolo: ${generatedProtocol}.`,
+        notes: `Smart Funnel Lead. Perfil: ${formData.situation === "taxista" ? "Já é Taxista" : "Futuro Taxista"}. Score calculado: ${score} pts. Protocolo: ${generatedProtocol}.`,
         contacted: false,
         whatsappSent: false,
         campaignId: campaignId || "",
@@ -331,8 +283,7 @@ export default function CadastroPage() {
         fullName: formData.fullName,
         whatsapp: formData.whatsapp,
         phone: formData.whatsapp,
-        cityNeighborhood: `${formData.addressCity} - ${formData.addressNeighborhood}`,
-        carModel: formData.vehicleInterest,
+                carModel: formData.vehicleInterest.trim() || "A definir",
         status: "pending",
         createdAt: serverTimestamp(),
       })
@@ -453,15 +404,15 @@ export default function CadastroPage() {
             {step > 1 && (
               <div className="flex justify-between mb-8 relative px-10">
                 <div className="absolute top-5 left-12 right-12 h-0.5 bg-white/10 -z-10" />
+                {/* Duas etapas: a barra vai de 0% a 100% entre elas */}
                 <div
                   className="absolute top-5 left-12 h-0.5 bg-amber-500 -z-10 transition-all duration-500"
-                  style={{ width: `${(step - 2) * 50}%` }}
+                  style={{ width: `${Math.min(Math.max(step - 2, 0), 1) * 100}%` }}
                 />
 
                 {[
                   { s: 2, label: "Contato" },
-                  { s: 3, label: "Ficha Técnica" },
-                  { s: 4, label: "Preferências" }
+                  { s: 3, label: "Perfil" }
                 ].map((item) => (
                   <div key={item.s} className="flex flex-col items-center z-10">
                     <div
@@ -531,7 +482,10 @@ export default function CadastroPage() {
                   </div>
                 )}
 
-                {/* STEP 2: DADOS BÁSICOS & ENDEREÇO */}
+                {/* STEP 2: IDENTIFICAÇÃO.
+                    Primeiro contato pede o mínimo — nome e WhatsApp. CPF, e-mail
+                    e endereço eram atrito antes de o candidato falar com alguém;
+                    o atendente coleta o que precisar direto na ficha do painel. */}
                 {step === 2 && (
                   <form onSubmit={handleNextStep} className="space-y-5">
                     <div className="space-y-1.5">
@@ -544,146 +498,38 @@ export default function CadastroPage() {
                         value={formData.fullName}
                         onChange={handleInputChange}
                         className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-11"
+                        autoComplete="name"
                         required
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="cpf" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
-                          <FileText className="h-4 w-4 text-sky-600" /> CPF
-                        </Label>
-                        <Input
-                          id="cpf"
-                          placeholder="000.000.000-00"
-                          value={formData.cpf}
-                          onChange={handleInputChange}
-                          className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl font-medium h-11"
-                          maxLength={14}
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="whatsapp" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
-                          <Phone className="h-4 w-4 text-sky-600" /> WhatsApp
-                        </Label>
-                        <Input
-                          id="whatsapp"
-                          placeholder="(00) 00000-0000"
-                          value={formData.whatsapp}
-                          onChange={handleInputChange}
-                          className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl font-medium h-11"
-                          maxLength={15}
-                          required
-                        />
-                      </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="whatsapp" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
+                        <Phone className="h-4 w-4 text-sky-600" /> WhatsApp
+                      </Label>
+                      <Input
+                        id="whatsapp"
+                        placeholder="(00) 00000-0000"
+                        value={formData.whatsapp}
+                        onChange={handleInputChange}
+                        className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl font-medium h-11"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        maxLength={15}
+                        required
+                      />
+                      <p className="text-[11px] font-semibold text-slate-400">
+                        É por aqui que nossa equipe vai falar com você.
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="email" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
-                          <Mail className="h-4 w-4 text-sky-600" /> E-mail
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="exemplo@email.com"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-11"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="cep" className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
-                          <MapPin className="h-4 w-4 text-sky-600" /> CEP
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="cep"
-                            placeholder="00000-000"
-                            value={formData.cep}
-                            onChange={handleInputChange}
-                            className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-11 font-medium pr-10"
-                            maxLength={9}
-                          />
-                          {loadingCep && (
-                            <span className="absolute right-3 top-3.5">
-                              <Loader2 className="h-4 w-4 animate-spin text-sky-600" />
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                    <div className="flex items-start gap-2 rounded-xl border border-sky-100 bg-sky-50/60 p-3">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
+                      <p className="text-[11px] font-semibold leading-relaxed text-slate-600">
+                        Só isso mesmo. Documentos e endereço a gente resolve na conversa,
+                        sem você ter que preencher tudo agora.
+                      </p>
                     </div>
-
-                    {/* Address block (dynamic and editable) */}
-                    {(formData.cep.replace(/\D/g, "").length >= 8 || formData.addressStreet || formData.addressNeighborhood) && (
-                      <div className="space-y-4 pt-3 border-t border-slate-100 animate-fadeIn">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label htmlFor="addressStreet" className="text-slate-800 font-extrabold text-xs">Rua / Logradouro</Label>
-                            <Input
-                              id="addressStreet"
-                              value={formData.addressStreet}
-                              onChange={handleInputChange}
-                              className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-10 font-medium"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="addressNeighborhood" className="text-slate-800 font-extrabold text-xs">Bairro</Label>
-                            <Input
-                              id="addressNeighborhood"
-                              value={formData.addressNeighborhood}
-                              onChange={handleInputChange}
-                              className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-10 font-medium"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                          <div className="space-y-1.5">
-                            <Label htmlFor="addressCity" className="text-slate-800 font-extrabold text-xs">Cidade</Label>
-                            <Input
-                              id="addressCity"
-                              value={formData.addressCity}
-                              onChange={handleInputChange}
-                              className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-10 font-medium"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="addressState" className="text-slate-800 font-extrabold text-xs">Estado</Label>
-                            <Input
-                              id="addressState"
-                              value={formData.addressState}
-                              onChange={handleInputChange}
-                              className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-10 font-medium"
-                            />
-                          </div>
-                          <div className="space-y-1.5 col-span-1">
-                            <Label htmlFor="addressNumber" className="text-slate-800 font-extrabold text-xs">Número</Label>
-                            <Input
-                              id="addressNumber"
-                              placeholder="Ex: 450"
-                              value={formData.addressNumber}
-                              onChange={handleInputChange}
-                              className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-10 font-bold"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="addressComplement" className="text-slate-800 font-extrabold text-xs">Complemento</Label>
-                          <Input
-                            id="addressComplement"
-                            placeholder="Ex: Bloco B, Apto 23"
-                            value={formData.addressComplement}
-                            onChange={handleInputChange}
-                            className="bg-white border-slate-200 text-slate-800 focus-visible:ring-sky-500 rounded-xl h-10"
-                          />
-                        </div>
-                      </div>
-                    )}
 
                     <div className="flex justify-between pt-5 border-t border-slate-100">
                       <Button
@@ -706,7 +552,7 @@ export default function CadastroPage() {
 
                 {/* STEP 3: FLUXO-SPECIFIC QUESTIONS */}
                 {step === 3 && (
-                  <form onSubmit={handleNextStep} className="space-y-5">
+                  <form onSubmit={handleSubmit} className="space-y-5">
                     
                     {/* FLOW A: JÁ SOU TAXISTA */}
                     {formData.situation === "taxista" && (
@@ -794,7 +640,7 @@ export default function CadastroPage() {
                                 placeholder="Ex: Frota X..."
                                 value={formData.fleetName}
                                 onChange={handleInputChange}
-                                className="bg-white border-slate-200 text-slate-855 h-10 rounded-xl text-xs"
+                                className="bg-white border-slate-200 text-slate-800 h-10 rounded-xl text-xs"
                               />
                             </div>
                             <div className="space-y-1.5">
@@ -804,7 +650,7 @@ export default function CadastroPage() {
                                 placeholder="Ex: 1 ano e 6 meses"
                                 value={formData.fleetDuration}
                                 onChange={handleInputChange}
-                                className="bg-white border-slate-200 text-slate-855 h-10 rounded-xl text-xs"
+                                className="bg-white border-slate-200 text-slate-800 h-10 rounded-xl text-xs"
                               />
                             </div>
                           </div>
@@ -1001,122 +847,68 @@ export default function CadastroPage() {
                         </Select>
                       </div>
 
-                      {/* Veículo de Interesse (carregamento dinâmico do Firestore) */}
+                      {/*
+                        Veículo de interesse — campo livre com sugestões da frota.
+                        Um <select> obrigava o candidato a caçar o modelo numa lista;
+                        aqui ele digita o nome (ou nem responde, já que é opcional)
+                        e o atendente fecha o modelo na conversa.
+                      */}
                       <div className="space-y-1.5">
-                        <Label className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
+                        <Label
+                          htmlFor="vehicleInterest"
+                          className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5"
+                        >
                           <Car className="h-4 w-4 text-sky-600" /> Qual veículo você tem interesse em alugar?
+                          <span className="font-bold text-slate-400">(opcional)</span>
                         </Label>
-                        {loadingVehicles ? (
-                          <div className="flex items-center gap-2 text-xs text-slate-400 h-11 px-3 border border-slate-200 rounded-xl bg-slate-50">
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-sky-655" />
-                            <span>Carregando frota disponível...</span>
-                          </div>
-                        ) : (
-                          <Select 
-                            value={formData.vehicleInterest} 
-                            onValueChange={(val) => handleSelectChange("vehicleInterest", val)}
-                          >
-                            <SelectTrigger className="bg-white border-slate-200 text-slate-800 rounded-xl h-11">
-                              <SelectValue placeholder="Selecione o modelo de táxi" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border border-slate-200 text-slate-700 max-h-[260px]">
-                              {vehicles.length > 0 ? (
-                                vehicles.map((car) => (
-                                  <SelectItem key={car.id} value={car.name}>
-                                    {car.name} {car.isHybrid ? "🔋 Híbrido" : ""}
-                                  </SelectItem>
-                                ))
-                              ) : (
-                                <>
-                                  <SelectItem value="Toyota Corolla Sedan">Toyota Corolla Sedan (Mais procurado)</SelectItem>
-                                  <SelectItem value="Chevrolet Spin">Chevrolet Spin (Ideal para 7 lugares / Congonhas)</SelectItem>
-                                  <SelectItem value="Toyota Corolla Cross Híbrido">Toyota Corolla Cross Híbrido (Luxo)</SelectItem>
-                                  <SelectItem value="Volkswagen Virtus">Volkswagen Virtus (Excelente espaço interno)</SelectItem>
-                                  <SelectItem value="Chevrolet Onix">Chevrolet Onix (Econômico)</SelectItem>
-                                </>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        )}
+                        <Input
+                          id="vehicleInterest"
+                          list="vehicle-options"
+                          value={formData.vehicleInterest}
+                          onChange={(e) => handleSelectChange("vehicleInterest", e.target.value)}
+                          placeholder={
+                            loadingVehicles
+                              ? "Carregando frota disponível..."
+                              : "Digite o modelo ou escolha da lista"
+                          }
+                          autoComplete="off"
+                          className="bg-white border-slate-200 text-slate-800 rounded-xl h-11"
+                        />
+                        <datalist id="vehicle-options">
+                          {(vehicles.length > 0
+                            ? vehicles.map((car) => car.name)
+                            : [
+                                "Toyota Corolla Sedan",
+                                "Chevrolet Spin",
+                                "Toyota Corolla Cross Híbrido",
+                                "Volkswagen Virtus",
+                                "Chevrolet Onix",
+                              ]
+                          ).map((name) => (
+                            <option key={name} value={name} />
+                          ))}
+                        </datalist>
+                        <p className="text-[11px] font-semibold text-slate-400">
+                          Ainda não sabe? Pode deixar em branco — a gente te ajuda a escolher.
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex justify-between pt-5 border-t border-slate-100">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handlePrevStep}
-                        className="border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl px-6 h-11 font-bold text-xs"
-                      >
-                        Voltar
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-xl px-8 h-11 shadow-md shadow-amber-500/20"
-                      >
-                        Próximo
-                      </Button>
-                    </div>
-                  </form>
-                )}
-
-                {/* STEP 4: PREFERÊNCIAS OPERACIONAIS */}
-                {step === 4 && (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    
-                    {/* Forma de pagamento */}
-                    <div className="space-y-1.5">
+                    {/* Horário de contato — última pergunta antes de enviar.
+                        Forma de pagamento e ciclo de contratação saíram do
+                        formulário: são assunto da negociação, não do primeiro
+                        contato, e só adicionavam atrito antes de falar com alguém. */}
+                    <div className="space-y-1.5 pt-4 border-t border-slate-100">
                       <Label className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
-                        <CreditCard className="h-4 w-4 text-sky-600" /> Forma de pagamento preferida para as diárias
+                        <Clock className="h-4 w-4 text-sky-600" /> Melhor horário para nossa equipe te ligar?
+                        <span className="font-bold text-slate-400">(opcional)</span>
                       </Label>
-                      <Select 
-                        value={formData.paymentPreference} 
-                        onValueChange={(val) => handleSelectChange("paymentPreference", val)}
-                      >
-                        <SelectTrigger className="bg-white border-slate-200 text-slate-800 rounded-xl h-11">
-                          <SelectValue placeholder="Escolha a forma de pagamento" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border border-slate-200 text-slate-700">
-                          <SelectItem value="Pix">Pix (Transferência imediata)</SelectItem>
-                          <SelectItem value="Débito">Cartão de Débito</SelectItem>
-                          <SelectItem value="Crédito">Cartão de Crédito</SelectItem>
-                          <SelectItem value="Ainda não defini">Ainda não decidi / Quero negociar</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Modelo de contratação */}
-                    <div className="space-y-1.5">
-                      <Label className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
-                        <Clock className="h-4 w-4 text-sky-600" /> Período de contratação (Ciclo de Aluguel)
-                      </Label>
-                      <Select 
-                        value={formData.contractType} 
-                        onValueChange={(val) => handleSelectChange("contractType", val)}
-                      >
-                        <SelectTrigger className="bg-white border-slate-200 text-slate-800 rounded-xl h-11">
-                          <SelectValue placeholder="Escolha o ciclo desejado" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border border-slate-200 text-slate-700">
-                          <SelectItem value="Diária">Contrato Diário flexível</SelectItem>
-                          <SelectItem value="Semanal">Semanal (Acerto semanal)</SelectItem>
-                          <SelectItem value="Mensal">Mensal (Pacote de longo prazo)</SelectItem>
-                          <SelectItem value="Ainda não sei">Ainda não sei / Avaliar suporte</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Horário para contato */}
-                    <div className="space-y-1.5">
-                      <Label className="text-slate-800 font-extrabold text-xs flex items-center gap-1.5">
-                        <Clock className="h-4 w-4 text-sky-600" /> Qual o melhor horário para nossa equipe te ligar?
-                      </Label>
-                      <Select 
-                        value={formData.preferredContactTime} 
+                      <Select
+                        value={formData.preferredContactTime}
                         onValueChange={(val) => handleSelectChange("preferredContactTime", val)}
                       >
                         <SelectTrigger className="bg-white border-slate-200 text-slate-800 rounded-xl h-11">
-                          <SelectValue placeholder="Selecione o período de contato" />
+                          <SelectValue placeholder="Qualquer horário comercial" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border border-slate-200 text-slate-700">
                           <SelectItem value="Manhã">Manhã (08:00 às 12:00)</SelectItem>
@@ -1128,7 +920,7 @@ export default function CadastroPage() {
                     </div>
 
                     {/* Terms */}
-                    <div className="flex items-start space-x-2 pt-2 border-t border-slate-100">
+                    <div className="flex items-start space-x-2 pt-3 border-t border-slate-100">
                       <input type="checkbox" id="terms" className="rounded border-gray-300 mt-1 accent-sky-600 h-4 w-4 cursor-pointer" required />
                       <Label htmlFor="terms" className="text-xs font-semibold text-slate-500 leading-relaxed cursor-pointer text-justify">
                         Autorizo o Grupo Michelines a realizar o contato telefônico e via WhatsApp para análise comercial do meu credenciamento comercial. Declaro que concordo com os{" "}
@@ -1144,22 +936,20 @@ export default function CadastroPage() {
                         variant="outline"
                         onClick={handlePrevStep}
                         className="border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl px-6 h-11 font-bold text-xs"
-                        disabled={isSubmitting}
                       >
                         Voltar
                       </Button>
-
                       <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-xl px-8 h-11 shadow-md shadow-amber-500/20 flex items-center justify-center gap-2"
+                        className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-xl px-8 h-11 shadow-md shadow-amber-500/20 disabled:opacity-70"
                       >
                         {isSubmitting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" /> Processando...
-                          </>
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" /> Enviando...
+                          </span>
                         ) : (
-                          "Concluir Credenciamento"
+                          "Finalizar cadastro"
                         )}
                       </Button>
                     </div>

@@ -1,30 +1,51 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/database"
 
 export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+/** Cliente tipado pelo schema — `select` em coluna inexistente vira erro de compilação. */
+export type TypedSupabaseClient = SupabaseClient<Database>
 
 /**
  * Singleton pattern — garante uma única instância do cliente Supabase no browser.
  * Resolve o aviso "Multiple GoTrueClient instances detected".
  */
-let _supabaseInstance: SupabaseClient | null = null
+let _supabaseInstance: TypedSupabaseClient | null = null
 
-function getSupabaseClient(): SupabaseClient {
+function getSupabaseClient(): TypedSupabaseClient {
   if (_supabaseInstance) return _supabaseInstance
-  _supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+  _supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      // Necessário para o fluxo de convite/redefinição de senha, que chega
+      // com os tokens no fragmento da URL (#access_token=...).
+      detectSessionInUrl: true,
+      flowType: "pkce",
     },
   })
   return _supabaseInstance
 }
 
 /**
- * Cliente público (browser-safe) — usa anon key.
+ * Cliente público (browser-safe) — usa anon key e respeita o RLS.
  * Singleton: sempre retorna a mesma instância.
  */
 export const supabase = getSupabaseClient()
+
+/**
+ * Cliente de leitura para Server Components (ex.: metadata de /c/{slug}).
+ *
+ * Sem sessão: enxerga exatamente o que um visitante anônimo enxerga pelo RLS.
+ * Não é singleton de propósito — cada render no servidor cria o seu, evitando
+ * vazar estado entre requisições.
+ */
+export function createServerReadClient(): TypedSupabaseClient {
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
 
 /**
  * Bucket names registrados no Supabase Storage

@@ -530,7 +530,7 @@ export function OperationManager() {
               </Button>
               <Button 
                 type="submit" 
-                className="bg-sky-600 hover:bg-sky-555 text-white font-bold flex items-center gap-1.5"
+                className="bg-sky-600 hover:bg-sky-500 text-white font-bold flex items-center gap-1.5"
               >
                 <Save className="h-4 w-4" /> Salvar Configurações
               </Button>
@@ -732,7 +732,7 @@ export function OperationManager() {
               {operationalFeatures.length === 0 && (
                 <Button 
                   onClick={handleSeedFeatures}
-                  className="bg-emerald-600 hover:bg-emerald-555 text-white font-bold text-xs h-10 px-4 flex items-center gap-2 rounded-lg shadow-sm"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-10 px-4 flex items-center gap-2 rounded-lg shadow-sm"
                 >
                   <Sparkles className="h-4.5 w-4.5" /> Semear Diferenciais Padrão
                 </Button>

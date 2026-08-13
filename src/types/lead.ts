@@ -1,3 +1,41 @@
+/** Categorias de documento que podem ser anexados à ficha do lead. */
+export type DocCategory =
+  | "cnh"
+  | "condutax"
+  | "residencia"
+  | "foto"
+  | "consulta_cpf"
+  | "contrato"
+  | "outros"
+
+/**
+ * Registro de uma consulta de CPF / análise de crédito.
+ *
+ * Guardar apenas o status ("aprovada"/"reprovada") não sustenta auditoria: é
+ * preciso saber quem consultou, quando, qual o resultado do birô e qual
+ * documento embasou a decisão.
+ */
+export interface CreditCheckRecord {
+  /** Resultado da consulta */
+  result: "approved" | "rejected" | "restricted" | "inconclusive"
+  /** Quem executou a consulta (displayName do operador) */
+  checkedBy: string
+  /** ISO date da consulta */
+  checkedAt: string
+  /** Birô utilizado (Serasa, SPC, Boa Vista...) */
+  bureau?: string
+  /** Pontuação devolvida pelo birô, quando houver */
+  bureauScore?: number
+  /** Restrições encontradas (protestos, negativações) */
+  restrictions?: string
+  /** Observação livre do analista */
+  notes?: string
+  /** Comprovante da consulta anexado junto à decisão */
+  documentUrl?: string
+  documentPath?: string
+  documentName?: string
+}
+
 export interface LeadInteraction {
   id: string
   type:
@@ -76,6 +114,8 @@ export interface Lead {
   needsMoreData?: boolean
   contactedForData?: boolean
   creditAnalysisStatus?: 'pending' | 'approved' | 'rejected' | 'needs_authorization'
+  /** Última consulta de CPF registrada (ver histórico completo em interactions) */
+  creditCheck?: CreditCheckRecord
   authorizedBy?: string
   authorizationRecordedBy?: string
   authorizationDate?: string
@@ -106,7 +146,9 @@ export interface Lead {
     url: string
     path?: string
     uploadedAt: string
-    category?: 'cnh' | 'condutax' | 'residencia' | 'foto' | 'outros'
+    category?: DocCategory
+    /** Quem anexou — necessário para auditar documentos de crédito */
+    uploadedBy?: string
   }[]
 
   // Calculated score (cached)

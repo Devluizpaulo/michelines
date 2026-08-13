@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
 import { SupabaseMediaCenter } from "../shared/SupabaseMediaCenter"
+import { CampaignBuilder } from "./CampaignBuilder"
 
 // Standard compression helper
 const compressAndLoadImage = (file: File): Promise<string> => {
@@ -574,13 +575,22 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
             <TrendingUp className="h-3.5 w-3.5" /> Performance & Calendário
           </button>
           <button
+            onClick={() => setActiveTab("builder")}
+            className={cn(
+              "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
+              activeTab === "builder" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            <Megaphone className="h-3.5 w-3.5" /> Criador de Campanhas
+          </button>
+          <button
             onClick={() => setActiveTab("editor")}
             className={cn(
               "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
               activeTab === "editor" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
             )}
           >
-            <Settings className="h-3.5 w-3.5" /> Criador de Campanhas
+            <Settings className="h-3.5 w-3.5" /> Banner da Home
           </button>
           <button
             onClick={() => setActiveTab("copies")}
@@ -863,6 +873,9 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
       )}
 
       {/* ── TAB 2: CRIADOR DE CAMPANHAS ── */}
+      {/* ── CRIADOR DE CAMPANHAS: entidades com página pública própria ── */}
+      {activeTab === "builder" && <CampaignBuilder leads={leads} />}
+
       {activeTab === "editor" && (
         <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
           <CardHeader className="border-b border-slate-100 bg-slate-50/50">
