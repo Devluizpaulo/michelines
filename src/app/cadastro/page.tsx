@@ -9,8 +9,9 @@ import {
   ArrowLeft, CheckCircle2, Loader2, Phone, User, ShieldCheck, Check, Clock,
   Car, Sparkles, Key, Plane, Battery, Crown
 } from "lucide-react"
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "firebase/firestore"
-import { db } from "../firebase/config"
+import { listVehicles } from "@/lib/db/vehicles"
+import { createLead } from "@/lib/db/leads"
+import { supabase } from "@/lib/supabase"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -57,28 +58,27 @@ export default function CadastroPage() {
     preferredContactTime: "", // "manha" | "tarde" | "noite"
   })
 
-  // Load vehicles from Firestore
+  // Sugestões de veículo. Busca única, não listener: o catálogo muda raramente
+  // e um visitante preenchendo o formulário não precisa de tempo real.
   useEffect(() => {
-    const q = query(collection(db, "vehicles"), orderBy("showroomOrder", "asc"))
-    const unsubscribe = onSnapshot(
-      q,
-      (snap) => {
-        const list: any[] = []
-        snap.forEach((doc) => {
-          const car = doc.data()
-          if (car.status === "active" && car.available === true) {
-            list.push({ id: doc.id, ...car })
-          }
-        })
-        setVehicles(list)
-        setLoadingVehicles(false)
-      },
-      (error) => {
-        console.warn("Erro ao buscar veículos em tempo real:", error)
-        setLoadingVehicles(false)
-      }
-    )
-    return () => unsubscribe()
+    let cancelado = false
+
+    listVehicles()
+      .then((lista) => {
+        if (cancelado) return
+        setVehicles(lista.filter((v: any) => v.status === "active" && v.available))
+      })
+      .catch((err) => {
+        // Sem catálogo o campo continua livre para digitar — não bloqueia o cadastro
+        console.warn("Não foi possível carregar a frota:", err)
+      })
+      .finally(() => {
+        if (!cancelado) setLoadingVehicles(false)
+      })
+
+    return () => {
+      cancelado = true
+    }
   }, [])
 
   // Atribuição de campanha: lida na URL (vinda de /c/{slug}) e guardada por 30
@@ -272,21 +272,24 @@ export default function CadastroPage() {
         whatsappSent: false,
         campaignId: campaignId || "",
         campaignName: campaignName || "",
-        createdAt: serverTimestamp(),
+        // created_at tem default now() no Postgres — não precisa ser enviado
       }
 
-      // 1. Add to leads collection
-      await addDoc(collection(db, "leads"), leadPayload)
+      // 1. Lead do CRM
+      await createLead(leadPayload)
 
-      // 2. Add to drivers collection for data consistency
-      await addDoc(collection(db, "drivers"), {
-        fullName: formData.fullName,
+      // 2. Espelho na tabela legada de motoristas.
+      //    Não bloqueia o cadastro: se falhar, o lead já foi salvo e é o que importa.
+      const { error: driverError } = await supabase.from("drivers").insert({
+        full_name: formData.fullName,
         whatsapp: formData.whatsapp,
         phone: formData.whatsapp,
-                carModel: formData.vehicleInterest.trim() || "A definir",
+        car_model: formData.vehicleInterest.trim() || "A definir",
         status: "pending",
-        createdAt: serverTimestamp(),
       })
+      if (driverError) {
+        console.warn("Lead salvo, mas o espelho em drivers falhou:", driverError.message)
+      }
 
       setFormSubmitted(true)
     } catch (error) {

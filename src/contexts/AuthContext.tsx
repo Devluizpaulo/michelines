@@ -16,7 +16,7 @@ import { AdminUser, UserRole, TabId, ROLE_PERMISSIONS } from "@/lib/permissions"
 export type ProfileError = "no-profile" | "disabled" | "unavailable"
 
 interface AuthContextType {
-  firebaseUser: User | null // Mantido como alias de 'user' para retrocompatibilidade
+  /** Sessão do Supabase Auth. `null` quando ninguém está logado. */
   user: User | null
   adminUser: AdminUser | null
   role: UserRole | null
@@ -27,7 +27,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  firebaseUser: null,
   user: null,
   adminUser: null,
   role: null,
@@ -131,7 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AuthContextType>(
     () => ({
-      firebaseUser: user,
       user,
       adminUser,
       role: adminUser?.role ?? null,

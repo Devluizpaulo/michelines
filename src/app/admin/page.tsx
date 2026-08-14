@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { collection, query, orderBy, getDocs, doc, getDoc, onSnapshot } from "firebase/firestore"
-import { signOut } from "firebase/auth"
-import { db, auth } from "../firebase/config"
+import { supabase } from "@/lib/supabase"
+import { signOut } from "@/lib/auth/supabase-auth"
+import { listLeads, subscribeToNewLeads } from "@/lib/db/leads"
+import { getSetting } from "@/lib/db/settings"
 
 import { Lead } from "@/types/lead"
 import { LandingSettings } from "@/types/landing"
@@ -55,11 +56,11 @@ function readInitialTab(): TabId {
 
 // Inner component that uses auth context
 function AdminContent() {
-  const { adminUser, role, canAccess, loading: authLoading, profileError, firebaseUser } = useAuth()
+  const { adminUser, role, canAccess, loading: authLoading, profileError, user } = useAuth()
   const { success } = useToast()
   const mountTimeRef = useRef(Date.now())
-  // IDs de leads já anunciados nesta sessão — evita re-alertar o mesmo lead caso o
-  // listener do Firestore seja re-inscrito (o snapshot inicial reemite todos como "added").
+  // IDs de leads já anunciados nesta sessão — guarda contra alerta duplicado
+  // caso a inscrição do Realtime seja refeita (reconexão de rede, por exemplo).
   const announcedLeadIdsRef = useRef<Set<string>>(new Set())
   const [activeTab, setActiveTab] = useState<TabId>("dashboard")
   const [leads, setLeads] = useState<Lead[]>([])
@@ -92,20 +93,20 @@ function AdminContent() {
   // Logout
   const handleLogout = async () => {
     try {
-      await signOut(auth)
+      await signOut()
       router.push("/login")
     } catch (e) {
       console.error(e)
     }
   }
 
-  // Guard: sem sessão do Firebase → login. Com sessão mas sem perfil válido,
-  // NÃO redirecionamos (viraria ping-pong com o /login): mostramos o aviso abaixo.
+  // Guard: sem sessão → login. Com sessão mas sem perfil válido, NÃO
+  // redirecionamos (viraria ping-pong com o /login): mostramos o aviso abaixo.
   useEffect(() => {
-    if (!authLoading && !firebaseUser) {
+    if (!authLoading && !user) {
       router.push("/login")
     }
-  }, [authLoading, firebaseUser, router])
+  }, [authLoading, user, router])
 
   // Deep link dos atalhos do PWA (/admin?tab=leads). Aplicado após a hidratação
   // para não divergir do HTML renderizado no servidor.
@@ -124,13 +125,12 @@ function AdminContent() {
   // Fetch landing settings — apenas quando a tab relevante é ativada
   const fetchLandingSettings = useCallback(async () => {
     try {
-      const docRef = doc(db, "landing", "settings")
-      const docSnap = await getDoc(docRef)
-      if (docSnap.exists()) {
-        setLandingSettings(docSnap.data() as LandingSettings)
+      const saved = await getSetting<LandingSettings>("landing")
+      if (saved) {
+        setLandingSettings(saved)
       }
     } catch (e) {
-      console.warn("Firestore offline ao carregar configurações:", e)
+      console.warn("Não foi possível carregar as configurações da landing:", e)
     }
   }, [])
 
@@ -152,17 +152,15 @@ function AdminContent() {
     crmLoadingRef.current = true
     try {
       setLoading(true)
-      const qLeads = query(collection(db, "leads"), orderBy("createdAt", "desc"))
-      const leadsSnap = await getDocs(qLeads)
-      const leadsList: Lead[] = []
-      leadsSnap.forEach((doc) => {
-        leadsList.push({ id: doc.id, ...doc.data() } as Lead)
-      })
 
-      const qDrivers = query(collection(db, "drivers"), orderBy("createdAt", "desc"))
-      const driversSnap = await getDocs(qDrivers)
+      const [leadsList, driversRes] = await Promise.all([
+        listLeads(),
+        supabase.from("drivers").select("*").order("created_at", { ascending: false }),
+      ])
 
-      // Otmização de performance: usa Set para busca O(1) em vez de array.some O(N)
+      const todos: Lead[] = [...leadsList]
+
+      // Set para busca O(1) — evita varrer a lista de leads por motorista
       const leadPhones = new Set(
         leadsList
           .map((l) => l.phone)
@@ -170,37 +168,35 @@ function AdminContent() {
           .map((p) => p.replace(/\D/g, ""))
       )
 
-      driversSnap.forEach((doc) => {
-        const dData = doc.data()
-        const rawPhone = (dData.phone || "").replace(/\D/g, "")
-        const exists = leadPhones.has(rawPhone)
-        if (!exists) {
-          let leadStatus: Lead["status"] = "new"
-          if (dData.status === "active") leadStatus = "converted"
-          if (dData.status === "inactive") leadStatus = "lost"
+      // Frota legada: só entra quem ainda não virou lead (mesmo telefone)
+      for (const d of driversRes.data ?? []) {
+        const rawPhone = (d.phone || "").replace(/\D/g, "")
+        if (leadPhones.has(rawPhone)) continue
 
-          leadsList.push({
-            id: doc.id,
-            fullName: dData.fullName || `${dData.firstName} ${dData.lastName}`,
-            phone: dData.phone,
-            source: "Cadastro Site (Legado)",
-            vehicleInterest: dData.carModel || "Não especificado",
-            status: leadStatus,
-            notes: `Cadastro importado da frota legada. CPF: ${dData.cpf || "Não informado"}.`,
-            createdAt: dData.createdAt || new Date().toISOString(),
-            contacted: dData.status !== "pending",
-            whatsappSent: false
-          } as Lead)
-        }
-      })
+        let leadStatus: Lead["status"] = "new"
+        if (d.status === "active") leadStatus = "converted"
+        if (d.status === "inactive") leadStatus = "lost"
 
-      leadsList.sort((a: any, b: any) => {
-        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
-        return dateB.getTime() - dateA.getTime()
-      })
+        todos.push({
+          id: d.id,
+          fullName: d.full_name || "Sem nome",
+          phone: d.phone || "",
+          source: "Cadastro Site (Legado)",
+          vehicleInterest: d.car_model || "Não especificado",
+          status: leadStatus,
+          notes: `Cadastro importado da frota legada. CPF: ${d.cpf || "Não informado"}.`,
+          createdAt: d.created_at,
+          contacted: d.status !== "pending",
+          whatsappSent: false,
+        } as Lead)
+      }
 
-      setLeads(leadsList)
+      // Datas já vêm como ISO do Postgres — sem o .toDate() do Firestore
+      todos.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+
+      setLeads(todos)
       crmLoadedRef.current = true
     } catch (e) {
       console.error("Erro ao buscar dados do CRM:", e)
@@ -286,49 +282,29 @@ function AdminContent() {
       }
     }
 
-    const q = query(collection(db, "leads"))
-    const unsub = onSnapshot(q, (snapshot) => {
-      const newAddedLeads: Lead[] = []
-
-      snapshot.docChanges().forEach((change) => {
-        if (change.type !== "added") return
-
-        // Ignora leads já anunciados — o snapshot inicial de uma re-inscrição
-        // reemite todos os documentos como "added".
-        if (announcedLeadIdsRef.current.has(change.doc.id)) return
-
-        const data = change.doc.data()
-        const leadTime = data.createdAt?.seconds
-          ? data.createdAt.seconds * 1000
-          : new Date(data.createdAt || Date.now()).getTime()
-
-        if (leadTime > mountTimeRef.current) {
-          announcedLeadIdsRef.current.add(change.doc.id)
-          newAddedLeads.push({ id: change.doc.id, ...data } as Lead)
-        }
-      })
-
-      if (newAddedLeads.length === 0) return
+    // Realtime do Postgres: chega apenas a linha inserida.
+    // Diferente do onSnapshot do Firestore, que reemitia a coleção inteira como
+    // "added" a cada reinscrição — origem do loop infinito que existia aqui.
+    const unsub = subscribeToNewLeads((lead) => {
+      // Guarda dupla: ignora o que já foi anunciado e o que é anterior ao mount
+      if (announcedLeadIdsRef.current.has(lead.id)) return
+      if (new Date(lead.createdAt).getTime() <= mountTimeRef.current) return
+      announcedLeadIdsRef.current.add(lead.id)
 
       playNotificationChime()
-      setNewLeadsQueue((prev) => [...prev, ...newAddedLeads])
+      setNewLeadsQueue((prev) => [...prev, lead])
 
-      newAddedLeads.forEach((lead) => {
-        success(`Novo Lead Recebido! 🚗`, `${lead.fullName} está interessado em ${lead.vehicleInterest}.`)
+      success(`Novo Lead Recebido! 🚗`, `${lead.fullName} está interessado em ${lead.vehicleInterest}.`)
 
-        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-          new Notification("Novo Lead Recebido! 🚗", {
-            body: `${lead.fullName} está interessado em ${lead.vehicleInterest}.`,
-            icon: PWA_ICON_192,
-          })
-        }
-      })
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("Novo Lead Recebido! 🚗", {
+          body: `${lead.fullName} está interessado em ${lead.vehicleInterest}.`,
+          icon: PWA_ICON_192,
+        })
+      }
 
-      // Recarrega o CRM para trazer o lead completo (com dados de drivers/score).
-      // `force` porque os dados em cache ficaram desatualizados.
+      // Recarrega o CRM para reconciliar com a frota legada e o score.
       loadCRMData({ force: true })
-    }, (err) => {
-      console.warn("Erro no listener de leads em tempo real:", err)
     })
 
     return () => unsub()
@@ -346,7 +322,7 @@ function AdminContent() {
   }
 
   // Autenticado no Firebase, mas sem perfil administrativo utilizável.
-  if (firebaseUser && !adminUser) {
+  if (user && !adminUser) {
     const MESSAGES: Record<string, { title: string; body: string }> = {
       "no-profile": {
         title: "Acesso ainda não liberado",
@@ -369,7 +345,7 @@ function AdminContent() {
           <Shield className="mx-auto mb-4 h-10 w-10 text-slate-300" />
           <h1 className="text-base font-black text-slate-900">{msg.title}</h1>
           <p className="mt-2 text-xs font-medium leading-relaxed text-slate-500">{msg.body}</p>
-          <p className="mt-3 truncate text-[11px] font-semibold text-slate-400">{firebaseUser.email}</p>
+          <p className="mt-3 truncate text-[11px] font-semibold text-slate-400">{user.email}</p>
           <div className="mt-5 flex flex-col gap-2">
             {profileError === "unavailable" && (
               <button
