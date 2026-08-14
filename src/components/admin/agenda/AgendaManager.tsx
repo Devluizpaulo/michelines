@@ -2,17 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import {
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  orderBy,
-} from "firebase/firestore"
-import { db } from "@/app/firebase/config"
-import { Appointment, AppointmentType, APPOINTMENT_TYPE_LABELS } from "@/types/appointment"
+  listAppointments,
+  createAppointment,
+  updateAppointment,
+  deleteAppointment,
+  Appointment,
+} from "@/lib/db/appointments"
+import { listLeads } from "@/lib/db/leads"
+import { APPOINTMENT_TYPE_LABELS, AppointmentType } from "@/types/appointment"
 import { Lead } from "@/types/lead"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast-simple"
@@ -131,28 +128,22 @@ export function AgendaManager() {
   const [saving, setSaving] = useState(false)
 
   // ── Load data ──
-  const loadAppointments = useCallback(async () => {
+  const loadAppointmentsData = useCallback(async () => {
     try {
       setLoading(true)
-      const q = query(collection(db, "appointments"), orderBy("date", "asc"))
-      const snap = await getDocs(q)
-      const list: Appointment[] = []
-      snap.forEach(d => list.push({ id: d.id, ...d.data() } as Appointment))
+      const list = await listAppointments()
       setAppointments(list)
     } catch (e) {
-      console.error("[AgendaManager] Erro ao carregar agenda. Usando fallback:", e instanceof Error ? e.message : e)
+      console.error("[AgendaManager] Erro ao carregar agenda:", e instanceof Error ? e.message : e)
       setAppointments([])
     } finally {
       setLoading(false)
     }
   }, [])
 
-  const loadLeads = useCallback(async () => {
+  const loadLeadsData = useCallback(async () => {
     try {
-      const q = query(collection(db, "leads"), orderBy("createdAt", "desc"))
-      const snap = await getDocs(q)
-      const list: Lead[] = []
-      snap.forEach(d => list.push({ id: d.id, ...d.data() } as Lead))
+      const list = await listLeads({ includeArchived: false })
       setAllLeads(list)
     } catch (e) {
       console.warn("[AgendaManager] Leads não carregados para autocomplete:", e instanceof Error ? e.message : e)
@@ -161,9 +152,9 @@ export function AgendaManager() {
   }, [])
 
   useEffect(() => {
-    loadAppointments()
-    loadLeads()
-  }, [loadAppointments, loadLeads])
+    loadAppointmentsData()
+    loadLeadsData()
+  }, [loadAppointmentsData, loadLeadsData])
 
   // ── Lead search logic ──
   useEffect(() => {
@@ -184,7 +175,6 @@ export function AgendaManager() {
     setShowSuggestions(matches.length > 0)
   }, [leadSearch, allLeads])
 
-  // Close suggestions on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -220,19 +210,16 @@ export function AgendaManager() {
     }
     setSaving(true)
     try {
-      const appointment: Omit<Appointment, "id"> = {
-        leadId: formLeadId,
+      const newAppt = await createAppointment({
+        leadId: formLeadId || undefined,
         leadName: formLeadName,
-        leadPhone: formLeadPhone,
-        type: formType,
+        leadPhone: formLeadPhone || undefined,
+        type: formType as any,
         date: `${formDate}T${formTime}:00`,
-        notes: formNotes,
+        notes: formNotes || undefined,
         createdBy: adminUser?.displayName || adminUser?.email || "Admin",
-        createdAt: new Date().toISOString(),
-        completed: false
-      }
-      const ref = await addDoc(collection(db, "appointments"), appointment)
-      const newAppt = { id: ref.id, ...appointment }
+      })
+
       setAppointments(prev => [...prev, newAppt].sort((a, b) => a.date.localeCompare(b.date)))
       success("Agendamento criado!", `${APPOINTMENT_TYPE_LABELS[formType].icon} ${formLeadName} em ${formDate}.`)
       resetForm()
@@ -246,7 +233,7 @@ export function AgendaManager() {
 
   const handleComplete = async (appt: Appointment) => {
     try {
-      await updateDoc(doc(db, "appointments", appt.id), { completed: true })
+      await updateAppointment(appt.id, { completed: true })
       setAppointments(prev => prev.map(a => a.id === appt.id ? { ...a, completed: true } : a))
       success("Concluído!", `${appt.leadName} marcado como atendido.`)
     } catch (e) {
@@ -256,7 +243,7 @@ export function AgendaManager() {
 
   const handleDelete = async (appt: Appointment) => {
     try {
-      await deleteDoc(doc(db, "appointments", appt.id))
+      await deleteAppointment(appt.id)
       setAppointments(prev => prev.filter(a => a.id !== appt.id))
     } catch (e) {
       error("Erro", "Não foi possível excluir.")
@@ -295,11 +282,8 @@ export function AgendaManager() {
   const tomorrowCount = appointments.filter(a => a.date.substring(0, 10) === tomorrowStr && !a.completed).length
   const upcomingTotal = appointments.filter(a => a.date.substring(0, 10) >= todayStr && !a.completed).length
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <div className="space-y-6 max-w-4xl">
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -402,12 +386,10 @@ export function AgendaManager() {
                           appt.completed ? "opacity-60 border-slate-100" : "border-slate-200 hover:border-slate-300 hover:shadow-md"
                         )}
                       >
-                        {/* Type icon */}
                         <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center text-xl shrink-0 border", typeInfo.color)}>
                           {typeInfo.icon}
                         </div>
 
-                        {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className={cn("text-sm font-bold", appt.completed ? "line-through text-slate-400" : "text-slate-800")}>
@@ -441,9 +423,7 @@ export function AgendaManager() {
                           )}
                         </div>
 
-                        {/* Actions */}
                         <div className="flex items-center gap-2 shrink-0">
-                          {/* WhatsApp reminder — always shown if phone available */}
                           {waUrl && (
                             <a
                               href={waUrl}
@@ -490,7 +470,7 @@ export function AgendaManager() {
         </div>
       )}
 
-      {/* ── New Appointment Dialog ── */}
+      {/* New Appointment Dialog */}
       <Dialog open={showForm} onOpenChange={open => { if (!open) { setShowForm(false); resetForm() } else setShowForm(true) }}>
         <DialogContent className="bg-white max-w-md" descriptionId="agenda-form-description">
           <DialogHeader>
@@ -504,8 +484,6 @@ export function AgendaManager() {
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-
-            {/* Lead Search */}
             <div className="space-y-1.5" ref={searchRef}>
               <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Search className="h-3 w-3" />
@@ -536,7 +514,6 @@ export function AgendaManager() {
                   )}
                 </div>
 
-                {/* Suggestions dropdown */}
                 {showSuggestions && (
                   <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
                     {leadSuggestions.map(lead => (
@@ -560,7 +537,6 @@ export function AgendaManager() {
                 )}
               </div>
 
-              {/* Selected lead badge */}
               {selectedLead && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <UserCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
@@ -574,7 +550,6 @@ export function AgendaManager() {
               )}
             </div>
 
-            {/* Phone — auto-filled when lead is selected */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                 Telefone / WhatsApp
@@ -593,7 +568,6 @@ export function AgendaManager() {
               </div>
             </div>
 
-            {/* Type */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tipo de Evento *</label>
               <Select value={formType} onValueChange={v => setFormType(v as AppointmentType)}>
@@ -610,7 +584,6 @@ export function AgendaManager() {
               </Select>
             </div>
 
-            {/* Date & Time */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Data *</label>
@@ -633,7 +606,6 @@ export function AgendaManager() {
               </div>
             </div>
 
-            {/* Notes */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Observações</label>
               <Textarea
@@ -644,7 +616,6 @@ export function AgendaManager() {
               />
             </div>
 
-            {/* WhatsApp preview info */}
             {formLeadPhone && formDate && (
               <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 font-semibold">
                 <MessageSquare className="h-3.5 w-3.5 shrink-0 mt-0.5 text-emerald-600" />
@@ -654,7 +625,6 @@ export function AgendaManager() {
               </div>
             )}
 
-            {/* Buttons */}
             <div className="flex gap-3 pt-1">
               <Button
                 variant="outline"

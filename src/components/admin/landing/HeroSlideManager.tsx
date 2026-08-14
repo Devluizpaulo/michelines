@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { deleteDoc, doc, updateDoc } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { updateHeroSlide, deleteHeroSlide } from "@/lib/db/hero"
 import { HeroSlideType } from "@/types/hero-slide"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -53,10 +52,7 @@ export function HeroSlideManager({ slides, loading, onRefresh }: HeroSlideManage
 
     try {
       setTogglingId(slide.id)
-      await updateDoc(doc(db, "hero_slides", slide.id), {
-        active: !slide.active,
-        updatedAt: new Date().toISOString(),
-      })
+      await updateHeroSlide(slide.id, { active: !slide.active })
       success(
         slide.active ? "Slide ocultado" : "Slide publicado",
         `"${slide.title || 'Slide'}" foi ${slide.active ? "removido da Home" : "publicado na Home"}.`
@@ -74,7 +70,7 @@ export function HeroSlideManager({ slides, loading, onRefresh }: HeroSlideManage
     if (!slide.id) return
     if (!window.confirm(`Excluir o slide "${slide.title || 'Slide'}"? Esta ação não pode ser desfeita.`)) return
     try {
-      await deleteDoc(doc(db, "hero_slides", slide.id))
+      await deleteHeroSlide(slide.id)
       success("Slide excluído!", "O slide foi removido do carrossel.")
       onRefresh()
     } catch (e: any) {
@@ -91,12 +87,11 @@ export function HeroSlideManager({ slides, loading, onRefresh }: HeroSlideManage
       const currentOrder = currentSlide.order ?? index
       const prevOrder = prevSlide.order ?? (index - 1)
       
-      // Swap orders
       const newCurrentOrder = prevOrder
       const newPrevOrder = currentOrder === prevOrder ? currentOrder + 1 : currentOrder
       
-      await updateDoc(doc(db, "hero_slides", currentSlide.id!), { order: newCurrentOrder })
-      await updateDoc(doc(db, "hero_slides", prevSlide.id!), { order: newPrevOrder })
+      await updateHeroSlide(currentSlide.id!, { order: newCurrentOrder })
+      await updateHeroSlide(prevSlide.id!, { order: newPrevOrder })
       
       success("Ordem atualizada", `O slide "${currentSlide.title || 'Slide'}" foi movido para cima.`)
       onRefresh()
@@ -115,12 +110,11 @@ export function HeroSlideManager({ slides, loading, onRefresh }: HeroSlideManage
       const currentOrder = currentSlide.order ?? index
       const nextOrder = nextSlide.order ?? (index + 1)
       
-      // Swap orders
       const newCurrentOrder = nextOrder
       const newNextOrder = currentOrder === nextOrder ? currentOrder - 1 : currentOrder
       
-      await updateDoc(doc(db, "hero_slides", currentSlide.id!), { order: newCurrentOrder })
-      await updateDoc(doc(db, "hero_slides", nextSlide.id!), { order: newNextOrder })
+      await updateHeroSlide(currentSlide.id!, { order: newCurrentOrder })
+      await updateHeroSlide(nextSlide.id!, { order: newNextOrder })
       
       success("Ordem atualizada", `O slide "${currentSlide.title || 'Slide'}" foi movido para baixo.`)
       onRefresh()

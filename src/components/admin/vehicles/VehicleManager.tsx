@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { collection, query, orderBy, getDocs, doc, addDoc, updateDoc, deleteDoc, setDoc, getDoc } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { listVehicles, saveVehicle, deleteVehicle } from "@/lib/db/vehicles"
+import { createHeroSlide, listHeroSlides } from "@/lib/db/hero"
+import { getSetting, setSetting } from "@/lib/db/settings"
 import { Vehicle } from "@/types/vehicle"
 import { Lead } from "@/types/lead"
 import { VehicleCard } from "./VehicleCard"
@@ -31,16 +32,11 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
   const [suggestedVehicle, setSuggestedVehicle] = useState<Vehicle | null>(null)
 
 
-  // Load vehicles from Firestore
+  // Load vehicles from Supabase
   const fetchVehicles = async () => {
     try {
       setLoading(true)
-      const q = query(collection(db, "vehicles"), orderBy("showroomOrder", "asc"))
-      const snap = await getDocs(q)
-      const list: Vehicle[] = []
-      snap.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() } as Vehicle)
-      })
+      const list = await listVehicles()
       setVehicles(list)
     } catch (e) {
       console.error("Erro ao carregar veículos:", e)
@@ -106,12 +102,12 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1005)
 
     const currentMonthLeads = leads.filter(lead => {
-      const date = lead.createdAt?.toDate ? lead.createdAt.toDate() : new Date(lead.createdAt)
+      const date = (lead.createdAt as any)?.toDate ? (lead.createdAt as any).toDate() : new Date(lead.createdAt as any)
       return date >= thirtyDaysAgo && date <= now
     }).length
 
     const lastMonthLeads = leads.filter(lead => {
-      const date = lead.createdAt?.toDate ? lead.createdAt.toDate() : new Date(lead.createdAt)
+      const date = (lead.createdAt as any)?.toDate ? (lead.createdAt as any).toDate() : new Date(lead.createdAt as any)
       return date >= sixtyDaysAgo && date < thirtyDaysAgo
     }).length
 
@@ -146,12 +142,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Tem certeza que deseja excluir este veículo do showroom?")) return
     try {
-      await deleteDoc(doc(db, "vehicles", id))
-      try {
-        await deleteDoc(doc(db, "vehicle_pricing", id))
-      } catch (pe) {
-        console.warn("Nenhum preço encontrado para deletar:", pe)
-      }
+      await deleteVehicle(id)
       success("Veículo excluído!", "O veículo foi removido do showroom.")
       fetchVehicles()
     } catch (e: any) {
@@ -169,72 +160,9 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
         return
       }
 
-      const now = new Date().toISOString()
+      await saveVehicle(vehicleData, editingVehicle?.id)
+      success("Veículo salvo!", `"${vehicleData.name}" foi salvo com sucesso.`)
 
-      if (editingVehicle?.id) {
-        // Edit existing
-        const oldId = editingVehicle.id
-
-        // If slug changed, delete the old documents
-        if (oldId !== slug) {
-          await deleteDoc(doc(db, "vehicles", oldId))
-          try {
-            await deleteDoc(doc(db, "vehicle_pricing", oldId))
-          } catch (pe) {
-            console.warn("Nenhum preço antigo encontrado para deletar:", pe)
-          }
-        }
-
-        // Set/update the new document
-        const ref = doc(db, "vehicles", slug)
-        const payload = {
-          ...vehicleData,
-          updatedAt: now
-        }
-        await setDoc(ref, payload, { merge: true })
-
-        // Save pricing document as well
-        const pricingRef = doc(db, "vehicle_pricing", slug)
-        const pricingPayload = {
-          vehicleId: slug,
-          dailyRate: vehicleData.dailyPrice || 0,
-          weeklyRate: vehicleData.weeklyPrice || Math.round((vehicleData.monthlyPrice || 0) / 4),
-          monthlyRate: vehicleData.monthlyPrice || 0,
-          weekendExempt: true,
-          acceptedPayments: ["pix", "debito", "credito"],
-          active: true,
-          updatedAt: now
-        }
-        await setDoc(pricingRef, pricingPayload, { merge: true })
-
-        success("Veículo atualizado!", `"${vehicleData.name}" foi salvo com sucesso.`)
-      } else {
-        // Create new
-        const ref = doc(db, "vehicles", slug)
-        const payload = {
-          ...vehicleData,
-          createdAt: now,
-          updatedAt: now
-        }
-        await setDoc(ref, payload)
-
-        // Create new pricing document
-        const pricingRef = doc(db, "vehicle_pricing", slug)
-        const pricingPayload = {
-          vehicleId: slug,
-          dailyRate: vehicleData.dailyPrice || 0,
-          weeklyRate: vehicleData.weeklyPrice || Math.round((vehicleData.monthlyPrice || 0) / 4),
-          monthlyRate: vehicleData.monthlyPrice || 0,
-          weekendExempt: true,
-          acceptedPayments: ["pix", "debito", "credito"],
-          active: true,
-          createdAt: now,
-          updatedAt: now
-        }
-        await setDoc(pricingRef, pricingPayload)
-
-        success("Veículo criado!", `"${vehicleData.name}" foi adicionado ao showroom.`)
-      }
       if (vehicleData.featured === true) {
         setSuggestedVehicle({
           id: slug,
@@ -252,8 +180,8 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
 
   const handleCreateHeroSlide = async (vehicle: Vehicle) => {
     try {
-      const snap = await getDocs(collection(db, "hero_slides"))
-      const order = snap.size + 1
+      const slides = await listHeroSlides()
+      const order = slides.length + 1
       
       const newSlide = {
         active: true,
@@ -267,7 +195,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
         views: 0,
         clicks: 0
       }
-      await addDoc(collection(db, "hero_slides"), newSlide)
+      await createHeroSlide(newSlide)
       success("Slide Hero criado!", `O slide para "${vehicle.name}" foi adicionado com sucesso.`)
       setSuggestedVehicle(null)
     } catch (e: any) {
@@ -278,9 +206,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
 
   const handleConfigCampaignBanner = async (vehicle: Vehicle) => {
     try {
-      const docRef = doc(db, "landing", "settings")
-      const snap = await getDoc(docRef)
-      const currentSettings = snap.exists() ? snap.data() : {}
+      const currentSettings = await getSetting("landing_settings", {})
       
       const payload = {
         ...currentSettings,
@@ -297,7 +223,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
         updatedAt: new Date().toISOString()
       }
       
-      await setDoc(docRef, payload, { merge: true })
+      await setSetting("landing_settings", payload)
       success("Banner configurado!", `O banner principal agora destaca "${vehicle.name}".`)
       setSuggestedVehicle(null)
     } catch (e: any) {
@@ -317,9 +243,7 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
 
   const handleScheduleCalendar = async (vehicle: Vehicle) => {
     try {
-      const calendarRef = doc(db, "landing", "calendar_events")
-      const cDoc = await getDoc(calendarRef)
-      const calendarEvents = cDoc.exists() ? (cDoc.data().events || []) : []
+      const calendarEvents = await getSetting("calendar_events", [])
       
       const todayStr = new Date().toISOString().split("T")[0]
       const newEvent = {
@@ -330,8 +254,8 @@ export function VehicleManager({ leads, setActiveTab }: VehicleManagerProps) {
         color: "violet"
       }
       
-      const updatedEvents = [...calendarEvents, newEvent].sort((a: any, b: any) => a.date.localeCompare(b.date))
-      await setDoc(calendarRef, { events: updatedEvents })
+      const updatedEvents = [...(Array.isArray(calendarEvents) ? calendarEvents : []), newEvent].sort((a: any, b: any) => a.date.localeCompare(b.date))
+      await setSetting("calendar_events", updatedEvents)
       success("Agendado no Calendário!", `A campanha do veículo foi registrada para hoje.`)
       setSuggestedVehicle(null)
     } catch (e: any) {

@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { doc, updateDoc } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { updateLead } from "@/lib/db/leads"
 import { Lead, LeadInteraction, CreditCheckRecord } from "@/types/lead"
 import {
   Dialog,
@@ -203,12 +202,11 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
   const [newNote, setNewNote] = useState("")
   const [addingNote, setAddingNote] = useState(false)
 
-  // Append a logged action into interactions history collection in Firestore
+  // Append a logged action into interactions history collection
   const logInteraction = async (type: LeadInteraction["type"], content: string) => {
     const activeLead = lead
     if (!activeLead) return
     try {
-      const leadRef = doc(db, "leads", activeLead.id)
       const newInteraction: LeadInteraction = {
         id: Math.random().toString(36).substring(2, 9),
         type,
@@ -219,9 +217,8 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
 
       const updatedInteractions = [...(activeLead.interactions || []), newInteraction]
 
-      await updateDoc(leadRef, {
+      await updateLead(activeLead.id, {
         interactions: updatedInteractions,
-        updatedAt: new Date().toISOString()
       })
 
       onLeadUpdated({
@@ -372,7 +369,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
       }
 
       const updatedDocs = [...(lead.attachedDocs || []), newDoc]
-      const leadRef = doc(db, "leads", lead.id)
 
       const updatedInteractions = [...(lead.interactions || [])]
       updatedInteractions.push({
@@ -383,10 +379,9 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         createdAt: new Date().toISOString()
       })
 
-      await updateDoc(leadRef, {
+      await updateLead(lead.id, {
         attachedDocs: updatedDocs,
         interactions: updatedInteractions,
-        updatedAt: new Date().toISOString()
       })
 
       onLeadUpdated({
@@ -508,12 +503,11 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         creditAnalysisStatus: nextStatus,
         attachedDocs: updatedDocs,
         interactions: updatedInteractions,
-        updatedAt: new Date().toISOString(),
       }
 
-      await updateDoc(doc(db, "leads", lead.id), patch)
+      await updateLead(lead.id, patch)
       setCreditAnalysisStatus(nextStatus)
-      onLeadUpdated({ ...lead, ...patch })
+      onLeadUpdated({ ...lead, ...patch, updatedAt: new Date().toISOString() })
       success("Consulta registrada!", `Resultado: ${resultLabel}.`)
     } catch (err) {
       console.error("Erro ao registrar consulta de CPF:", err)
@@ -630,9 +624,8 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         }
       }
 
-      // 2. Remove from Firestore
+      // 2. Remove from database
       const updatedDocs = (lead.attachedDocs || []).filter(d => d.url !== docToDelete.url)
-      const leadRef = doc(db, "leads", lead.id)
 
       const updatedInteractions = [...(lead.interactions || [])]
       updatedInteractions.push({
@@ -643,10 +636,9 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         createdAt: new Date().toISOString()
       })
 
-      await updateDoc(leadRef, {
+      await updateLead(lead.id, {
         attachedDocs: updatedDocs,
         interactions: updatedInteractions,
-        updatedAt: new Date().toISOString()
       })
 
       onLeadUpdated({
@@ -670,7 +662,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
     if (!activeLead) return
     try {
       setSaving(true)
-      const leadRef = doc(db, "leads", activeLead.id)
       const newInteractions = [...(activeLead.interactions || [])]
 
       if (notes !== activeLead.notes) {
@@ -837,7 +828,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         updatedAt: new Date().toISOString()
       }
 
-      await updateDoc(leadRef, payload)
+      await updateLead(activeLead.id, payload)
 
       onLeadUpdated({
         ...activeLead,
@@ -859,7 +850,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
     if (!activeLead) return
     try {
       setSaving(true)
-      const leadRef = doc(db, "leads", activeLead.id)
 
       const newInteractions = [...(activeLead.interactions || [])]
       newInteractions.push({
@@ -878,14 +868,14 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         approvedBy: loggedInUser,
         approvalDate: new Date().toISOString(),
         interactions: newInteractions,
-        updatedAt: new Date().toISOString()
       }
 
-      await updateDoc(leadRef, payload)
+      await updateLead(activeLead.id, payload)
 
       onLeadUpdated({
         ...activeLead,
-        ...payload
+        ...payload,
+        updatedAt: new Date().toISOString()
       })
 
       success("Cadastro Aprovado! 🏆", `O cadastro de ${activeLead.fullName} foi aprovado com sucesso.`)
@@ -903,7 +893,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
     if (!activeLead) return
     try {
       setSaving(true)
-      const leadRef = doc(db, "leads", activeLead.id)
 
       const newInteractions = [...(activeLead.interactions || [])]
       newInteractions.push({
@@ -919,14 +908,14 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
         status: "lost" as const,
         approvalStatus: "rejected" as const,
         interactions: newInteractions,
-        updatedAt: new Date().toISOString()
       }
 
-      await updateDoc(leadRef, payload)
+      await updateLead(activeLead.id, payload)
 
       onLeadUpdated({
         ...activeLead,
-        ...payload
+        ...payload,
+        updatedAt: new Date().toISOString()
       })
 
       success("Cadastro Rejeitado ❌", `O cadastro de ${activeLead.fullName} foi rejeitado.`)
@@ -944,7 +933,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
     if (!activeLead) return
     try {
       setSaving(true)
-      const leadRef = doc(db, "leads", activeLead.id)
       const newArchived = !archived
       
       const newInteractions = [...(activeLead.interactions || [])]
@@ -961,15 +949,15 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
       const payload = {
         archived: newArchived,
         interactions: newInteractions,
-        updatedAt: new Date().toISOString()
       }
 
-      await updateDoc(leadRef, payload)
+      await updateLead(activeLead.id, payload)
       setArchived(newArchived)
 
       onLeadUpdated({
         ...activeLead,
-        ...payload
+        ...payload,
+        updatedAt: new Date().toISOString()
       })
 
       success(
@@ -1403,7 +1391,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
             }
 
             try {
-              const leadRef = doc(db, "leads", lead.id)
               const newInteractions = [...(lead.interactions || [])]
               newInteractions.push({
                 id: Math.random().toString(36).substring(2, 9),
@@ -1416,10 +1403,9 @@ export function LeadDrawer({ lead, isOpen, onClose, onLeadUpdated }: LeadDrawerP
                     : ""),
                 createdAt: new Date().toISOString()
               })
-              await updateDoc(leadRef, {
+              await updateLead(lead.id, {
                 status: stepId,
                 interactions: newInteractions,
-                updatedAt: new Date().toISOString()
               })
               setStatus(stepId)
               onLeadUpdated({ ...lead, status: stepId, interactions: newInteractions, updatedAt: new Date().toISOString() })

@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react"
-import { onAuthStateChanged, User } from "firebase/auth"
-import { doc, getDoc, onSnapshot } from "firebase/firestore"
-import { auth, db } from "@/app/firebase/config"
+import type { User } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase"
+import { fetchMyProfile, touchLastLogin } from "@/lib/db/admin-users"
+import { getSetting, subscribeToSetting } from "@/lib/db/settings"
 import { AdminUser, UserRole, TabId, ROLE_PERMISSIONS } from "@/lib/permissions"
 
 /**
@@ -15,7 +16,8 @@ import { AdminUser, UserRole, TabId, ROLE_PERMISSIONS } from "@/lib/permissions"
 export type ProfileError = "no-profile" | "disabled" | "unavailable"
 
 interface AuthContextType {
-  firebaseUser: User | null
+  firebaseUser: User | null // Mantido como alias de 'user' para retrocompatibilidade
+  user: User | null
   adminUser: AdminUser | null
   role: UserRole | null
   loading: boolean
@@ -26,6 +28,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   firebaseUser: null,
+  user: null,
   adminUser: null,
   role: null,
   loading: true,
@@ -35,24 +38,22 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [firebaseUser, setFirebaseUser] = useState<User | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
   const [profileError, setProfileError] = useState<ProfileError | null>(null)
   const [customPermissions, setCustomPermissions] = useState<Record<UserRole, TabId[]>>(ROLE_PERMISSIONS)
   const [loading, setLoading] = useState(true)
 
-  // Carrega configurações de permissões customizadas do Firestore em tempo real
+  // Carrega configurações de permissões customizadas do Supabase app_settings em tempo real
   useEffect(() => {
-    const permissionsRef = doc(db, "role_permissions", "config")
-    const unsubPermissions = onSnapshot(
-      permissionsRef,
-      (snap) => {
-        if (snap.exists()) {
-          setCustomPermissions(snap.data() as Record<UserRole, TabId[]>)
-        }
-      },
-      (err) => {
-        console.warn("Erro ao carregar permissões dinâmicas do Firestore, usando fallback estático:", err)
+    getSetting<Record<UserRole, TabId[]>>("role_permissions").then((perms) => {
+      if (perms) setCustomPermissions(perms)
+    })
+
+    const unsubPermissions = subscribeToSetting<Record<UserRole, TabId[]>>(
+      "role_permissions",
+      (perms) => {
+        if (perms) setCustomPermissions(perms)
       }
     )
 
@@ -60,54 +61,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      setFirebaseUser(user)
+    // 1. Obtém sessão inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const initialUser = session?.user ?? null
+      setUser(initialUser)
+      if (initialUser) {
+        loadProfile(initialUser.id)
+      } else {
+        setLoading(false)
+      }
+    })
 
-      if (user) {
-        try {
-          // Busca perfil do usuário no Firestore.
-          // O perfil é a ÚNICA fonte de verdade do papel: nunca inferimos nem
-          // criamos permissões no cliente — quem provisiona é um super_admin
-          // pela aba Usuários, e as regras do Firestore validam do lado servidor.
-          const ref = doc(db, "admin_users", user.uid)
+    // 2. Observa mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
 
-          // Timeout de 10s para não travar indefinidamente em conexões ruins.
-          // O cache persistente do Firestore já atende leituras offline.
-          const snap = await Promise.race([
-            getDoc(ref),
-            new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error("Timeout de rede")), 10000)
-            ),
-          ])
-
-          if (snap && snap.exists()) {
-            const data = snap.data() as Omit<AdminUser, "uid">
-            // Conta desativada não recebe perfil — o painel a trata como sem acesso.
-            setAdminUser(data.active === false ? null : ({ uid: user.uid, ...data } as AdminUser))
-            setProfileError(data.active === false ? "disabled" : null)
-          } else {
-            // Autenticado, porém sem perfil administrativo provisionado.
-            setAdminUser(null)
-            setProfileError("no-profile")
-          }
-        } catch (e) {
-          console.warn("Erro ao buscar perfil do admin:", e)
-          setAdminUser(null)
-          setProfileError("unavailable")
+      if (currentUser) {
+        if (event === "SIGNED_IN") {
+          touchLastLogin(currentUser.id)
         }
+        await loadProfile(currentUser.id)
       } else {
         setAdminUser(null)
         setProfileError(null)
+        setLoading(false)
       }
-
-      setLoading(false)
     })
 
-    return () => unsub()
+    return () => subscription.unsubscribe()
   }, [])
 
+  async function loadProfile(userId: string) {
+    try {
+      const profile = await fetchMyProfile(userId)
+      if (profile) {
+        if (profile.active === false) {
+          setAdminUser(null)
+          setProfileError("disabled")
+        } else {
+          setAdminUser(profile)
+          setProfileError(null)
+        }
+      } else {
+        setAdminUser(null)
+        setProfileError("no-profile")
+      }
+    } catch (err) {
+      console.warn("[AuthContext] Erro ao buscar perfil do admin:", err)
+      setAdminUser(null)
+      setProfileError("unavailable")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Memoizado: consumidores usam `canAccess` em arrays de dependência de efeitos.
-  // Uma nova identidade a cada render reexecutaria esses efeitos continuamente.
   const checkAccess = useCallback(
     (tab: TabId): boolean => {
       if (!adminUser || !adminUser.active) return false
@@ -122,7 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AuthContextType>(
     () => ({
-      firebaseUser,
+      firebaseUser: user,
+      user,
       adminUser,
       role: adminUser?.role ?? null,
       loading,
@@ -130,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       canAccess: checkAccess,
       customPermissions,
     }),
-    [firebaseUser, adminUser, loading, profileError, checkAccess, customPermissions]
+    [user, adminUser, loading, profileError, checkAccess, customPermissions]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

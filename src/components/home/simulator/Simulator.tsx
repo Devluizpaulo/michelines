@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { collection, getDocs } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { getSetting } from "@/lib/db/settings"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Check, X, HelpCircle, ArrowRight, Info, MessageSquare } from "lucide-react"
@@ -57,11 +56,10 @@ export function Simulator() {
     const fetchScenarios = async () => {
       try {
         setLoading(true)
-        const snap = await getDocs(collection(db, "simulator_scenarios"))
-        if (!snap.empty) {
+        const list = await getSetting<SimulatorScenario[]>("simulator_scenarios", [])
+        if (Array.isArray(list) && list.length > 0) {
           const fetched: any = {}
-          snap.forEach((doc) => {
-            const data = doc.data() as SimulatorScenario
+          list.forEach((data) => {
             if (data.category) {
               fetched[data.category] = data
             }

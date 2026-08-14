@@ -6,8 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react"
-import { sendPasswordResetEmail } from "firebase/auth"
-import { auth } from "../firebase/config"
+import { requestPasswordReset } from "@/lib/auth/supabase-auth"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,13 +19,6 @@ export default function RecuperarSenhaPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false)
-
-  useEffect(() => {
-    if (auth) {
-      setIsFirebaseReady(true)
-    }
-  }, [])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -40,28 +32,20 @@ export default function RecuperarSenhaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!isFirebaseReady) {
-      setError("Sistema de autenticação ainda não está pronto. Por favor, tente novamente.")
-      return
-    }
-
     setError("")
     setSuccess(false)
     setLoading(true)
 
     try {
-      await sendPasswordResetEmail(auth, email)
-      setSuccess(true)
+      const res = await requestPasswordReset(email)
+      if (res.ok) {
+        setSuccess(true)
+      } else {
+        setError(res.message || "Ocorreu um erro ao enviar a redefinição de senha.")
+      }
     } catch (err: any) {
       console.error(err)
-      if (err.code === "auth/user-not-found") {
-        setError("Nenhum usuário correspondente a este e-mail foi encontrado no sistema.")
-      } else if (err.code === "auth/invalid-email") {
-        setError("O endereço de e-mail inserido é inválido.")
-      } else {
-        setError("Ocorreu um erro ao tentar enviar o e-mail de recuperação. Tente novamente.")
-      }
+      setError("Ocorreu um erro ao tentar enviar o e-mail de recuperação. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -69,9 +53,8 @@ export default function RecuperarSenhaPage() {
 
   return (
     <div className="w-full min-h-screen flex bg-white">
-      {/* Lado Esquerdo - Branding (Visível apenas em telas médias para cima) */}
+      {/* Lado Esquerdo - Branding */}
       <div className="hidden lg:flex w-1/2 relative bg-[#0A192F] overflow-hidden items-center justify-center">
-        {/* Animated glowing orbs */}
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-600/40 rounded-full blur-[100px] mix-blend-screen animate-pulse" />
           <div className="absolute bottom-[20%] right-[20%] w-[500px] h-[500px] bg-yellow-500/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }} />
@@ -94,7 +77,6 @@ export default function RecuperarSenhaPage() {
           </p>
         </div>
         
-        {/* Glassmorphism info card na base */}
         <div className="absolute bottom-8 left-8 right-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 flex justify-between items-center shadow-2xl">
           <div>
             <p className="text-yellow-400 font-bold text-sm uppercase tracking-wider">Suporte Técnico</p>
@@ -183,7 +165,7 @@ export default function RecuperarSenhaPage() {
                   <Button 
                     type="submit" 
                     className="w-full h-12 text-base font-bold bg-[#0A192F] hover:bg-[#112240] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" 
-                    disabled={loading || !isFirebaseReady}
+                    disabled={loading}
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">

@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { doc, setDoc, getDoc, collection, getDocs, query, orderBy, addDoc, deleteDoc, onSnapshot } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { listVehicles } from "@/lib/db/vehicles"
+import { listHeroSlides } from "@/lib/db/hero"
+import { getSetting, setSetting } from "@/lib/db/settings"
 import { LandingSettings } from "@/types/landing"
 import { HeroSlideType } from "@/types/hero-slide"
 import { Vehicle } from "@/types/vehicle"
@@ -367,21 +368,17 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
       try {
         setLoadingVehicles(true)
         // 1. Fetch vehicles
-        const vSnap = await getDocs(query(collection(db, "vehicles"), orderBy("name", "asc")))
-        const vList: Vehicle[] = []
-        vSnap.forEach(d => vList.push({ id: d.id, ...d.data() } as Vehicle))
+        const vList = await listVehicles()
         setVehicles(vList)
 
         // 2. Fetch slides to show performance comparison
-        const sSnap = await getDocs(query(collection(db, "hero_slides"), orderBy("order", "asc")))
-        const sList: HeroSlideType[] = []
-        sSnap.forEach(d => sList.push({ id: d.id, ...d.data() } as HeroSlideType))
+        const sList = await listHeroSlides()
         setSlides(sList)
 
         // 3. Fetch scheduled events
-        const cDoc = await getDoc(doc(db, "landing", "calendar_events"))
-        if (cDoc.exists()) {
-          setCalendarEvents(cDoc.data().events || [])
+        const cData = await getSetting<{ events: CalendarEvent[] }>("calendar_events")
+        if (cData?.events) {
+          setCalendarEvents(cData.events)
         }
       } catch (e) {
         console.error("Erro ao carregar dados do marketing:", e)
@@ -463,7 +460,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
         updatedAt: new Date().toISOString()
       }
 
-      await setDoc(doc(db, "landing", "settings"), payload, { merge: true })
+      await setSetting("landing_settings", payload)
       onSettingsSaved(payload)
       success("Campanha salva!", "Configurações do banner gravadas com sucesso.")
     } catch (error: any) {
@@ -493,7 +490,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
     setNewEventDate("")
 
     try {
-      await setDoc(doc(db, "landing", "calendar_events"), { events: updatedEvents })
+      await setSetting("calendar_events", { events: updatedEvents })
       success("Evento agendado!", "A campanha foi adicionada ao calendário mensal.")
     } catch (err: any) {
       console.error(err)
@@ -507,7 +504,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
     setCalendarEvents(updatedEvents)
 
     try {
-      await setDoc(doc(db, "landing", "calendar_events"), { events: updatedEvents })
+      await setSetting("calendar_events", { events: updatedEvents })
       success("Evento removido", "A campanha foi retirada do calendário.")
     } catch (err: any) {
       console.error(err)

@@ -1,19 +1,18 @@
-import { auth } from "@/app/firebase/config"
+import { supabase } from "@/lib/supabase"
 
 /**
  * `fetch` para as rotas internas de `/api/*` que exigem sessão administrativa.
  *
- * Anexa o ID token do Firebase no cabeçalho `Authorization`, que o servidor
- * valida em `requireAdmin`. Use isto — e não o `fetch` puro — em qualquer
- * chamada a rota protegida, senão a resposta será 401.
+ * Anexa o access token do Supabase no cabeçalho `Authorization`, que o servidor
+ * valida em `requireAdmin`.
  */
 export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
-  const user = auth.currentUser
-  if (!user) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
     throw new Error("Sessão expirada. Faça login novamente para continuar.")
   }
 
-  const token = await user.getIdToken()
+  const token = session.access_token
   const headers = new Headers(init.headers)
   headers.set("Authorization", `Bearer ${token}`)
 
@@ -34,3 +33,4 @@ export async function readApiError(res: Response, fallback = "Erro inesperado.")
     return fallback
   }
 }
+

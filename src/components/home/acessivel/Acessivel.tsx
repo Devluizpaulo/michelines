@@ -9,8 +9,7 @@ import {
   HelpCircle, GraduationCap, Award, CheckSquare, Heart
 } from "lucide-react"
 import { motion } from "framer-motion"
-import { collection, query, where, getDocs } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { listVehicles } from "@/lib/db/vehicles"
 import { Vehicle } from "@/types/vehicle"
 import { cn } from "@/lib/utils"
 
@@ -24,13 +23,9 @@ export function Acessivel() {
     const fetchAccessibleVehicles = async () => {
       try {
         setLoadingVehicles(true)
-        const q = query(collection(db, "vehicles"), where("category", "==", "acessivel"))
-        const snap = await getDocs(q)
-        const list: Vehicle[] = []
-        snap.forEach(doc => {
-          list.push({ id: doc.id, ...doc.data() } as Vehicle)
-        })
-        setAccessibleVehicles(list)
+        const list = await listVehicles()
+        const accessible = list.filter(v => v.category === "acessivel" || v.isAccessible)
+        setAccessibleVehicles(accessible)
       } catch (err) {
         console.error("Erro ao buscar veículos acessíveis:", err)
       } finally {

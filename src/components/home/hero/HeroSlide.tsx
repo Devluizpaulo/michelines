@@ -3,8 +3,7 @@
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
-import { doc, updateDoc, increment } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { incrementHeroClicks } from "@/lib/db/hero"
 import { Badge } from "@/components/ui/badge"
 import { HeroSlideType } from "@/types/hero-slide"
 import { HeroOverlay } from "./HeroOverlay"
@@ -44,9 +43,7 @@ export function HeroSlide({ slide, isActive, isPriority, isMobile }: HeroSlidePr
 
   const handleSlideClick = () => {
     if (slide.id && !slide.id.startsWith("default-")) {
-      updateDoc(doc(db, "hero_slides", slide.id), {
-        clicks: increment(1)
-      }).catch((err) => console.warn("Erro ao registrar click do slide:", err))
+      incrementHeroClicks(slide.id).catch((err) => console.warn("Erro ao registrar click do slide:", err))
     }
   }
 

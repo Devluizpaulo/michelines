@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
-import { doc, onSnapshot } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { getSetting, subscribeToSetting } from "@/lib/db/settings"
 import { LandingSettings } from "@/types/landing"
 
 const DEFAULT_SETTINGS: LandingSettings = {
@@ -35,7 +34,7 @@ export function useLandingSettings() {
     return () => media.removeEventListener("change", listener)
   }, [])
 
-  // Carrega configurações dinâmicas do Firestore em tempo real
+  // Carrega configurações dinâmicas do Supabase app_settings em tempo real
   useEffect(() => {
     if (typeof window !== "undefined") {
       const local = localStorage.getItem("landing_settings")
@@ -48,42 +47,38 @@ export function useLandingSettings() {
       }
     }
 
-    const docRef = doc(db, "landing", "settings")
-    const unsubscribe = onSnapshot(
-      docRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data()
-          const updated: LandingSettings = {
-            heroTitle: data.heroTitle || DEFAULT_SETTINGS.heroTitle,
-            heroGlowText: data.heroGlowText || DEFAULT_SETTINGS.heroGlowText,
-            liveBannerText: data.liveBannerText || DEFAULT_SETTINGS.liveBannerText,
-            congonhasStatus: data.congonhasStatus || DEFAULT_SETTINGS.congonhasStatus,
-            showCampaignBanner: !!data.showCampaignBanner,
-            campaignText: data.campaignText || DEFAULT_SETTINGS.campaignText,
-            campaignTemplateId: data.campaignTemplateId || DEFAULT_SETTINGS.campaignTemplateId,
-            campaignSubtitle: data.campaignSubtitle || DEFAULT_SETTINGS.campaignSubtitle,
-            campaignBtnText: data.campaignBtnText || DEFAULT_SETTINGS.campaignBtnText,
-            campaignBtnUrl: data.campaignBtnUrl || DEFAULT_SETTINGS.campaignBtnUrl,
-            campaignImageUrl: data.campaignImageUrl || DEFAULT_SETTINGS.campaignImageUrl,
-            campaignImagePosition: data.campaignImagePosition || DEFAULT_SETTINGS.campaignImagePosition,
-            campaignImageSize: data.campaignImageSize || DEFAULT_SETTINGS.campaignImageSize,
-            campaignImageAspectRatio: data.campaignImageAspectRatio || DEFAULT_SETTINGS.campaignImageAspectRatio,
-            heroAutoplayInterval: data.heroAutoplayInterval || 8,
-            heroTransitionDuration: data.heroTransitionDuration || 50
-          }
-          setLandingSettings(updated)
-          if (typeof window !== "undefined") {
-            localStorage.setItem("landing_settings", JSON.stringify(updated))
-          }
-        }
-      },
-      (error) => {
-        console.warn("Erro ao escutar configurações da landing page no Firestore:", error)
+    function processSettings(data: Partial<LandingSettings> | null) {
+      if (!data) return
+      const updated: LandingSettings = {
+        heroTitle: data.heroTitle || DEFAULT_SETTINGS.heroTitle,
+        heroGlowText: data.heroGlowText || DEFAULT_SETTINGS.heroGlowText,
+        liveBannerText: data.liveBannerText || DEFAULT_SETTINGS.liveBannerText,
+        congonhasStatus: data.congonhasStatus || DEFAULT_SETTINGS.congonhasStatus,
+        showCampaignBanner: !!data.showCampaignBanner,
+        campaignText: data.campaignText || DEFAULT_SETTINGS.campaignText,
+        campaignTemplateId: data.campaignTemplateId || DEFAULT_SETTINGS.campaignTemplateId,
+        campaignSubtitle: data.campaignSubtitle || DEFAULT_SETTINGS.campaignSubtitle,
+        campaignBtnText: data.campaignBtnText || DEFAULT_SETTINGS.campaignBtnText,
+        campaignBtnUrl: data.campaignBtnUrl || DEFAULT_SETTINGS.campaignBtnUrl,
+        campaignImageUrl: data.campaignImageUrl || DEFAULT_SETTINGS.campaignImageUrl,
+        campaignImagePosition: data.campaignImagePosition || DEFAULT_SETTINGS.campaignImagePosition,
+        campaignImageSize: data.campaignImageSize || DEFAULT_SETTINGS.campaignImageSize,
+        campaignImageAspectRatio: data.campaignImageAspectRatio || DEFAULT_SETTINGS.campaignImageAspectRatio,
+        heroAutoplayInterval: data.heroAutoplayInterval || 8,
+        heroTransitionDuration: data.heroTransitionDuration || 50
       }
-    )
+      setLandingSettings(updated)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("landing_settings", JSON.stringify(updated))
+      }
+    }
 
-    return () => unsubscribe()
+    getSetting<Partial<LandingSettings>>("landing_settings")
+      .then(processSettings)
+      .catch((err) => console.warn("Erro ao buscar landing_settings no Supabase:", err))
+
+    const unsub = subscribeToSetting<Partial<LandingSettings>>("landing_settings", processSettings)
+    return () => unsub()
   }, [])
 
   return { landingSettings, isMobile }

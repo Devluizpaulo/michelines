@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { doc, setDoc, collection, query, orderBy, getDocs } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { listHeroSlides } from "@/lib/db/hero"
+import { setSetting } from "@/lib/db/settings"
 import { LandingSettings } from "@/types/landing"
 import { HeroSlideType } from "@/types/hero-slide"
 import { Button } from "@/components/ui/button"
@@ -48,10 +48,7 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
   const fetchSlides = useCallback(async () => {
     try {
       setLoadingSlides(true)
-      const q = query(collection(db, "hero_slides"), orderBy("order", "asc"))
-      const snap = await getDocs(q)
-      const list: HeroSlideType[] = []
-      snap.forEach((d) => list.push({ id: d.id, ...d.data() } as HeroSlideType))
+      const list = await listHeroSlides()
       setSlides(list)
     } catch (e) {
       console.error("Erro ao carregar slides:", e)
@@ -104,7 +101,7 @@ export function LandingConfig({ landingSettings, onSettingsSaved }: LandingConfi
         updatedAt: new Date().toISOString()
       }
 
-      await setDoc(doc(db, "landing", "settings"), payload, { merge: true })
+      await setSetting("landing_settings", payload)
 
       if (typeof window !== "undefined") {
         localStorage.removeItem("landing_settings")

@@ -1,13 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  collection, getDocs, doc, setDoc, updateDoc, deleteDoc, serverTimestamp
-} from "firebase/firestore"
-import {
-  createUserWithEmailAndPassword, sendPasswordResetEmail
-} from "firebase/auth"
-import { db, auth, secondaryAuth } from "@/app/firebase/config"
+import { listAdminUsers, updateAdminProfile, setAdminRole, setAdminActive } from "@/lib/db/admin-users"
+import { setSetting } from "@/lib/db/settings"
+import { requestPasswordReset } from "@/lib/auth/supabase-auth"
 import { AdminUser, UserRole, ROLE_LABELS, ROLE_PERMISSIONS, TabId } from "@/lib/permissions"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/components/ui/toast-simple"
@@ -73,11 +69,13 @@ export function UserManager() {
     if (!editUser) return
     setSaving(true)
     try {
-      await updateDoc(doc(db, "admin_users", editUser.uid), {
+      await updateAdminProfile(editUser.uid, {
         displayName: editForm.displayName,
         phone: editForm.phone,
-        role: editForm.role,
       })
+      if (editForm.role !== editUser.role) {
+        await setAdminRole(editUser.uid, editForm.role)
+      }
       
       // Update local state
       setUsers(prev => prev.map(u => u.uid === editUser.uid ? {
@@ -110,7 +108,7 @@ export function UserManager() {
   const [permissionsConfig, setPermissionsConfig] = useState<Record<UserRole, TabId[]>>(ROLE_PERMISSIONS)
   const [savingPermissions, setSavingPermissions] = useState(false)
 
-  // Sincroniza estado local com as permissões do contexto/Firestore
+  // Sincroniza estado local com as permissões do contexto
   useEffect(() => {
     if (customPermissions) {
       setPermissionsConfig(customPermissions)
@@ -128,11 +126,11 @@ export function UserManager() {
     })
   }
 
-  // Grava permissões atualizadas no Firestore
+  // Grava permissões atualizadas no Supabase app_settings
   const handleSavePermissions = async () => {
     setSavingPermissions(true)
     try {
-      await setDoc(doc(db, "role_permissions", "config"), permissionsConfig)
+      await setSetting("role_permissions", permissionsConfig)
       success("Permissões salvas!", "Níveis de acesso e permissões salvos com sucesso.")
     } catch (e: any) {
       console.error(e)
@@ -153,9 +151,7 @@ export function UserManager() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const snap = await getDocs(collection(db, "admin_users"))
-      const list: AdminUser[] = []
-      snap.forEach(d => list.push({ uid: d.id, ...d.data() } as AdminUser))
+      const list = await listAdminUsers()
       setUsers(list.sort((a, b) => a.displayName.localeCompare(b.displayName)))
     } catch (e) {
       console.error("Erro ao buscar usuários:", e)
@@ -166,42 +162,34 @@ export function UserManager() {
 
   useEffect(() => { fetchUsers() }, [])
 
-  // Criar novo usuário por convite
+  // Criar novo usuário por convite via API Supabase Admin
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.email || !form.displayName) return
     setSaving(true)
     try {
-      // 1. Gera uma senha temporária aleatória segura
-      const tempPassword = Math.random().toString(36).slice(-10) + "A1!" + Math.random().toString(36).slice(-5).toUpperCase()
+      const response = await authFetch("/api/usuarios/criar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      const data = await response.json()
 
-      // 2. Cria no Firebase Auth usando a instância secundária isolada
-      const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email, tempPassword)
-
-      // 3. Cria perfil no Firestore
-      const userDoc: Omit<AdminUser, "uid"> = {
-        email: form.email,
-        displayName: form.displayName,
-        phone: form.phone,
-        role: form.role,
-        active: true,
-        createdAt: new Date().toISOString(),
-        createdBy: adminUser?.uid || "system",
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Não foi possível criar o usuário.")
       }
-      await setDoc(doc(db, "admin_users", cred.user.uid), userDoc)
 
-      // Desloga o usuário da instância secundária imediatamente
-      await secondaryAuth.signOut()
+      const tempPassword = data.tempPassword || "Defina sua senha no primeiro acesso"
 
-      // 4. Constrói uma mensagem humana e solícita de convite de acesso
+      // Constrói uma mensagem humana de convite
       const inviteMsg = `Fala, ${form.displayName}! Tudo bem?
 
 Você foi convidado para fazer parte da equipe de gestão comercial do Grupo Michelines! 🚖
 
-Seu acesso já está liberado na nossa plataforma. Para definir sua senha pessoal de 6 dígitos de primeiro acesso, entre no link abaixo:
-${window.location.origin}/definir-senha?email=${encodeURIComponent(form.email)}&temp=${encodeURIComponent(tempPassword)}
+Seu acesso já está liberado na nossa plataforma. Para definir sua senha pessoal de primeiro acesso, entre no link abaixo:
+${window.location.origin}/recuperar-senha
 
-Após cadastrar sua nova senha, você poderá acessar o painel de controle pelo link:
+Após redefinir sua senha, você poderá acessar o painel de controle pelo link:
 ${window.location.origin}/login
 Login: ${form.email}
 
@@ -221,9 +209,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
       // Abre o diálogo de compartilhamento customizado
       setShareOpen(true)
     } catch (err: any) {
-      let msg = "Erro ao criar usuário."
-      if (err.code === "auth/email-already-in-use") msg = "Este email já está em uso."
-      toastError("Erro ao criar usuário", msg)
+      toastError("Erro ao criar usuário", err.message || "Tente novamente.")
     } finally {
       setSaving(false)
     }
@@ -232,7 +218,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
   // Atualizar role/status
   const handleUpdateRole = async (uid: string, role: UserRole) => {
     try {
-      await updateDoc(doc(db, "admin_users", uid), { role })
+      await setAdminRole(uid, role)
       setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role } : u))
       success("Cargo atualizado!", "O nível de acesso do usuário foi alterado.")
     } catch (e: any) {
@@ -242,7 +228,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
 
   const handleToggleActive = async (uid: string, active: boolean) => {
     try {
-      await updateDoc(doc(db, "admin_users", uid), { active: !active })
+      await setAdminActive(uid, !active)
       setUsers(prev => prev.map(u => u.uid === uid ? { ...u, active: !active } : u))
       success(
         active ? "Acesso bloqueado!" : "Acesso liberado!",
@@ -255,7 +241,7 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
 
   const handleResetPassword = async (email: string) => {
     try {
-      await sendPasswordResetEmail(auth, email)
+      await requestPasswordReset(email)
       success("E-mail enviado!", `Um link para redefinir a senha foi enviado para ${email}.`)
     } catch (e: any) {
       toastError("Erro ao redefinir senha", e.message || "Tente novamente.")
@@ -265,40 +251,20 @@ Qualquer dúvida no acesso ou na configuração, é só me chamar aqui! Tamo jun
   const handleDelete = async (uid: string, email: string) => {
     if (!confirm(`Remover "${email}" do painel admin? O acesso será bloqueado imediatamente.`)) return
     try {
-      // 1. Tentar deletar o usuário do Firebase Auth via API
       const response = await authFetch("/api/usuarios/deletar", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uid }),
       })
 
       const data = await response.json()
-      let isPartial = false
 
       if (!response.ok || !data.success) {
-        if (data.code === "ENV_NOT_CONFIGURED") {
-          isPartial = true
-        } else {
-          throw new Error(data.message || "Não foi possível remover o usuário do autenticador.")
-        }
+        throw new Error(data.error || "Não foi possível remover o usuário.")
       }
 
-      // 2. Deletar do Firestore
-      await deleteDoc(doc(db, "admin_users", uid))
-      
-      // 3. Atualizar estado local
       setUsers(prev => prev.filter(u => u.uid !== uid))
-
-      if (isPartial) {
-        toastError(
-          "Usuário removido com pendência",
-          "Usuário removido do painel. Porém, as chaves administrativas não estão configuradas localmente, então você precisará remover a conta manualmente do Console do Firebase Auth."
-        )
-      } else {
-        success("Usuário removido!", "O usuário foi removido permanentemente do painel e do autenticador.")
-      }
+      success("Usuário removido!", "O usuário foi removido permanentemente do painel e do autenticador.")
     } catch (e: any) {
       console.error(e)
       toastError("Erro ao remover usuário", e.message || "Tente novamente.")

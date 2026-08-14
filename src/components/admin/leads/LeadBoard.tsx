@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { collection, addDoc, doc, updateDoc } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { createLead, updateLead } from "@/lib/db/leads"
 import { Lead } from "@/types/lead"
 import { LeadFilters } from "./LeadFilters"
 import { LeadPipeline } from "./LeadPipeline"
@@ -102,19 +101,16 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
 
     try {
       setCreatingLead(true)
-      const payload = {
-        ...newLeadData,
+      const newLead = await createLead({
+        fullName: newLeadData.fullName,
+        phone: newLeadData.phone,
+        source: newLeadData.source,
+        vehicleInterest: newLeadData.vehicleInterest,
+        status: newLeadData.status,
+        notes: newLeadData.notes || undefined,
         contacted: false,
         whatsappSent: false,
-        createdAt: new Date(),
-        updatedAt: new Date().toISOString()
-      }
-
-      const docRef = await addDoc(collection(db, "leads"), payload)
-      const newLead: Lead = {
-        id: docRef.id,
-        ...payload
-      }
+      })
 
       onLeadsChange([newLead, ...leads])
       setCreateDialogOpen(false)
@@ -138,12 +134,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
   // Handle status update (from Drag and Drop)
   const handleStatusChange = async (leadId: string, newStatus: Lead["status"]) => {
     try {
-      const docRef = doc(db, "leads", leadId)
-      await updateDoc(docRef, {
-        status: newStatus,
-        updatedAt: new Date().toISOString()
-      })
-      
+      await updateLead(leadId, { status: newStatus })
       const updatedList = leads.map((l) => 
         l.id === leadId 
           ? { ...l, status: newStatus, updatedAt: new Date().toISOString() } 

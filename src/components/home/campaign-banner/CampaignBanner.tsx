@@ -4,8 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LandingSettings } from "@/types/landing"
-import { doc, updateDoc, increment } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { getSetting, setSetting } from "@/lib/db/settings"
 
 interface CampaignBannerProps {
   landingSettings: LandingSettings
@@ -53,16 +52,22 @@ export function CampaignBanner({ landingSettings }: CampaignBannerProps) {
 
   useEffect(() => {
     if (landingSettings.showCampaignBanner) {
-      updateDoc(doc(db, "landing", "settings"), {
-        campaignViews: increment(1)
-      }).catch((err) => console.warn("Erro ao registrar view do banner:", err))
+      getSetting<Record<string, any>>("landing_settings", {}).then((current) => {
+        setSetting("landing_settings", {
+          ...current,
+          campaignViews: (current.campaignViews || 0) + 1
+        }).catch((err) => console.warn("Erro ao registrar view do banner:", err))
+      })
     }
   }, [landingSettings.showCampaignBanner])
 
   const handleBannerClick = () => {
-    updateDoc(doc(db, "landing", "settings"), {
-      campaignClicks: increment(1)
-    }).catch((err) => console.warn("Erro ao registrar click do banner:", err))
+    getSetting<Record<string, any>>("landing_settings", {}).then((current) => {
+      setSetting("landing_settings", {
+        ...current,
+        campaignClicks: (current.campaignClicks || 0) + 1
+      }).catch((err) => console.warn("Erro ao registrar click do banner:", err))
+    })
   }
 
   const imagePosition = landingSettings.campaignImagePosition || "right"

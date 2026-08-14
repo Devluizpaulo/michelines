@@ -3,8 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import { motion } from "framer-motion"
-import { doc, updateDoc, increment } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { incrementHeroViews } from "@/lib/db/hero"
 import { HeroSlideType } from "@/types/hero-slide"
 import { HeroSlide } from "./HeroSlide"
 import { cn } from "@/lib/utils"
@@ -38,9 +37,7 @@ export function HeroCarousel({ slides, isMobile, autoplayInterval = 8, transitio
       
       if (typeof window !== "undefined" && !sessionStorage.getItem(sessionKey)) {
         sessionStorage.setItem(sessionKey, "true")
-        updateDoc(doc(db, "hero_slides", slideId), {
-          views: increment(1)
-        }).catch((err) => console.warn("Erro ao registrar view do slide:", err))
+        incrementHeroViews(slideId).catch((err) => console.warn("Erro ao registrar view do slide:", err))
       }
     }
   }, [selectedIndex, slides])

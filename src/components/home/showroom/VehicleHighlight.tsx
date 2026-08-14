@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Star, MessageSquare, ArrowRight, TrendingUp, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { doc, updateDoc, increment } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { incrementVehicleClicks } from "@/lib/db/vehicles"
 
 interface VehicleHighlightProps {
   vehicle: Vehicle | null
@@ -28,9 +27,7 @@ export function VehicleHighlight({ vehicle, isOpen, onClose }: VehicleHighlightP
 
   const handleVehicleClick = () => {
     if (vehicle.id && !vehicle.id.includes("fallback")) {
-      updateDoc(doc(db, "vehicles", vehicle.id), {
-        clicksCount: increment(1)
-      }).catch(err => console.warn("Erro ao registrar click do veículo:", err))
+      incrementVehicleClicks(vehicle.id).catch(err => console.warn("Erro ao registrar click do veículo:", err))
     }
   }
 

@@ -1,10 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { 
-  collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc 
-} from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { listAllTestimonials, toggleTestimonialApproval, deleteTestimonial } from "@/lib/db/testimonials"
 import { useToast } from "@/components/ui/toast-simple"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,15 +12,7 @@ import {
 import { motion } from "framer-motion"
 import { THEME_TOKENS } from "@/theme/design-system"
 
-interface Testimonial {
-  id: string
-  name: string
-  time: string
-  testimony: string
-  rating: number
-  approved: boolean
-  createdAt?: any
-}
+import type { Testimonial } from "@/types/testimonial"
 
 export function TestimonialManager() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
@@ -31,38 +20,34 @@ export function TestimonialManager() {
   const [filter, setFilter] = useState<"all" | "approved" | "pending">("all")
   const { success, error } = useToast()
 
-  useEffect(() => {
-    setLoading(true)
-    const q = query(collection(db, "testimonials"), orderBy("createdAt", "desc"))
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const list: Testimonial[] = []
-      snapshot.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() } as Testimonial)
-      })
+  const loadTestimonials = async () => {
+    try {
+      setLoading(true)
+      const list = await listAllTestimonials()
       setTestimonials(list)
+    } catch (err) {
+      console.error("Erro ao buscar avaliações:", err)
+      error("Erro de Conexão", "Não foi possível carregar as avaliações.")
+    } finally {
       setLoading(false)
-    }, (err) => {
-      console.error("Erro ao escutar avaliações:", err)
-      error("Erro de Conexão", "Não foi possível carregar as avaliações em tempo real.")
-      setLoading(false)
-    })
+    }
+  }
 
-    return () => unsubscribe()
-  }, [error])
+  useEffect(() => {
+    loadTestimonials()
+  }, [])
 
   // Toggle approval state
   const handleToggleApproval = async (id: string, currentApproved: boolean) => {
     try {
-      await updateDoc(doc(db, "testimonials", id), {
-        approved: !currentApproved
-      })
+      await toggleTestimonialApproval(id, !currentApproved)
       success(
         currentApproved ? "Avaliação Ocultada" : "Avaliação Aprovada",
         currentApproved 
           ? "O depoimento foi ocultado e não aparecerá na página inicial." 
           : "O depoimento agora está visível para todos os visitantes da página inicial."
       )
+      loadTestimonials()
     } catch (e: any) {
       console.error("Erro ao atualizar depoimento:", e)
       error("Erro de Atualização", "Ocorreu um erro ao alterar o status do depoimento.")
@@ -76,8 +61,9 @@ export function TestimonialManager() {
     }
     
     try {
-      await deleteDoc(doc(db, "testimonials", id))
+      await deleteTestimonial(id)
       success("Avaliação Excluída", `O depoimento de "${name}" foi removido do sistema.`)
+      loadTestimonials()
     } catch (e: any) {
       console.error("Erro ao excluir depoimento:", e)
       error("Erro ao Excluir", "Não foi possível remover o depoimento. Tente novamente.")
@@ -189,11 +175,9 @@ export function TestimonialManager() {
                   
                   {/* Formatted Date */}
                   <span className="text-[10px] text-slate-400 font-semibold">
-                    {item.createdAt?.seconds 
-                      ? new Date(item.createdAt.seconds * 1000).toLocaleDateString("pt-BR") 
-                      : item.createdAt 
-                        ? new Date(item.createdAt).toLocaleDateString("pt-BR") 
-                        : "Recentemente"}
+                    {item.createdAt 
+                      ? new Date(item.createdAt).toLocaleDateString("pt-BR") 
+                      : "Recentemente"}
                   </span>
                 </div>
 

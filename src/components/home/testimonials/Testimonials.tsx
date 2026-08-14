@@ -10,8 +10,7 @@ import { Label } from "@/components/ui/label"
 import { 
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger 
 } from "@/components/ui/dialog"
-import { collection, query, where, orderBy, limit, getDocs, addDoc } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { listApprovedTestimonials, submitTestimonial } from "@/lib/db/testimonials"
 
 const testimonialsData = [
   {
@@ -55,18 +54,8 @@ export function Testimonials() {
   useEffect(() => {
     async function loadTestimonials() {
       try {
-        const q = query(
-          collection(db, "testimonials"),
-          where("approved", "==", true),
-          orderBy("createdAt", "desc"),
-          limit(3)
-        )
-        const snap = await getDocs(q)
-        const list: any[] = []
-        snap.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() })
-        })
-        setDbTestimonials(list)
+        const list = await listApprovedTestimonials()
+        setDbTestimonials(list.slice(0, 3))
       } catch (err) {
         console.error("[Testimonials] Erro ao carregar avaliações. Usando dados padrão:", err instanceof Error ? err.message : err)
       }
@@ -80,13 +69,11 @@ export function Testimonials() {
     if (!form.name || !form.time || !form.testimony) return
     setSubmitting(true)
     try {
-      await addDoc(collection(db, "testimonials"), {
+      await submitTestimonial({
         name: form.name,
         time: form.time,
         testimony: form.testimony,
         rating,
-        approved: false,
-        createdAt: new Date().toISOString()
       })
       setSubmitted(true)
       setForm({ name: "", time: "", testimony: "" })

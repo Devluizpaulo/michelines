@@ -1,17 +1,15 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "../firebase/config"
+import { signIn } from "@/lib/auth/supabase-auth"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -23,36 +21,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false)
-
-  useEffect(() => {
-    // Verificar se o Firebase Auth está pronto
-    if (auth) {
-      setIsFirebaseReady(true)
-    }
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!isFirebaseReady) {
-      setError("Sistema de autenticação ainda não está pronto. Por favor, tente novamente em alguns instantes.")
-      return
-    }
-
     setError("")
     setLoading(true)
 
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      router.push("/admin")
-    } catch (err: any) {
-      // Mensagem genérica de propósito: não revela se o e-mail existe na base.
-      if (err?.code === "auth/too-many-requests") {
-        setError("Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.")
+      const res = await signIn(email, password)
+      if (res.ok) {
+        router.push("/admin")
       } else {
-        setError("Falha na autenticação. Verifique suas credenciais.")
+        setError(res.message || "Falha na autenticação. Verifique suas credenciais.")
       }
+    } catch (err: any) {
+      setError("Erro ao conectar com o servidor. Tente novamente.")
       console.error(err)
     } finally {
       setLoading(false)
@@ -61,9 +44,8 @@ export default function LoginPage() {
 
   return (
     <div className="w-full min-h-screen flex bg-white">
-      {/* Lado Esquerdo - Branding (Visível apenas em telas médias para cima) */}
+      {/* Lado Esquerdo - Branding */}
       <div className="hidden lg:flex w-1/2 relative bg-[#0A192F] overflow-hidden items-center justify-center">
-        {/* Animated glowing orbs */}
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-600/40 rounded-full blur-[100px] mix-blend-screen animate-pulse" />
           <div className="absolute bottom-[20%] right-[20%] w-[500px] h-[500px] bg-yellow-500/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }} />
@@ -86,7 +68,6 @@ export default function LoginPage() {
           </p>
         </div>
         
-        {/* Glassmorphism info card na base */}
         <div className="absolute bottom-8 left-8 right-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 flex justify-between items-center shadow-2xl">
           <div>
             <p className="text-yellow-400 font-bold text-sm uppercase tracking-wider">Suporte Técnico</p>
@@ -178,7 +159,7 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   className="w-full h-12 text-base font-bold bg-[#0A192F] hover:bg-[#112240] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" 
-                  disabled={loading || !isFirebaseReady}
+                  disabled={loading}
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
@@ -194,8 +175,6 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              {/* Não há auto-cadastro: contas do painel são provisionadas por um
-                  super administrador na aba Usuários. */}
               <div className="mt-6 border-t border-gray-100 pt-4 text-center">
                 <p className="text-xs font-medium text-gray-400">
                   Acesso restrito. Solicite suas credenciais ao administrador do sistema.

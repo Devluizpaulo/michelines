@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { collection, query, orderBy, getDocs, doc, setDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { listVehicles } from "@/lib/db/vehicles"
+import { getSetting, setSetting } from "@/lib/db/settings"
 import { Vehicle } from "@/types/vehicle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -117,42 +117,26 @@ export function OperationManager() {
       setLoading(true)
       
       // Load Vehicles
-      const vehiclesSnap = await getDocs(query(collection(db, "vehicles"), orderBy("showroomOrder", "asc")))
-      const vList: Vehicle[] = []
-      vehiclesSnap.forEach((doc) => {
-        vList.push({ id: doc.id, ...doc.data() } as Vehicle)
-      })
+      const vList = await listVehicles()
       setVehicles(vList)
 
-      // Load Pricing Rules
-      const pricingSnap = await getDocs(collection(db, "vehicle_pricing"))
-      const pList: PricingConfig[] = []
-      pricingSnap.forEach((doc) => {
-        pList.push({ id: doc.id, ...doc.data() } as PricingConfig)
-      })
-      setPricingConfigs(pList)
+      // Load Pricing Rules from app_settings
+      const pList = await getSetting<PricingConfig[]>("vehicle_pricing", [])
+      setPricingConfigs(Array.isArray(pList) ? pList : [])
 
-      // Load Features
-      const featuresSnap = await getDocs(query(collection(db, "operational_features"), orderBy("order", "asc")))
-      const fList: OperationalFeature[] = []
-      featuresSnap.forEach((doc) => {
-        fList.push({ id: doc.id, ...doc.data() } as OperationalFeature)
-      })
-      setOperationalFeatures(fList)
+      // Load Features from app_settings
+      const fList = await getSetting<OperationalFeature[]>("operational_features", [])
+      setOperationalFeatures(Array.isArray(fList) ? fList : [])
 
-      // Load Simulator Scenarios
-      const scenariosSnap = await getDocs(collection(db, "simulator_scenarios"))
-      const sList: SimulatorScenario[] = []
-      scenariosSnap.forEach((doc) => {
-        sList.push({ id: doc.id, ...doc.data() } as SimulatorScenario)
-      })
-      
-      const conv = sList.find(s => s.category === "convencional")
-      if (conv) setConvencionalForm(conv)
+      // Load Simulator Scenarios from app_settings
+      const sList = await getSetting<SimulatorScenario[]>("simulator_scenarios", [])
+      if (Array.isArray(sList)) {
+        const conv = sList.find(s => s.category === "convencional")
+        if (conv) setConvencionalForm(conv)
 
-      const mich = sList.find(s => s.category === "michelines")
-      if (mich) setMichelinesForm(mich)
-
+        const mich = sList.find(s => s.category === "michelines")
+        if (mich) setMichelinesForm(mich)
+      }
     } catch (e) {
       console.error("Erro ao carregar dados operacionais:", e)
     } finally {
@@ -190,16 +174,14 @@ export function OperationManager() {
     e.preventDefault()
     if (!selectedVehicle?.id) return
     try {
-      const docId = pricingForm.id || `pricing_${selectedVehicle.id}`
-      const ref = doc(db, "vehicle_pricing", docId)
-      
-      const payload = {
-        ...pricingForm,
+      const payload: PricingConfig = {
+        ...(pricingForm as PricingConfig),
         vehicleId: selectedVehicle.id,
-        updatedAt: new Date().toISOString()
       }
       
-      await setDoc(ref, payload)
+      const filtered = pricingConfigs.filter(p => p.vehicleId !== selectedVehicle.id)
+      const updated = [...filtered, payload]
+      await setSetting("vehicle_pricing", updated)
       setIsEditingPricing(false)
       setSelectedVehicle(null)
       loadData()
@@ -229,18 +211,16 @@ export function OperationManager() {
   const handleSeedFeatures = async () => {
     if (!confirm("Isso irá criar os 6 diferenciais operacionais padrão recomendados no banco de dados. Confirmar?")) return
     try {
-      const defaultFeatures = [
-        { title: "Suporte Operacional Real", description: "Atendimento presencial e telefônico por equipe humana capacitada.", icon: "PhoneCall", featured: true, active: true, order: 1 },
-        { title: "Oficina Própria Integrada", description: "Infraestrutura própria de manutenção preventiva e mecânica geral rápida.", icon: "Hammer", featured: true, active: true, order: 2 },
-        { title: "Previsibilidade Financeira", description: "Diárias estipuladas de segunda a sábado. Domingos isentos.", icon: "Shield", featured: true, active: true, order: 3 },
-        { title: "Estrutura para o Motorista", description: "Sede física com Wi-Fi, café expresso, área de descanso e carregamento.", icon: "Coffee", featured: false, active: true, order: 4 },
-        { title: "Isenção Total de Rodízio", description: "Veículos híbridos ou táxis autorizados com rodagem 100% livre em SP.", icon: "AlertCircle", featured: false, active: true, order: 5 },
-        { title: "Frota Moderna & Revisada", description: "Veículos seminovos (2 a 3 anos de idade média) com inspeções frequentes.", icon: "RefreshCw", featured: false, active: true, order: 6 }
+      const defaultFeatures: OperationalFeature[] = [
+        { id: "1", title: "Suporte Operacional Real", description: "Atendimento presencial e telefônico por equipe humana capacitada.", icon: "PhoneCall", featured: true, active: true, order: 1 },
+        { id: "2", title: "Oficina Própria Integrada", description: "Infraestrutura própria de manutenção preventiva e mecânica geral rápida.", icon: "Hammer", featured: true, active: true, order: 2 },
+        { id: "3", title: "Previsibilidade Financeira", description: "Diárias estipuladas de segunda a sábado. Domingos isentos.", icon: "Shield", featured: true, active: true, order: 3 },
+        { id: "4", title: "Estrutura para o Motorista", description: "Sede física com Wi-Fi, café expresso, área de descanso e carregamento.", icon: "Coffee", featured: false, active: true, order: 4 },
+        { id: "5", title: "Isenção Total de Rodízio", description: "Veículos híbridos ou táxis autorizados com rodagem 100% livre em SP.", icon: "AlertCircle", featured: false, active: true, order: 5 },
+        { id: "6", title: "Frota Moderna & Revisada", description: "Veículos seminovos (2 a 3 anos de idade média) com inspeções frequentes.", icon: "RefreshCw", featured: false, active: true, order: 6 }
       ]
 
-      for (const feat of defaultFeatures) {
-        await addDoc(collection(db, "operational_features"), feat)
-      }
+      await setSetting("operational_features", defaultFeatures)
       loadData()
       alert("Diferenciais criados com sucesso!")
     } catch (e) {
@@ -274,20 +254,22 @@ export function OperationManager() {
   const handleSaveFeature = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      let updated: OperationalFeature[]
       if (selectedFeature?.id) {
-        // Edit
-        const ref = doc(db, "operational_features", selectedFeature.id)
-        await updateDoc(ref, {
-          ...featureForm,
-          updatedAt: new Date().toISOString()
-        })
+        updated = operationalFeatures.map(f => f.id === selectedFeature.id ? { ...f, ...featureForm } as OperationalFeature : f)
       } else {
-        // Create
-        await addDoc(collection(db, "operational_features"), {
-          ...featureForm,
-          createdAt: new Date().toISOString()
-        })
+        const newFeat: OperationalFeature = {
+          id: Date.now().toString(),
+          title: featureForm.title || "",
+          description: featureForm.description || "",
+          icon: featureForm.icon || "Shield",
+          featured: !!featureForm.featured,
+          active: featureForm.active ?? true,
+          order: featureForm.order || operationalFeatures.length + 1,
+        }
+        updated = [...operationalFeatures, newFeat]
       }
+      await setSetting("operational_features", updated)
       setIsEditingFeature(false)
       setSelectedFeature(null)
       loadData()
@@ -301,7 +283,8 @@ export function OperationManager() {
   const handleDeleteFeature = async (id: string) => {
     if (!confirm("Excluir este diferencial do banco?")) return
     try {
-      await deleteDoc(doc(db, "operational_features", id))
+      const updated = operationalFeatures.filter(f => f.id !== id)
+      await setSetting("operational_features", updated)
       loadData()
     } catch (e) {
       console.error(e)
@@ -313,17 +296,15 @@ export function OperationManager() {
   const handleSaveScenario = async (category: "convencional" | "michelines") => {
     try {
       const form = category === "convencional" ? convencionalForm : michelinesForm
-      const docId = `scenario_${category}`
-      const ref = doc(db, "simulator_scenarios", docId)
-      
-      const payload = {
-        ...form,
+      const existing = await getSetting<SimulatorScenario[]>("simulator_scenarios", [])
+      const currentList = Array.isArray(existing) ? existing : []
+      const filtered = currentList.filter(s => s.category !== category)
+      const payload: SimulatorScenario = {
+        ...(form as SimulatorScenario),
         category,
-        updatedAt: new Date().toISOString()
       }
-      
-      await setDoc(ref, payload)
-      alert(`Cenário ${category === "convencional" ? "Modelo Convencional" : "Grupo Michelines"} atualizado no Firestore!`)
+      await setSetting("simulator_scenarios", [...filtered, payload])
+      alert(`Cenário ${category === "convencional" ? "Modelo Convencional" : "Grupo Michelines"} atualizado!`)
       loadData()
     } catch (e) {
       console.error(e)

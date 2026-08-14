@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { collection, query, where, getDocs } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
 import { Lead } from "@/types/lead"
 import { 
   Users, 
@@ -22,6 +20,7 @@ import {
 } from "lucide-react"
 import { calculateLeadScore } from "@/lib/lead-score"
 import { ExecutiveCard, MetricCard } from "@/components/ui/card-variants"
+import { listHeroSlides } from "@/lib/db/hero"
 
 interface DashboardOverviewProps {
   leads: Lead[]
@@ -38,9 +37,8 @@ export function DashboardOverview({ leads, onLeadClick, role }: DashboardOvervie
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const q = query(collection(db, "hero_slides"), where("active", "==", true))
-        const snap = await getDocs(q)
-        setActiveCampaignsCount(snap.size)
+        const slides = await listHeroSlides()
+        setActiveCampaignsCount(slides.filter((s) => s.active).length)
       } catch (e) {
         console.warn("Erro ao buscar campanhas na dashboard:", e)
       }

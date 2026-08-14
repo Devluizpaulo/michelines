@@ -5,9 +5,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Lock, Eye, EyeOff, CheckCircle2, ArrowRight } from "lucide-react"
-import { signInWithEmailAndPassword, updatePassword } from "firebase/auth"
-import { auth } from "../firebase/config"
+import { Eye, EyeOff, CheckCircle2, ArrowRight } from "lucide-react"
+import { updatePassword } from "@/lib/auth/supabase-auth"
+import { supabase } from "@/lib/supabase"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,8 +17,6 @@ import { Label } from "@/components/ui/label"
 export default function DefinirSenhaPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
-  const [tempPassword, setTempPassword] = useState("")
-  
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   
@@ -28,39 +26,20 @@ export default function DefinirSenhaPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false)
 
   useEffect(() => {
-    if (auth) {
-      setIsFirebaseReady(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      const emailParam = params.get("email")
-      const tempParam = params.get("temp")
-      if (emailParam) setEmail(emailParam)
-      if (tempParam) setTempPassword(tempParam)
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        setEmail(session.user.email)
+      }
+    })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!isFirebaseReady) {
-      setError("Sistema de autenticação ainda não está pronto. Por favor, tente novamente.")
-      return
-    }
-
-    if (!email || !tempPassword) {
-      setError("Link de convite inválido ou incompleto. Solicite um novo link ao administrador.")
-      return
-    }
-
-    if (password.length !== 6) {
-      setError("A senha deve ter exatamente 6 dígitos.")
+    if (password.length < 8) {
+      setError("A senha deve ter no mínimo 8 caracteres.")
       return
     }
 
@@ -74,28 +53,18 @@ export default function DefinirSenhaPage() {
     setLoading(true)
 
     try {
-      // 1. Faz o login silencioso usando as credenciais temporárias do link
-      const userCredential = await signInWithEmailAndPassword(auth, email, tempPassword)
-      
-      // 2. Atualiza a senha para a nova senha de 6 dígitos definida pelo usuário
-      if (userCredential.user) {
-        await updatePassword(userCredential.user, password)
+      const res = await updatePassword(password)
+      if (res.ok) {
         setSuccess(true)
-        
-        // 3. Aguarda 1.5s e redireciona direto para o painel
         setTimeout(() => {
           router.push("/admin")
         }, 1500)
+      } else {
+        setError(res.message || "Ocorreu um erro ao definir sua senha.")
       }
     } catch (err: any) {
       console.error("Erro ao definir senha:", err)
-      if (err.code === "auth/wrong-password") {
-        setError("O link de convite já foi utilizado ou expirou. Solicite um novo convite.")
-      } else if (err.code === "auth/user-not-found") {
-        setError("Nenhum usuário correspondente a este convite foi encontrado.")
-      } else {
-        setError(err.message || "Ocorreu um erro ao definir sua senha. Tente novamente.")
-      }
+      setError(err.message || "Ocorreu um erro ao definir sua senha. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -105,7 +74,6 @@ export default function DefinirSenhaPage() {
     <div className="w-full min-h-screen flex bg-white select-none">
       {/* Lado Esquerdo - Branding */}
       <div className="hidden lg:flex w-1/2 relative bg-[#0A192F] overflow-hidden items-center justify-center">
-        {/* Animated glowing orbs */}
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-600/40 rounded-full blur-[100px] mix-blend-screen animate-pulse" />
           <div className="absolute bottom-[20%] right-[20%] w-[500px] h-[500px] bg-yellow-500/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }} />
@@ -124,11 +92,10 @@ export default function DefinirSenhaPage() {
             Definir Senha
           </h1>
           <p className="text-xl text-blue-100/80 font-medium max-w-md">
-            Defina sua senha numérica de 6 dígitos para ativar seu acesso ao CRM do Grupo Michelines.
+            Defina sua nova senha para ativar seu acesso ao CRM do Grupo Michelines.
           </p>
         </div>
         
-        {/* Glassmorphism info card */}
         <div className="absolute bottom-8 left-8 right-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 flex justify-between items-center shadow-2xl">
           <div>
             <p className="text-yellow-400 font-bold text-sm uppercase tracking-wider">Suporte ao Acesso</p>
@@ -159,10 +126,10 @@ export default function DefinirSenhaPage() {
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2">
             <h2 className="text-3xl font-black text-gray-900 tracking-tight">
-              Primeiro Acesso
+              Nova Senha
             </h2>
             <p className="text-gray-500 font-medium">
-              Crie uma senha de acesso fácil e segura com exatamente 6 dígitos.
+              Crie uma nova senha segura para sua conta (no mínimo 8 caracteres).
             </p>
           </div>
 
@@ -186,27 +153,28 @@ export default function DefinirSenhaPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-1.5">
-                    <Label className="text-gray-500 font-semibold text-xs">Email Convidado</Label>
-                    <Input
-                      type="email"
-                      value={email}
-                      disabled
-                      className="h-11 rounded-xl bg-slate-100 border-gray-200 text-gray-400 font-medium select-none cursor-not-allowed"
-                    />
-                  </div>
+                  {email && (
+                    <div className="space-y-1.5">
+                      <Label className="text-gray-500 font-semibold text-xs">Email do Usuário</Label>
+                      <Input
+                        type="email"
+                        value={email}
+                        disabled
+                        className="h-11 rounded-xl bg-slate-100 border-gray-200 text-gray-400 font-medium select-none cursor-not-allowed"
+                      />
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="password" className="text-gray-700 font-semibold">Nova Senha (6 dígitos)</Label>
+                    <Label htmlFor="password" className="text-gray-700 font-semibold">Nova Senha</Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        maxLength={6}
-                        placeholder="Ex: 123456"
+                        placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value.replace(/\D/g, ""))}
-                        className="h-12 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all pr-12 text-center text-lg font-mono tracking-widest"
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="h-12 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all pr-12"
                         required
                       />
                       <Button
@@ -227,11 +195,10 @@ export default function DefinirSenhaPage() {
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
-                        maxLength={6}
-                        placeholder="Ex: 123456"
+                        placeholder="••••••••"
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value.replace(/\D/g, ""))}
-                        className="h-12 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all pr-12 text-center text-lg font-mono tracking-widest"
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="h-12 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all pr-12"
                         required
                       />
                       <Button
@@ -256,7 +223,7 @@ export default function DefinirSenhaPage() {
                   <Button 
                     type="submit" 
                     className="w-full h-12 text-base font-bold bg-[#0A192F] hover:bg-[#112240] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" 
-                    disabled={loading || !isFirebaseReady}
+                    disabled={loading}
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">

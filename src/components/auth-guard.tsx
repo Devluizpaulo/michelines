@@ -1,16 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { onAuthStateChanged } from "firebase/auth"
-import { auth } from "../app/firebase/config"
+import { supabase } from "@/lib/supabase"
 
 /**
- * Porteiro das rotas de /admin: só renderiza o painel com uma sessão do Firebase.
- * A autorização fina (papel, perfil ativo) fica no AuthContext e nas regras do
- * Firestore — aqui é apenas o corte entre "logado" e "não logado".
+ * Porteiro das rotas de /admin: só renderiza o painel com uma sessão ativa do Supabase.
  */
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<"checking" | "authenticated" | "error">("checking")
@@ -18,32 +14,32 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    if (!auth) {
-      setError("Erro ao inicializar o sistema de autenticação")
-      setStatus("error")
-      return
-    }
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        if (user) {
-          setStatus("authenticated")
-        } else {
-          // Sem exceção para localhost: liberar o painel em dev mascara bugs de
-          // autenticação e é fácil de esquecer ligado ao publicar.
-          setStatus("checking")
-          router.replace("/login")
-        }
-      },
-      (err) => {
-        console.error("Erro na autenticação:", err)
+    supabase.auth.getSession().then(({ data: { session }, error: sessionError }) => {
+      if (sessionError) {
+        console.error("Erro na verificação de sessão:", sessionError)
         setError("Ocorreu um erro na verificação de autenticação")
         setStatus("error")
+        return
       }
-    )
 
-    return () => unsubscribe()
+      if (session?.user) {
+        setStatus("authenticated")
+      } else {
+        setStatus("checking")
+        router.replace("/login")
+      }
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setStatus("authenticated")
+      } else {
+        setStatus("checking")
+        router.replace("/login")
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [router])
 
   if (status === "error") {

@@ -1,41 +1,15 @@
 import { NextResponse } from "next/server"
-import { createClient, SupabaseClient } from "@supabase/supabase-js"
-import { requireAdmin, authErrorResponse } from "@/lib/firebase-admin"
+import { getAdminClient, requireAdmin, authErrorResponse, SupabaseAdminNotConfiguredError } from "@/lib/supabase-admin"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-
-// A service_role ignora as políticas de RLS: ela NUNCA pode levar o prefixo
-// NEXT_PUBLIC_, senão o Next embute a chave no bundle enviado ao navegador.
-// O nome antigo (NEXT_PUBLIC_SUPABASE_service_role_key) segue aceito como
-// fallback temporário para não quebrar ambientes ainda não migrados.
-const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_service_role_key ||
-  ""
-
-if (process.env.NEXT_PUBLIC_SUPABASE_service_role_key && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.warn(
-    "[api/media] Usando NEXT_PUBLIC_SUPABASE_service_role_key. Renomeie a variável para " +
-      "SUPABASE_SERVICE_ROLE_KEY e rotacione a chave: o prefixo NEXT_PUBLIC_ a expõe ao cliente."
-  )
-}
-
-// Tolera o typo 'leyJ' no início da chave (todo JWT começa com 'eyJ')
-const finalServiceKey = supabaseServiceKey.startsWith("leyJ")
-  ? supabaseServiceKey.slice(1)
-  : supabaseServiceKey
-
-let supabaseAdmin: SupabaseClient | null = null
-if (supabaseUrl && finalServiceKey) {
+function getSupabaseAdmin() {
   try {
-    supabaseAdmin = createClient(supabaseUrl, finalServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
-  } catch (e) {
-    console.error("Erro ao inicializar Supabase Admin:", e)
+    return getAdminClient()
+  } catch (err) {
+    if (err instanceof SupabaseAdminNotConfiguredError) return null
+    throw err
   }
 }
 
@@ -71,6 +45,7 @@ export async function GET(request: Request) {
   }
 
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     if (!supabaseAdmin) return NOT_CONFIGURED
 
     const { searchParams } = new URL(request.url)
@@ -111,6 +86,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     if (!supabaseAdmin) return NOT_CONFIGURED
 
     const formData = await request.formData()
@@ -183,6 +159,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     if (!supabaseAdmin) return NOT_CONFIGURED
 
     const { searchParams } = new URL(request.url)

@@ -1,18 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  orderBy,
-  doc,
-  updateDoc,
-  increment,
-} from "firebase/firestore"
-
-import { db } from "@/app/firebase/config"
+import { listVehicles, incrementVehicleViews } from "@/lib/db/vehicles"
 
 import { Vehicle } from "@/types/vehicle"
 import { vehicleCategories as staticCategories } from "@/constants/vehicles"
@@ -46,13 +35,11 @@ export function Showroom() {
     setSelectedHighlightVehicle(car)
     setHighlightOpen(true)
     if (car.id && !car.id.includes("fallback")) {
-      updateDoc(doc(db, "vehicles", car.id), {
-        viewsCount: increment(1)
-      }).catch((err) => console.warn("Erro ao registrar view do veículo:", err))
+      incrementVehicleViews(car.id).catch((err) => console.warn("Erro ao registrar view do veículo:", err))
     }
   }
 
-  // Load vehicles in real-time
+  // Load vehicles
   useEffect(() => {
     // Try to load cached showroom vehicles first
     if (typeof window !== "undefined") {
@@ -70,45 +57,13 @@ export function Showroom() {
       }
     }
 
-    const q = query(
-      collection(db, "vehicles"),
-      orderBy("showroomOrder", "asc")
-    )
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snap) => {
-        if (!snap.empty) {
-          const list: Vehicle[] = []
-
-          snap.forEach((doc: any) => {
-            const carData = doc.data() as Vehicle
-            const carId = doc.id
-
-            if (carData.status === "active" && carData.available === true) {
-              list.push({
-                id: carId,
-                ...carData,
-                pricing: {
-                  vehicleId: carId,
-                  dailyRate: carData.dailyPrice || Math.round((carData.monthlyPrice || 2400) / 30),
-                  weeklyRate: carData.weeklyPrice || Math.round((carData.monthlyPrice || 2400) / 4),
-                  monthlyRate: carData.monthlyPrice || 2400,
-                  weekendExempt: true,
-                  acceptedPayments: [
-                    "pix",
-                    "debito",
-                    "credito",
-                  ],
-                  active: true,
-                },
-              } as any)
-            }
-          })
-
-          setVehicles(list)
+    listVehicles()
+      .then((list) => {
+        const activeList = list.filter(v => v.status === "active" && v.available === true)
+        if (activeList.length > 0) {
+          setVehicles(activeList)
           if (typeof window !== "undefined") {
-            localStorage.setItem("showroom_vehicles", JSON.stringify(list))
+            localStorage.setItem("showroom_vehicles", JSON.stringify(activeList))
           }
         } else {
           const fallback = buildFallbackVehicles()
@@ -117,20 +72,18 @@ export function Showroom() {
             localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
           }
         }
-        setLoading(false)
-      },
-      (error) => {
-        console.warn("Erro ao carregar showroom dinâmico no Firestore:", error)
+      })
+      .catch((error) => {
+        console.warn("Erro ao carregar showroom dinâmico no Supabase:", error)
         const fallback = buildFallbackVehicles()
         setVehicles(fallback)
         if (typeof window !== "undefined") {
           localStorage.setItem("showroom_vehicles", JSON.stringify(fallback))
         }
+      })
+      .finally(() => {
         setLoading(false)
-      }
-    )
-
-    return () => unsubscribe()
+      })
   }, [])
 
   // Fallback builder

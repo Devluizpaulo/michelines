@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { doc, updateDoc, addDoc, collection } from "firebase/firestore"
-import { db } from "@/app/firebase/config"
+import { createHeroSlide, updateHeroSlide } from "@/lib/db/hero"
 import { HeroSlideType } from "@/types/hero-slide"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -141,15 +140,10 @@ export function HeroSlideDialog({ open, onClose, onSaved, slide, slidesCount }: 
     try {
       setSaving(true)
       if (slide?.id) {
-        const slideRef = doc(db, "hero_slides", slide.id)
-        await updateDoc(slideRef, { ...form, updatedAt: new Date().toISOString() })
+        await updateHeroSlide(slide.id, form)
         success("Slide atualizado!", `"${form.title}" foi salvo com sucesso.`)
       } else {
-        await addDoc(collection(db, "hero_slides"), {
-          ...form,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
+        await createHeroSlide(form)
         success("Slide criado!", `"${form.title}" foi adicionado ao carrossel.`)
       }
       onSaved()
