@@ -584,6 +584,7 @@ export function CampaignStudio({ campaign, onCampaignUpdated, onClose }: Campaig
                 campaign={previewCampaign}
                 sections={sections}
                 activeSectionId={activeSectionId}
+                previewDevice={previewDevice}
                 onSelectSection={(id) => {
                   setActiveSectionId(id)
                   setRightPanelOpen(true)
@@ -926,6 +927,7 @@ function InteractiveCanvasRenderer({
   campaign,
   sections,
   activeSectionId,
+  previewDevice = "desktop",
   onSelectSection,
   onMoveSection,
   onDuplicateSection,
@@ -934,6 +936,7 @@ function InteractiveCanvasRenderer({
   campaign: Campaign
   sections: CampaignSection[]
   activeSectionId: string | null
+  previewDevice?: "desktop" | "tablet" | "mobile"
   onSelectSection: (id: string) => void
   onMoveSection: (index: number, direction: "up" | "down") => void
   onDuplicateSection: (sec: CampaignSection) => void
@@ -944,6 +947,7 @@ function InteractiveCanvasRenderer({
       <DynamicLandingRenderer
         campaign={{ ...campaign, sections }}
         isEditor={true}
+        previewDevice={previewDevice}
         activeSectionId={activeSectionId}
         onSelectSection={onSelectSection}
         onMoveSection={onMoveSection}

@@ -422,10 +422,25 @@ function resolveVehicleImage(campaign: Campaign, customUrl?: string): string {
   return "/images/cars/cross.png"
 }
 
+interface DeviceContextType {
+  previewDevice: "desktop" | "tablet" | "mobile"
+  isMobile: boolean
+  isTablet: boolean
+}
+
+const DeviceContext = React.createContext<DeviceContextType>({
+  previewDevice: "desktop",
+  isMobile: false,
+  isTablet: false,
+})
+
+export const useDevice = () => React.useContext(DeviceContext)
+
 interface DynamicLandingRendererProps {
   campaign: Campaign
   onCtaClick?: () => void
   isEditor?: boolean
+  previewDevice?: "desktop" | "tablet" | "mobile"
   activeSectionId?: string | null
   onSelectSection?: (id: string) => void
   onMoveSection?: (index: number, direction: "up" | "down") => void
@@ -437,6 +452,7 @@ export function DynamicLandingRenderer({
   campaign,
   onCtaClick,
   isEditor = false,
+  previewDevice = "desktop",
   activeSectionId = null,
   onSelectSection,
   onMoveSection,
@@ -445,6 +461,8 @@ export function DynamicLandingRenderer({
 }: DynamicLandingRendererProps) {
   const palette = THEME_PALETTES[campaign.theme] || THEME_PALETTES.claro
   const sections = campaign.sections || []
+  const isMobile = previewDevice === "mobile"
+  const isTablet = previewDevice === "tablet"
 
   const handleCta = () => {
     registerCampaignClick(campaign.id)
@@ -457,56 +475,71 @@ export function DynamicLandingRenderer({
     .sort((a, b) => a.order - b.order)
 
   return (
-    <div
-      style={{
-        background: palette.bgGradient,
-        backgroundColor: palette.bgColor,
-        minHeight: "100vh",
-      }}
-      className={cn(
-        "min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 font-sans transition-colors duration-300",
-        palette.textPrimary
-      )}
-    >
-      {/* ── HEADER SUPERIOR (FIXO & RESPONSIVO) ────────────────────────────────── */}
-      <header className={cn("sticky top-0 z-40 backdrop-blur-md transition-colors duration-300", palette.headerBg)}>
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 py-3.5">
-          <Link href="/" className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={LOGO_IMAGES.banner}
-              alt="Grupo Michelines"
-              className="h-7 w-auto object-contain sm:h-8"
-            />
-          </Link>
-          <div className="flex items-center gap-3">
-            <span
-              className={cn(
-                "hidden items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold border transition-colors sm:inline-flex",
-                palette.headerBadgeBg,
-                palette.headerBadgeBorder,
-                palette.headerBadgeText
+    <DeviceContext.Provider value={{ previewDevice, isMobile, isTablet }}>
+      <div
+        style={{
+          background: palette.bgGradient,
+          backgroundColor: palette.bgColor,
+          minHeight: "100vh",
+        }}
+        className={cn(
+          "min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 font-sans transition-colors duration-300 overflow-x-hidden",
+          palette.textPrimary
+        )}
+      >
+        {/* ── HEADER SUPERIOR (FIXO & RESPONSIVO) ────────────────────────────────── */}
+        <header className={cn("sticky top-0 z-40 backdrop-blur-md transition-colors duration-300", palette.headerBg)}>
+          <div className={cn(
+            "mx-auto flex items-center justify-between transition-all",
+            isMobile ? "px-3.5 py-2.5 max-w-full" : "max-w-5xl px-4 sm:px-6 py-3.5"
+          )}>
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={LOGO_IMAGES.banner}
+                alt="Grupo Michelines"
+                className={cn(
+                  "w-auto object-contain transition-all",
+                  isMobile ? "h-6 max-w-[120px]" : "h-7 sm:h-8"
+                )}
+              />
+            </Link>
+            <div className="flex items-center gap-2 sm:gap-3">
+              {!isMobile && (
+                <span
+                  className={cn(
+                    "hidden items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold border transition-colors sm:inline-flex",
+                    palette.headerBadgeBg,
+                    palette.headerBadgeBorder,
+                    palette.headerBadgeText
+                  )}
+                >
+                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  45 anos de tradição em SP
+                </span>
               )}
-            >
-              <Sparkles className="h-3 w-3 text-amber-500" />
-              45 anos de tradição em SP
-            </span>
-            <a
-              href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20loca%C3%A7%C3%A3o%20de%20ve%C3%ADculos"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleCta}
-              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 transition-all shadow-md shadow-emerald-500/20 hover:scale-105 active:scale-95"
-            >
-              <Phone className="h-3.5 w-3.5 fill-slate-950" />
-              <span>Plantão WhatsApp</span>
-            </a>
+              <a
+                href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20loca%C3%A7%C3%A3o%20de%20ve%C3%ADculos"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleCta}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 font-black text-slate-950 transition-all shadow-md shadow-emerald-500/20 active:scale-95",
+                  isMobile ? "px-3 py-1.5 text-[11px]" : "px-4 py-2 text-xs hover:scale-105"
+                )}
+              >
+                <Phone className="h-3.5 w-3.5 fill-slate-950" />
+                <span>{isMobile ? "WhatsApp" : "Plantão WhatsApp"}</span>
+              </a>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       {/* ── CONTEÚDO DAS SEÇÕES (COM WRAPPERS INTERATIVOS SE EM MODO EDITOR) ─── */}
-      <main className="mx-auto max-w-5xl space-y-16 px-4 sm:px-6 py-8 sm:py-12">
+      <main className={cn(
+        "mx-auto transition-all",
+        isMobile ? "max-w-full space-y-8 px-3.5 py-6" : "max-w-5xl space-y-16 px-4 sm:px-6 py-8 sm:py-12"
+      )}>
         {activeSections.map((section, idx) => {
           const isSelected = isEditor && activeSectionId === section.id
 
@@ -528,10 +561,10 @@ export function DynamicLandingRenderer({
               {/* Barra Flutuante de Ação no Topo do Bloco Ativo (Apenas no Modo Estúdio) */}
               {isSelected && (
                 <div
-                  className="absolute -top-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#181b26] border border-violet-500/80 px-3 py-1 text-[11px] font-black text-white shadow-2xl backdrop-blur-md"
+                  className="absolute -top-4 right-2 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 rounded-full bg-[#181b26] border border-violet-500/80 px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-black text-white shadow-2xl backdrop-blur-md"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <span className="text-violet-300 uppercase tracking-wider text-[10px]">
+                  <span className="text-violet-300 uppercase tracking-wider text-[9px] sm:text-[10px]">
                     Bloco #{idx + 1}
                   </span>
 
@@ -542,7 +575,7 @@ export function DynamicLandingRenderer({
                       <button
                         onClick={() => onMoveSection(idx, "up")}
                         disabled={idx === 0}
-                        className="text-slate-400 hover:text-white disabled:opacity-30"
+                        className="text-slate-400 hover:text-white disabled:opacity-30 p-0.5"
                         title="Subir seção"
                       >
                         <ArrowUp className="h-3 w-3" />
@@ -550,7 +583,7 @@ export function DynamicLandingRenderer({
                       <button
                         onClick={() => onMoveSection(idx, "down")}
                         disabled={idx === activeSections.length - 1}
-                        className="text-slate-400 hover:text-white disabled:opacity-30"
+                        className="text-slate-400 hover:text-white disabled:opacity-30 p-0.5"
                         title="Descer seção"
                       >
                         <ArrowDown className="h-3 w-3" />
@@ -560,7 +593,7 @@ export function DynamicLandingRenderer({
                   {onDuplicateSection && (
                     <button
                       onClick={() => onDuplicateSection(section)}
-                      className="text-slate-400 hover:text-violet-400"
+                      className="text-slate-400 hover:text-violet-400 p-0.5"
                       title="Duplicar seção"
                     >
                       <Copy className="h-3 w-3" />
@@ -569,7 +602,7 @@ export function DynamicLandingRenderer({
                   {onDeleteSection && (
                     <button
                       onClick={() => onDeleteSection(section.id)}
-                      className="text-slate-400 hover:text-rose-400"
+                      className="text-slate-400 hover:text-rose-400 p-0.5"
                       title="Excluir seção"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -591,44 +624,54 @@ export function DynamicLandingRenderer({
       </main>
 
       {/* ── BARRA FIXA INFERIOR MOBILE ────────────────────────────────────────── */}
-      <div className={cn("sticky bottom-0 z-40 p-3 backdrop-blur-xl sm:hidden", palette.mobileBarBg)}>
+      <div className={cn(
+        "sticky bottom-0 z-40 p-2.5 backdrop-blur-xl transition-all",
+        isMobile ? "block" : "sm:hidden",
+        palette.mobileBarBg
+      )}>
         <div className="flex gap-2">
           <a
             href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20quero%20alugar%20um%20ve%C3%ADculo"
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCta}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-black text-slate-950 shadow-lg active:scale-95 transition-transform"
+            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 text-xs font-black text-slate-950 shadow-lg active:scale-95 transition-transform"
           >
-            <Phone className="h-4 w-4 fill-slate-950" />
+            <Phone className="h-3.5 w-3.5 fill-slate-950" />
             WhatsApp
           </a>
           <a
             href="#cadastro"
             onClick={handleCta}
             className={cn(
-              "flex h-12 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black active:scale-95 transition-transform",
+              "flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-xs font-black active:scale-95 transition-transform",
               palette.accentGradient
             )}
           >
             Alugar Agora
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </a>
         </div>
       </div>
 
       {/* ── FOOTER DA PÁGINA ──────────────────────────────────────────────────── */}
-      <footer className={cn("border-t px-5 py-10 text-center text-xs font-medium transition-colors", palette.footerBg, palette.footerBorder)}>
+      <footer className={cn(
+        "border-t text-center text-xs font-medium transition-colors",
+        isMobile ? "px-4 py-8" : "px-5 py-10",
+        palette.footerBg,
+        palette.footerBorder
+      )}>
         <div className="mx-auto max-w-md space-y-2">
-          <p className={cn("font-bold text-sm", palette.textPrimary)}>
+          <p className={cn("font-bold", isMobile ? "text-xs" : "text-sm", palette.textPrimary)}>
             © {new Date().getFullYear()} Grupo Michelines — Locação de Veículos para Aplicativos e Táxi em SP.
           </p>
-          <p className={cn("text-[11px] leading-relaxed", palette.footerText)}>
+          <p className={cn("text-[10px] sm:text-[11px] leading-relaxed", palette.footerText)}>
             45 anos de tradição · Frota própria, manutenção 100% inclusa e atendimento humanizado.
           </p>
         </div>
       </footer>
     </div>
+    </DeviceContext.Provider>
   )
 }
 
@@ -683,18 +726,24 @@ function HeroRenderer({
   palette: ThemePalette
   onCta: () => void
 }) {
+  const { isMobile } = useDevice()
   const signupHref = config.primaryCtaUrl || "#cadastro"
   const carImage = resolveVehicleImage(campaign, config.imageUrl)
 
   return (
-    <div className="relative pt-2 sm:pt-4">
-      <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
+    <div className="relative pt-1 sm:pt-4">
+      <div className={cn(
+        isMobile ? "flex flex-col gap-6" : "grid gap-8 lg:grid-cols-12 lg:items-center"
+      )}>
         {/* Coluna da Esquerda: Textos, Selos e CTAs */}
-        <div className="space-y-6 lg:col-span-7">
+        <div className={cn(
+          isMobile ? "w-full space-y-4" : "space-y-6 lg:col-span-7"
+        )}>
           {config.badgeText && (
             <div
               className={cn(
-                "inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-black uppercase tracking-wider border shadow-xs transition-colors",
+                "inline-flex items-center gap-2 rounded-full border shadow-xs transition-colors",
+                isMobile ? "px-3 py-1 text-[11px] font-black" : "px-3.5 py-1.5 text-xs font-black uppercase tracking-wider",
                 palette.badgeBg,
                 palette.badgeBorder,
                 palette.badgeText
@@ -707,7 +756,10 @@ function HeroRenderer({
 
           <h1
             className={cn(
-              "font-display text-3xl sm:text-5xl lg:text-[3.25rem] font-black leading-[1.12] tracking-tight transition-colors",
+              "font-display font-black tracking-tight transition-colors",
+              isMobile
+                ? "text-2xl leading-snug"
+                : "text-2xl sm:text-4xl lg:text-[3.25rem] leading-[1.12]",
               palette.textPrimary
             )}
           >
@@ -715,24 +767,31 @@ function HeroRenderer({
           </h1>
 
           {(config.subtitle || campaign.subheadline) && (
-            <p className={cn("max-w-xl text-base sm:text-lg font-medium leading-relaxed transition-colors", palette.textSecondary)}>
+            <p className={cn(
+              "font-medium leading-relaxed transition-colors",
+              isMobile ? "text-xs sm:text-sm" : "max-w-xl text-base sm:text-lg",
+              palette.textSecondary
+            )}>
               {config.subtitle || campaign.subheadline}
             </p>
           )}
 
           {/* Botões de Ação */}
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+          <div className={cn(
+            isMobile ? "flex flex-col gap-2.5 w-full pt-1" : "flex flex-col gap-3 pt-2 sm:flex-row sm:items-center"
+          )}>
             <Link
               href={signupHref}
               onClick={onCta}
               className={cn(
-                "inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl px-8 text-base font-black shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]",
+                "inline-flex items-center justify-center gap-2 rounded-2xl font-black shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]",
+                isMobile ? "h-12 w-full text-sm" : "min-h-14 px-8 text-base",
                 palette.accentGradient,
                 palette.accentHover
               )}
             >
               <span>{config.primaryCtaText || "Quero me cadastrar"}</span>
-              <ArrowRight className="h-5 w-5 shrink-0" />
+              <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
 
             {config.showWhatsappBtn !== false && (
@@ -742,7 +801,8 @@ function HeroRenderer({
                 rel="noopener noreferrer"
                 onClick={onCta}
                 className={cn(
-                  "inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl border px-6 text-sm font-bold transition-all backdrop-blur-sm active:scale-[0.98]",
+                  "inline-flex items-center justify-center gap-2 rounded-2xl border font-bold transition-all backdrop-blur-sm active:scale-[0.98]",
+                  isMobile ? "h-12 w-full text-xs" : "min-h-14 px-6 text-sm",
                   palette.isDark
                     ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
                     : "border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
@@ -755,7 +815,11 @@ function HeroRenderer({
           </div>
 
           {/* 3 Pilares de Confiança */}
-          <div className={cn("grid gap-2.5 border-t pt-6 text-xs sm:grid-cols-3", palette.isDark ? "border-slate-800" : "border-slate-200")}>
+          <div className={cn(
+            "border-t pt-4 text-xs font-bold transition-colors",
+            isMobile ? "grid grid-cols-1 gap-2" : "grid gap-2.5 pt-6 sm:grid-cols-3",
+            palette.isDark ? "border-slate-800" : "border-slate-200"
+          )}>
             <div className={cn("flex items-center gap-2 rounded-xl p-2.5 border font-bold shadow-xs", palette.cardBg, palette.cardBorder, palette.textPrimary)}>
               <ShieldCheck className="h-4 w-4 text-amber-500 shrink-0" />
               <span>Sem score impeditivo</span>
@@ -772,47 +836,59 @@ function HeroRenderer({
         </div>
 
         {/* Coluna da Direita: Vitrine do Veículo em Destaque */}
-        <div className="relative lg:col-span-5 flex items-center justify-center">
+        <div className={cn(
+          "relative flex items-center justify-center",
+          isMobile ? "w-full" : "lg:col-span-5"
+        )}>
           {/* Luz Ambiente Atrás do Carro */}
           <div
             className="absolute -inset-4 rounded-full blur-3xl opacity-60 pointer-events-none"
             style={{ background: palette.glowRgba }}
           />
 
-          <div className={cn("relative w-full overflow-hidden rounded-3xl p-5 sm:p-6 transition-all", palette.vehicleStageBg, palette.vehicleStageBorder, palette.vehicleStageShadow)}>
+          <div className={cn(
+            "relative w-full overflow-hidden rounded-3xl transition-all",
+            isMobile ? "p-4" : "p-5 sm:p-6",
+            palette.vehicleStageBg,
+            palette.vehicleStageBorder,
+            palette.vehicleStageShadow
+          )}>
             {/* Badge Flutuante Superior */}
-            <div className={cn("flex items-center justify-between pb-3 border-b", palette.isDark ? "border-slate-800" : "border-slate-100")}>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-300">
-                <Fuel className="h-3.5 w-3.5 text-emerald-500" />
+            <div className={cn("flex items-center justify-between pb-2.5 border-b", palette.isDark ? "border-slate-800" : "border-slate-100")}>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-300">
+                <Fuel className="h-3 w-3 text-emerald-500" />
                 Até 22 km/l em SP
               </span>
-              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
+              <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
                 Pronta Entrega
               </span>
             </div>
 
             {/* Imagem do Veículo */}
-            <div className="relative py-4 flex items-center justify-center">
+            <div className="relative py-2 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={carImage}
                 alt={campaign.name}
-                className="h-auto w-full max-h-[290px] object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_20px_25px_rgba(0,0,0,0.8)] transition-transform duration-500 hover:scale-105"
+                className={cn(
+                  "w-full object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_20px_25px_rgba(0,0,0,0.8)] transition-transform duration-500 hover:scale-105",
+                  isMobile ? "h-auto max-h-[180px]" : "h-auto max-h-[290px]"
+                )}
               />
             </div>
 
             {/* Informações Resumidas do Veículo */}
-            <div className={cn("mt-2 rounded-2xl p-3 flex items-center justify-between", palette.cardInnerBg)}>
+            <div className={cn("mt-2 rounded-2xl p-2.5 flex items-center justify-between", palette.cardInnerBg)}>
               <div>
-                <p className={cn("text-[10px] font-bold uppercase tracking-wider", palette.textMuted)}>Modelo Oficial</p>
-                <p className={cn("text-sm font-black", palette.textPrimary)}>
+                <p className={cn("text-[9px] font-bold uppercase tracking-wider", palette.textMuted)}>Modelo Oficial</p>
+                <p className={cn("text-xs sm:text-sm font-black", palette.textPrimary)}>
                   {campaign.vehicleInterest || "Corolla Cross Híbrido"}
                 </p>
               </div>
               <Link
                 href="#cadastro"
                 className={cn(
-                  "rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors",
+                  "rounded-xl border px-2.5 py-1 text-[11px] font-bold transition-colors",
                   palette.isDark
                     ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
                     : "bg-white hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs"
@@ -838,34 +914,46 @@ function ContextEmpathyRenderer({
   config: ContextEmpathySectionConfig
   palette: ThemePalette
 }) {
+  const { isMobile } = useDevice()
   const cards = config.cards || []
 
   return (
-    <section className={cn("space-y-6 rounded-3xl p-6 sm:p-8 transition-colors", palette.cardBg, palette.cardBorder, palette.cardShadow)}>
+    <section className={cn(
+      "space-y-4 rounded-3xl transition-colors",
+      isMobile ? "p-4" : "p-6 sm:p-8 space-y-6",
+      palette.cardBg, palette.cardBorder, palette.cardShadow
+    )}>
       <div className="max-w-2xl">
         <span className={cn("text-[10px] font-black uppercase tracking-widest block", palette.textHighlight)}>
           Vínculo & Empatia · V2
         </span>
-        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-3xl", palette.textPrimary)}>
+        <h2 className={cn(
+          "font-display mt-1 font-black",
+          isMobile ? "text-xl leading-snug" : "text-2xl sm:text-3xl",
+          palette.textPrimary
+        )}>
           {config.title}
         </h2>
         {config.subtitle && (
-          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
+          <p className={cn("mt-1.5 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={cn(
+        "grid gap-3",
+        isMobile ? "grid-cols-1" : "sm:grid-cols-3 gap-4"
+      )}>
         {cards.map((card, i) => (
           <div
             key={i}
-            className={cn("rounded-2xl p-5 space-y-2 transition-all hover:shadow-md", palette.cardInnerBg)}
+            className={cn("rounded-2xl p-4 space-y-1.5 transition-all hover:shadow-md", palette.cardInnerBg)}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400/15 text-amber-600 dark:text-amber-400 font-black text-xs">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/15 text-amber-600 dark:text-amber-400 font-black text-xs">
               0{i + 1}
             </div>
-            <h3 className={cn("text-base font-black", palette.textPrimary)}>{card.title}</h3>
+            <h3 className={cn("text-sm sm:text-base font-black", palette.textPrimary)}>{card.title}</h3>
             <p className={cn("text-xs font-medium leading-relaxed", palette.textSecondary)}>{card.description}</p>
           </div>
         ))}
@@ -884,39 +972,47 @@ function Diferenciais4VRenderer({
   config: Diferenciais4VSectionConfig
   palette: ThemePalette
 }) {
+  const { isMobile } = useDevice()
   const items = config.items || []
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <div className="text-center max-w-2xl mx-auto">
         <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Pilares da Parceria Michelines
         </span>
-        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+        <h2 className={cn(
+          "font-display mt-1 font-black",
+          isMobile ? "text-xl leading-snug" : "text-2xl sm:text-4xl",
+          palette.textPrimary
+        )}>
           {config.title}
         </h2>
         {config.subtitle && (
-          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
+          <p className={cn("mt-1.5 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={cn(
+        "grid gap-3",
+        isMobile ? "grid-cols-1" : "sm:grid-cols-2 gap-4"
+      )}>
         {items.map((item, i) => (
           <div
             key={i}
             className={cn(
-              "group rounded-3xl p-6 space-y-3 transition-all hover:scale-[1.01]",
+              "group rounded-3xl p-5 space-y-2.5 transition-all",
               palette.cardBg,
               palette.cardBorder,
               palette.cardShadow
             )}
           >
-            <span className={cn("inline-block rounded-full px-3 py-1 text-[11px] font-black border", palette.badgeBg, palette.badgeBorder, palette.badgeText)}>
+            <span className={cn("inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black border", palette.badgeBg, palette.badgeBorder, palette.badgeText)}>
               {item.highlight}
             </span>
-            <h3 className={cn("text-lg font-black transition-colors", palette.textPrimary)}>
+            <h3 className={cn("text-base sm:text-lg font-black transition-colors", palette.textPrimary)}>
               {item.title}
             </h3>
             <p className={cn("text-xs font-medium leading-relaxed", palette.textSecondary)}>{item.description}</p>
@@ -941,47 +1037,78 @@ function VehicleSpotlightRenderer({
   palette: ThemePalette
   onCta: () => void
 }) {
+  const { isMobile } = useDevice()
   const carImage = resolveVehicleImage(campaign, config.imageUrl)
 
   return (
-    <section className={cn("overflow-hidden rounded-3xl p-6 sm:p-10 transition-all", palette.vehicleStageBg, palette.vehicleStageBorder, palette.vehicleStageShadow)}>
-      <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
+    <section className={cn(
+      "overflow-hidden rounded-3xl transition-all",
+      isMobile ? "p-4 space-y-4" : "p-6 sm:p-10",
+      palette.vehicleStageBg, palette.vehicleStageBorder, palette.vehicleStageShadow
+    )}>
+      <div className={cn(
+        isMobile ? "flex flex-col gap-4" : "grid gap-8 lg:grid-cols-12 lg:items-center"
+      )}>
         {/* Informações da Oferta */}
-        <div className="space-y-5 lg:col-span-7">
-          <span className={cn("rounded-full px-3.5 py-1 text-[10px] font-black uppercase tracking-widest border", palette.badgeBg, palette.badgeBorder, palette.badgeText)}>
+        <div className={cn(
+          isMobile ? "w-full space-y-3.5" : "space-y-5 lg:col-span-7"
+        )}>
+          <span className={cn("rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest border", palette.badgeBg, palette.badgeBorder, palette.badgeText)}>
             {config.vehicleCategory || "Oferta Exclusiva da Campanha"}
           </span>
-          <h2 className={cn("font-display text-2xl font-black sm:text-4xl", palette.textPrimary)}>{config.vehicleName}</h2>
+          <h2 className={cn(
+            "font-display font-black",
+            isMobile ? "text-xl leading-snug" : "text-2xl sm:text-4xl",
+            palette.textPrimary
+          )}>
+            {config.vehicleName}
+          </h2>
           {config.subtitle && (
             <p className={cn("text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
               {config.subtitle}
             </p>
           )}
 
+          {/* Foto do Veículo em Destaque no Mobile (logo após o título) */}
+          {isMobile && (
+            <div className={cn("relative w-full rounded-2xl p-3 flex items-center justify-center my-2", palette.cardInnerBg)}>
+              <img
+                src={carImage}
+                alt={config.vehicleName}
+                className="h-auto w-full max-h-[160px] object-contain drop-shadow-md"
+              />
+            </div>
+          )}
+
           {/* Cards de Preço / Valores */}
-          <div className="flex flex-wrap gap-3 py-2">
+          <div className={cn(
+            isMobile ? "grid grid-cols-3 gap-2 py-1" : "flex flex-wrap gap-3 py-2"
+          )}>
             {config.dailyRate && (
-              <div className={cn("rounded-2xl px-4 py-3 min-w-[120px]", palette.cardInnerBg)}>
-                <span className={cn("text-[10px] font-bold block uppercase", palette.textMuted)}>Diária</span>
-                <span className={cn("text-2xl font-black", palette.textHighlight)}>R$ {config.dailyRate}</span>
+              <div className={cn("rounded-2xl p-2.5 text-center", isMobile ? "w-full" : "min-w-[120px]", palette.cardInnerBg)}>
+                <span className={cn("text-[9px] font-bold block uppercase", palette.textMuted)}>Diária</span>
+                <span className={cn("font-black", isMobile ? "text-base" : "text-2xl", palette.textHighlight)}>R$ {config.dailyRate}</span>
               </div>
             )}
             {config.weeklyRate && (
-              <div className={cn("rounded-2xl px-4 py-3 min-w-[120px]", palette.cardInnerBg)}>
-                <span className={cn("text-[10px] font-bold block uppercase", palette.textMuted)}>Semanal</span>
-                <span className={cn("text-2xl font-black", palette.textPrimary)}>R$ {config.weeklyRate}</span>
+              <div className={cn("rounded-2xl p-2.5 text-center", isMobile ? "w-full" : "min-w-[120px]", palette.cardInnerBg)}>
+                <span className={cn("text-[9px] font-bold block uppercase", palette.textMuted)}>Semanal</span>
+                <span className={cn("font-black", isMobile ? "text-base" : "text-2xl", palette.textPrimary)}>R$ {config.weeklyRate}</span>
               </div>
             )}
             {config.monthlyRate && (
-              <div className={cn("rounded-2xl px-4 py-3 min-w-[120px]", palette.cardInnerBg)}>
-                <span className={cn("text-[10px] font-bold block uppercase", palette.textMuted)}>Mensal</span>
-                <span className={cn("text-2xl font-black", palette.textPrimary)}>R$ {config.monthlyRate}</span>
+              <div className={cn("rounded-2xl p-2.5 text-center", isMobile ? "w-full" : "min-w-[120px]", palette.cardInnerBg)}>
+                <span className={cn("text-[9px] font-bold block uppercase", palette.textMuted)}>Mensal</span>
+                <span className={cn("font-black", isMobile ? "text-base" : "text-2xl", palette.textPrimary)}>R$ {config.monthlyRate}</span>
               </div>
             )}
           </div>
 
           {/* Lista de Vantagens */}
-          <ul className="grid gap-2.5 text-xs font-bold sm:grid-cols-2 pt-1">
+          <ul className={cn(
+            "grid gap-2 text-xs font-bold pt-1",
+            isMobile ? "grid-cols-1" : "sm:grid-cols-2"
+          )}>
             {config.features && config.features.length > 0 ? (
               config.features.map((feat, i) => (
                 <li key={i} className={cn("flex items-center gap-2", palette.textPrimary)}>
@@ -1015,7 +1142,11 @@ function VehicleSpotlightRenderer({
             <Link
               href={config.ctaUrl || "#cadastro"}
               onClick={onCta}
-              className={cn("inline-flex h-13 items-center justify-center gap-2 rounded-2xl px-7 text-sm font-black shadow-lg transition-all hover:scale-105", palette.accentGradient)}
+              className={cn(
+                "inline-flex items-center justify-center gap-2 rounded-2xl font-black shadow-lg transition-all",
+                isMobile ? "h-12 w-full text-xs" : "h-13 px-7 text-sm hover:scale-105",
+                palette.accentGradient
+              )}
             >
               <span>{config.ctaText || "Garantir Este Veículo"}</span>
               <ArrowRight className="h-4 w-4" />
@@ -1023,17 +1154,18 @@ function VehicleSpotlightRenderer({
           </div>
         </div>
 
-        {/* Foto do Veículo em Destaque */}
-        <div className="lg:col-span-5 flex items-center justify-center">
-          <div className={cn("relative w-full rounded-3xl p-4 flex items-center justify-center", palette.cardInnerBg)}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={carImage}
-              alt={config.vehicleName}
-              className="h-auto w-full max-h-[260px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_15px_25px_rgba(0,0,0,0.9)] transition-transform duration-300 hover:scale-105"
-            />
+        {/* Foto do Veículo em Destaque no Desktop */}
+        {!isMobile && (
+          <div className="lg:col-span-5 flex items-center justify-center">
+            <div className={cn("relative w-full rounded-3xl p-4 flex items-center justify-center", palette.cardInnerBg)}>
+              <img
+                src={carImage}
+                alt={config.vehicleName}
+                className="h-auto w-full max-h-[260px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_15px_25px_rgba(0,0,0,0.9)] transition-transform duration-300 hover:scale-105"
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   )
@@ -1049,6 +1181,7 @@ function HowItWorksRenderer({
   config: HowItWorksSectionConfig
   palette: ThemePalette
 }) {
+  const { isMobile } = useDevice()
   const steps = config.steps || [
     { number: 1, title: "Envie seus dados", description: "Preencha o formulário rápido com seu WhatsApp e CNH." },
     { number: 2, title: "Análise sem Score", description: "Avaliamos seu perfil sem burocracia ou exigência de score alto." },
@@ -1057,31 +1190,43 @@ function HowItWorksRenderer({
   ]
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <div className="text-center max-w-2xl mx-auto">
         <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Passo a Passo Simplificado
         </span>
-        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+        <h2 className={cn(
+          "font-display mt-1 font-black",
+          isMobile ? "text-xl leading-snug" : "text-2xl sm:text-4xl",
+          palette.textPrimary
+        )}>
           {config.title}
         </h2>
         {config.subtitle && (
-          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
+          <p className={cn("mt-1.5 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={cn(
+        "grid gap-3",
+        isMobile ? "grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      )}>
         {steps.map((st) => (
           <div
             key={st.number}
-            className={cn("relative rounded-3xl p-6 space-y-3 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}
+            className={cn(
+              "relative rounded-3xl p-5 space-y-2.5 transition-all",
+              palette.cardBg,
+              palette.cardBorder,
+              palette.cardShadow
+            )}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-400 font-black text-slate-950 text-base shadow-md shadow-amber-500/20">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 font-black text-slate-950 text-sm shadow-md shadow-amber-500/20">
               0{st.number}
             </span>
-            <h3 className={cn("text-base font-black", palette.textPrimary)}>{st.title}</h3>
+            <h3 className={cn("text-sm sm:text-base font-black", palette.textPrimary)}>{st.title}</h3>
             <p className={cn("text-xs font-medium leading-relaxed", palette.textSecondary)}>{st.description}</p>
           </div>
         ))}
@@ -1100,43 +1245,56 @@ function TestimonialsRenderer({
   config: TestimonialsSectionConfig
   palette: ThemePalette
 }) {
+  const { isMobile } = useDevice()
   const items = config.items || []
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <div className="text-center max-w-2xl mx-auto">
         <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Quem Já Roda com a Michelines
         </span>
-        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+        <h2 className={cn(
+          "font-display mt-1 font-black",
+          isMobile ? "text-xl leading-snug" : "text-2xl sm:text-4xl",
+          palette.textPrimary
+        )}>
           {config.title}
         </h2>
         {config.subtitle && (
-          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
+          <p className={cn("mt-1.5 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={cn(
+        "grid gap-3",
+        isMobile ? "grid-cols-1" : "sm:grid-cols-3 gap-4"
+      )}>
         {items.map((item, i) => (
           <div
             key={i}
-            className={cn("flex flex-col justify-between rounded-3xl p-6 space-y-4 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}
+            className={cn(
+              "flex flex-col justify-between rounded-3xl p-5 space-y-3 transition-all",
+              palette.cardBg,
+              palette.cardBorder,
+              palette.cardShadow
+            )}
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex gap-1 text-amber-400">
                 {Array.from({ length: item.rating || 5 }).map((_, r) => (
-                  <Star key={r} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <Star key={r} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                 ))}
               </div>
               <p className={cn("text-xs font-medium italic leading-relaxed", palette.textSecondary)}>
                 "{item.testimony}"
               </p>
             </div>
-            <div className={cn("border-t pt-3", palette.isDark ? "border-slate-800" : "border-slate-100")}>
-              <p className={cn("text-sm font-black", palette.textPrimary)}>{item.name}</p>
-              <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">{item.role}</p>
+            <div className={cn("border-t pt-2.5", palette.isDark ? "border-slate-800" : "border-slate-100")}>
+              <p className={cn("text-xs sm:text-sm font-black", palette.textPrimary)}>{item.name}</p>
+              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400">{item.role}</p>
             </div>
           </div>
         ))}
@@ -1157,6 +1315,7 @@ function EarningsCalculatorRenderer({
   palette: ThemePalette
   onCta: () => void
 }) {
+  const { isMobile } = useDevice()
   const [km, setKm] = useState(config.defaultKmPerDay || 200)
 
   const fuelPrice = config.fuelPricePerLiter || 5.89
@@ -1170,25 +1329,35 @@ function EarningsCalculatorRenderer({
   const monthlySavings = dailySavings * 26 // 26 dias úteis
 
   return (
-    <section className={cn("rounded-3xl p-6 sm:p-10 space-y-6 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}>
+    <section className={cn(
+      "rounded-3xl transition-all",
+      isMobile ? "p-4 space-y-4" : "p-6 sm:p-10 space-y-6",
+      palette.cardBg, palette.cardBorder, palette.cardShadow
+    )}>
       <div className="text-center max-w-xl mx-auto">
         <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Simulador de Economia Real · V1
         </span>
-        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-3xl", palette.textPrimary)}>{config.title}</h2>
+        <h2 className={cn(
+          "font-display mt-1 font-black",
+          isMobile ? "text-xl leading-snug" : "text-2xl sm:text-3xl",
+          palette.textPrimary
+        )}>
+          {config.title}
+        </h2>
         {config.subtitle && (
-          <p className={cn("mt-1 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
+          <p className={cn("mt-1 text-xs font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
-      <div className="mx-auto max-w-xl space-y-5">
+      <div className="mx-auto max-w-xl space-y-4">
         {/* Controle Deslizante */}
-        <div className={cn("rounded-2xl p-5 space-y-3", palette.cardInnerBg)}>
-          <div className="flex justify-between items-center text-sm font-bold">
-            <span className={palette.textPrimary}>Quilômetros rodados por dia:</span>
-            <span className="text-amber-600 dark:text-amber-400 font-black text-lg bg-amber-400/10 px-3 py-1 rounded-xl border border-amber-400/30">
+        <div className={cn("rounded-2xl p-4 space-y-2.5", palette.cardInnerBg)}>
+          <div className="flex justify-between items-center text-xs font-bold">
+            <span className={palette.textPrimary}>Quilômetros rodados:</span>
+            <span className="text-amber-600 dark:text-amber-400 font-black text-sm bg-amber-400/10 px-2.5 py-0.5 rounded-xl border border-amber-400/30">
               {km} km/dia
             </span>
           </div>
@@ -1201,7 +1370,7 @@ function EarningsCalculatorRenderer({
             onChange={(e) => setKm(Number(e.target.value))}
             className="h-2.5 w-full accent-amber-500 cursor-pointer rounded-lg"
           />
-          <div className={cn("flex justify-between text-[10px] font-bold", palette.textMuted)}>
+          <div className={cn("flex justify-between text-[9px] font-bold", palette.textMuted)}>
             <span>80 km (Part-time)</span>
             <span>200 km (Padrão)</span>
             <span>350 km (Integral)</span>
@@ -1209,32 +1378,36 @@ function EarningsCalculatorRenderer({
         </div>
 
         {/* Resultados Comparativos */}
-        <div className="grid grid-cols-2 gap-3 text-center">
-          <div className={cn("rounded-2xl p-4 space-y-1", palette.cardInnerBg)}>
-            <span className={cn("text-[10px] font-bold block uppercase tracking-wider", palette.textMuted)}>
-              Economia no Dia
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <div className={cn("rounded-2xl p-3 space-y-0.5", palette.cardInnerBg)}>
+            <span className={cn("text-[9px] font-bold block uppercase tracking-wider", palette.textMuted)}>
+              Economia / Dia
             </span>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            <span className={cn("font-black text-emerald-600 dark:text-emerald-400", isMobile ? "text-lg" : "text-2xl sm:text-3xl")}>
               R$ {dailySavings.toFixed(0)}
             </span>
-            <span className={cn("text-[10px] block", palette.textMuted)}>Menos gasto no posto</span>
+            <span className={cn("text-[9px] block", palette.textMuted)}>Menos no posto</span>
           </div>
-          <div className={cn("rounded-2xl p-4 space-y-1 border", palette.badgeBg, palette.badgeBorder)}>
-            <span className={cn("text-[10px] font-bold block uppercase tracking-wider", palette.badgeText)}>
-              Economia no Mês
+          <div className={cn("rounded-2xl p-3 space-y-0.5 border", palette.badgeBg, palette.badgeBorder)}>
+            <span className={cn("text-[9px] font-bold block uppercase tracking-wider", palette.badgeText)}>
+              Economia / Mês
             </span>
-            <span className={cn("text-2xl sm:text-3xl font-black", palette.badgeText)}>
+            <span className={cn("font-black", isMobile ? "text-lg" : "text-2xl sm:text-3xl", palette.badgeText)}>
               R$ {monthlySavings.toFixed(0)}
             </span>
-            <span className={cn("text-[10px] block opacity-80", palette.badgeText)}>Em 26 dias úteis</span>
+            <span className={cn("text-[9px] block opacity-80", palette.badgeText)}>Em 26 dias úteis</span>
           </div>
         </div>
 
-        <div className="text-center pt-2">
+        <div className="text-center pt-1">
           <Link
             href="#cadastro"
             onClick={onCta}
-            className={cn("inline-flex h-13 items-center justify-center gap-2 rounded-2xl px-8 text-sm font-black shadow-xl transition-transform hover:scale-105", palette.accentGradient)}
+            className={cn(
+              "inline-flex items-center justify-center gap-2 rounded-2xl font-black shadow-xl transition-transform",
+              isMobile ? "h-12 w-full text-xs" : "h-13 px-8 text-sm hover:scale-105",
+              palette.accentGradient
+            )}
           >
             <span>{config.ctaText || "Quero Economizar Agora"}</span>
             <ArrowRight className="h-4 w-4" />
@@ -1255,26 +1428,31 @@ function FaqAccordionRenderer({
   config: FaqAccordionSectionConfig
   palette: ThemePalette
 }) {
+  const { isMobile } = useDevice()
   const [openIndex, setOpenIndex] = useState<number | null>(0)
   const items = config.items || []
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <div className="text-center max-w-2xl mx-auto">
         <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Tire Suas Dúvidas
         </span>
-        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+        <h2 className={cn(
+          "font-display mt-1 font-black",
+          isMobile ? "text-xl leading-snug" : "text-2xl sm:text-4xl",
+          palette.textPrimary
+        )}>
           {config.title}
         </h2>
         {config.subtitle && (
-          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
+          <p className={cn("mt-1.5 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-3">
+      <div className="mx-auto max-w-3xl space-y-2.5">
         {items.map((item, i) => {
           const isOpen = openIndex === i
           return (
@@ -1285,7 +1463,7 @@ function FaqAccordionRenderer({
               <button
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? null : i)}
-                className="flex w-full items-center justify-between p-4 sm:p-5 text-left font-bold text-sm"
+                className="flex w-full items-center justify-between p-3.5 sm:p-5 text-left font-bold text-xs sm:text-sm"
               >
                 <span className={palette.textPrimary}>{item.question}</span>
                 <ChevronDown
@@ -1293,7 +1471,7 @@ function FaqAccordionRenderer({
                 />
               </button>
               {isOpen && (
-                <div className={cn("border-t p-4 sm:p-5 text-xs sm:text-sm font-medium leading-relaxed", palette.cardInnerBg, palette.textSecondary)}>
+                <div className={cn("border-t p-3.5 sm:p-5 text-xs sm:text-sm font-medium leading-relaxed", palette.cardInnerBg, palette.textSecondary)}>
                   {item.answer}
                 </div>
               )}
@@ -1319,6 +1497,7 @@ function LeadFormRenderer({
   palette: ThemePalette
   onCta: () => void
 }) {
+  const { isMobile } = useDevice()
   const [fullName, setFullName] = useState("")
   const [phone, setPhone] = useState("")
   const [vehicle, setVehicle] = useState(campaign.vehicleInterest || "")
@@ -1354,76 +1533,84 @@ function LeadFormRenderer({
   return (
     <section
       id="cadastro"
-      className={cn("scroll-mt-20 overflow-hidden rounded-3xl p-6 sm:p-10 space-y-6 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}
+      className={cn(
+        "scroll-mt-20 overflow-hidden rounded-3xl transition-all",
+        isMobile ? "p-4 space-y-4" : "p-6 sm:p-10 space-y-6",
+        palette.cardBg, palette.cardBorder, palette.cardShadow
+      )}
     >
       <div className="text-center max-w-xl mx-auto">
         <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Cadastro Direto sem Burocracia
         </span>
-        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+        <h2 className={cn(
+          "font-display mt-1 font-black",
+          isMobile ? "text-xl leading-snug" : "text-2xl sm:text-4xl",
+          palette.textPrimary
+        )}>
           {config.title}
         </h2>
         {config.subtitle && (
-          <p className={cn("mt-2 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
+          <p className={cn("mt-1.5 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
       {submitted ? (
-        <div className="mx-auto max-w-md text-center space-y-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-8 shadow-inner">
-          <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
-          <h3 className={cn("text-xl font-black", palette.textPrimary)}>Cadastro Recebido!</h3>
-          <p className={cn("text-xs sm:text-sm leading-relaxed", palette.textSecondary)}>
+        <div className="mx-auto max-w-md text-center space-y-2.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6 shadow-inner">
+          <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto" />
+          <h3 className={cn("text-lg font-black", palette.textPrimary)}>Cadastro Recebido!</h3>
+          <p className={cn("text-xs leading-relaxed", palette.textSecondary)}>
             {config.successMessage || "Nosso consultor entrará em contato com você pelo WhatsApp em instantes para finalizar a reserva."}
           </p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4">
-          <div className="space-y-1.5">
+        <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-3.5">
+          <div className="space-y-1">
             <label className={cn("text-xs font-bold block", palette.textPrimary)}>Seu Nome Completo</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Ex: João Silva"
-              className={cn("h-12 w-full rounded-xl border px-4 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
+              className={cn("h-11 w-full rounded-xl border px-3.5 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
               required
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className={cn("text-xs font-bold block", palette.textPrimary)}>WhatsApp com DDD</label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="(11) 99999-9999"
-              className={cn("h-12 w-full rounded-xl border px-4 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
+              className={cn("h-11 w-full rounded-xl border px-3.5 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
               required
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className={cn("text-xs font-bold block", palette.textPrimary)}>Veículo de Interesse</label>
             <input
               type="text"
               value={vehicle}
               onChange={(e) => setVehicle(e.target.value)}
               placeholder="Ex: Corolla Cross Híbrido, Spin, D-Taxi..."
-              className={cn("h-12 w-full rounded-xl border px-4 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
+              className={cn("h-11 w-full rounded-xl border px-3.5 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
             />
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className={cn("h-14 w-full rounded-2xl text-base font-black shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50", palette.accentGradient)}
+            className={cn("h-12 w-full rounded-2xl text-sm font-black shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50", palette.accentGradient)}
           >
             {submitting ? "Enviando..." : config.buttonText || "Enviar Cadastro para Análise"}
           </button>
 
-          <p className={cn("text-center text-[11px]", palette.textMuted)}>
+          <p className={cn("text-center text-[10px]", palette.textMuted)}>
             🔒 Seus dados estão protegidos. Não consultamos restrições impeditivas de score.
           </p>
         </form>
@@ -1444,19 +1631,25 @@ function WhatsAppCtaRenderer({
   palette: ThemePalette
   onCta: () => void
 }) {
+  const { isMobile } = useDevice()
   const phone = config.phone || "5511999999999"
   const message = encodeURIComponent(config.customMessage || "Olá! Gostaria de informações sobre a locação de veículos.")
 
   return (
     <section
       className={cn(
-        "rounded-3xl border p-6 sm:p-10 text-center space-y-4 shadow-xl transition-colors",
+        "rounded-3xl border text-center shadow-xl transition-colors",
+        isMobile ? "p-5 space-y-3" : "p-6 sm:p-10 space-y-4",
         palette.isDark
           ? "border-emerald-500/40 bg-gradient-to-r from-emerald-950 via-slate-950 to-emerald-950 text-white"
           : "border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 text-emerald-950"
       )}
     >
-      <h2 className={cn("font-display text-2xl font-black sm:text-3xl", palette.isDark ? "text-white" : "text-emerald-950")}>
+      <h2 className={cn(
+        "font-display font-black",
+        isMobile ? "text-xl leading-snug" : "text-2xl sm:text-3xl",
+        palette.isDark ? "text-white" : "text-emerald-950"
+      )}>
         {config.title}
       </h2>
       {config.subtitle && (
@@ -1465,15 +1658,18 @@ function WhatsAppCtaRenderer({
         </p>
       )}
 
-      <div className="pt-2">
+      <div className="pt-1">
         <a
           href={`https://wa.me/${phone}?text=${message}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={onCta}
-          className="inline-flex h-14 items-center justify-center gap-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 px-8 text-base font-black text-slate-950 shadow-xl shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95"
+          className={cn(
+            "inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 font-black text-slate-950 shadow-xl shadow-emerald-500/20 transition-all active:scale-95",
+            isMobile ? "h-12 w-full text-xs" : "h-14 px-8 text-base hover:scale-105"
+          )}
         >
-          <Phone className="h-5 w-5 fill-slate-950" />
+          <Phone className="h-4 w-4 fill-slate-950" />
           <span>{config.buttonText || "Falar com Consultor no WhatsApp"}</span>
         </a>
       </div>
