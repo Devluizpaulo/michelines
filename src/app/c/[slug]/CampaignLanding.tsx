@@ -9,6 +9,7 @@ import { LOGO_IMAGES } from "@/lib/supabase"
 
 import { DynamicLandingRenderer } from "@/components/public/campaign-sections/DynamicLandingRenderer"
 import { DEFAULT_4V_SECTIONS } from "@/types/campaign-studio"
+import { ToastProvider } from "@/components/ui/toast-simple"
 
 /**
  * Página pública de uma campanha.
@@ -38,6 +39,8 @@ export function CampaignLanding({ campaign }: { campaign: Campaign }) {
   }
 
   return (
-    <DynamicLandingRenderer campaign={campaignWithSections} onCtaClick={handleCtaClick} />
+    <ToastProvider>
+      <DynamicLandingRenderer campaign={campaignWithSections} onCtaClick={handleCtaClick} />
+    </ToastProvider>
   )
 }
