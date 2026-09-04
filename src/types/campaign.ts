@@ -48,7 +48,7 @@ export interface Campaign {
 
 export type CampaignStatus = "draft" | "active" | "paused" | "ended"
 
-export type CampaignTheme = "navy" | "amber" | "emerald" | "violet"
+export type CampaignTheme = "navy" | "amber" | "emerald" | "violet" | "editorial" | "minimal"
 
 export const CAMPAIGN_STATUS_LABELS: Record<
   CampaignStatus,
@@ -66,7 +66,7 @@ export const CAMPAIGN_THEMES: Record<
   { label: string; from: string; to: string; accent: string; accentHover: string; swatch: string }
 > = {
   navy: {
-    label: "Azul institucional",
+    label: "Azul Michelines (Céu & Marinho)",
     from: "from-[#0a192f]",
     to: "to-[#1b3e72]",
     accent: "bg-amber-500",
@@ -74,7 +74,7 @@ export const CAMPAIGN_THEMES: Record<
     swatch: "#1b3e72",
   },
   amber: {
-    label: "Âmbar (urgência)",
+    label: "Ouro & Âmbar (Urgência & Feirão)",
     from: "from-[#7c2d12]",
     to: "to-[#b45309]",
     accent: "bg-amber-400",
@@ -82,7 +82,7 @@ export const CAMPAIGN_THEMES: Record<
     swatch: "#b45309",
   },
   emerald: {
-    label: "Verde (economia)",
+    label: "Tons de Verde (Economia & Híbridos)",
     from: "from-[#064e3b]",
     to: "to-[#047857]",
     accent: "bg-emerald-400",
@@ -90,12 +90,28 @@ export const CAMPAIGN_THEMES: Record<
     swatch: "#047857",
   },
   violet: {
-    label: "Violeta (premium)",
+    label: "Violeta Tecnológico (Moderno)",
     from: "from-[#2e1065]",
     to: "to-[#6d28d9]",
     accent: "bg-violet-400",
     accentHover: "hover:bg-violet-500",
     swatch: "#6d28d9",
+  },
+  editorial: {
+    label: "Editorial Dark (Ouro & Preto Nobre)",
+    from: "from-[#171108]",
+    to: "to-[#070503]",
+    accent: "bg-amber-400",
+    accentHover: "hover:bg-amber-300",
+    swatch: "#d97706",
+  },
+  minimal: {
+    label: "Minimal Sofisticado (Carvão Profundo)",
+    from: "from-[#111317]",
+    to: "to-[#050607]",
+    accent: "bg-slate-100",
+    accentHover: "hover:bg-white",
+    swatch: "#334155",
   },
 }
 
