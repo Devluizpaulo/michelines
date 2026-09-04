@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import {
   Plus, Link2, Copy, Check, ExternalLink, Trash2, Pencil, Loader2,
-  ImageIcon, Eye, MousePointerClick, Users, X, Megaphone, Instagram,
+  ImageIcon, Eye, MousePointerClick, Users, X, Megaphone, Instagram, Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Lead } from "@/types/lead"
@@ -22,6 +22,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { MediaSelectorDialog } from "@/components/admin/shared/MediaSelectorDialog"
 import { CampaignSharePanel } from "./CampaignSharePanel"
+import { CampaignStudio } from "./studio/CampaignStudio"
+import { JsonAiModal } from "./JsonAiModal"
+import { CampaignSection } from "@/types/campaign-studio"
 
 const EMPTY_FORM: CampaignInput = {
   slug: "",
@@ -64,20 +67,34 @@ export function CampaignBuilder({ leads }: CampaignBuilderProps) {
   const [mediaOpen, setMediaOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [highlightDraft, setHighlightDraft] = useState("")
+  const [studioCampaign, setStudioCampaign] = useState<Campaign | null>(null)
+  const [aiModalOpen, setAiModalOpen] = useState(false)
+
+  const handleImportCampaign = async ({ campaignInput, sections }: { campaignInput: CampaignInput; sections: CampaignSection[] }) => {
+    try {
+      const created = await createCampaign({ ...campaignInput, sections }, adminUser?.displayName)
+      success("Landing Page criada via IA!", `Publicada em /c/${created.slug}`)
+      await load()
+    } catch (e: any) {
+      showError("Erro ao importar landing page", e?.message || "Verifique o JSON.")
+    }
+  }
 
   const load = useCallback(async () => {
     try {
       setLoading(true)
-      setCampaigns(await listCampaigns())
+      const data = await listCampaigns()
+      setCampaigns(data)
     } catch (e) {
       console.error("Erro ao carregar campanhas:", e)
-      showError("Erro ao carregar", "Não foi possível buscar as campanhas.")
     } finally {
       setLoading(false)
     }
-  }, [showError])
+  }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   /** Leads atribuídos a cada campanha, contados uma única vez. */
   const leadsByCampaign = useMemo(() => {
@@ -203,21 +220,47 @@ export function CampaignBuilder({ leads }: CampaignBuilderProps) {
 
   const previewSlug = form.slug.trim() || slugifyCampaign(form.name) || "sua-campanha"
 
+  if (studioCampaign) {
+    return (
+      <CampaignStudio
+        campaign={studioCampaign}
+        onCampaignUpdated={() => {
+          load()
+        }}
+        onClose={() => setStudioCampaign(null)}
+      />
+    )
+  }
+
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="flex items-center gap-2 text-base font-black text-slate-900">
-            <Megaphone className="h-4 w-4 shrink-0 text-sky-600" />
-            Campanhas com página própria
+      {/* ── Barra de Ação do Estúdio (Compacta & Eficiente) ── */}
+      <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider flex items-center gap-1">
+            <Sparkles className="h-3 w-3 fill-slate-950" /> Estúdio 4V
+          </span>
+          <h3 className="text-sm font-black text-slate-900">
+            Landing Pages Dinâmicas
           </h3>
-          <p className="mt-0.5 text-xs font-semibold text-slate-500">
-            Cada campanha vira um link /c/… para a bio do Instagram. Os leads que entram por ele voltam atribuídos.
-          </p>
+          <span className="text-xs font-semibold text-slate-400 border-l border-slate-200 pl-2 hidden md:inline">
+            Links <code className="text-sky-600 font-bold bg-sky-50 px-1 py-0.5 rounded">/c/...</code> prontos para bio e anúncios
+          </span>
         </div>
-        <Button onClick={openNew} className="shrink-0 gap-1.5 bg-sky-600 font-bold hover:bg-sky-700">
-          <Plus className="h-4 w-4" /> Nova campanha
-        </Button>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            onClick={() => setAiModalOpen(true)}
+            variant="outline"
+            className="gap-1.5 border-slate-700 bg-slate-900 text-amber-400 font-bold hover:bg-slate-800 hover:text-amber-300 shadow-2xs h-9 px-3 text-xs"
+          >
+            <Sparkles className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> 🤖 Criar via IA (JSON)
+          </Button>
+
+          <Button onClick={openNew} className="gap-1.5 bg-amber-400 text-slate-950 font-black hover:bg-amber-300 shadow-2xs h-9 px-4 rounded-lg text-xs transition-all hover:scale-[1.01]">
+            <Plus className="h-3.5 w-3.5 stroke-[3]" /> Nova Landing Page 4V
+          </Button>
+        </div>
       </div>
 
       {/* ── Formulário ── */}
@@ -456,19 +499,27 @@ export function CampaignBuilder({ leads }: CampaignBuilderProps) {
 
       {/* ── Listagem ── */}
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-12 text-sm font-semibold text-slate-400">
-          <Loader2 className="h-4 w-4 animate-spin" /> Carregando campanhas...
+        <div className="flex flex-col items-center justify-center gap-2 py-16 text-sm font-semibold text-slate-400">
+          <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+          <span>Carregando Landing Pages Dinâmicas...</span>
         </div>
       ) : campaigns.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-14 text-center">
-          <Instagram className="h-8 w-8 text-slate-300" />
-          <p className="text-sm font-bold text-slate-600">Nenhuma campanha criada ainda.</p>
-          <p className="max-w-xs text-xs font-medium text-slate-400">
-            Crie a primeira para gerar um link exclusivo e medir quantos leads ele traz.
-          </p>
+        <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-amber-200 bg-amber-50/20 py-16 text-center">
+          <div className="h-12 w-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-black text-slate-900">Nenhuma Landing Page 4V criada ainda.</p>
+            <p className="max-w-md text-xs font-medium text-slate-500">
+              Crie sua primeira landing page para ter um link de altíssima conversão pronto para seus anúncios.
+            </p>
+          </div>
+          <Button onClick={openNew} className="mt-2 gap-2 bg-amber-400 text-slate-950 font-black hover:bg-amber-300 shadow-md h-10 px-5 rounded-xl">
+            <Plus className="h-4 w-4 stroke-[3]" /> Criar Minha Primeira Landing Page 4V
+          </Button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {campaigns.map((campaign) => {
             const leadCount = leadsByCampaign.get(campaign.id) || 0
             const ctr = campaign.views > 0 ? (campaign.clicks / campaign.views) * 100 : 0
@@ -478,32 +529,38 @@ export function CampaignBuilder({ leads }: CampaignBuilderProps) {
             return (
               <div
                 key={campaign.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:border-amber-300/80 transition-all"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="text-sm font-black text-slate-900">{campaign.name}</h4>
-                      <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-black uppercase", statusInfo.color)}>
+                      <h4 className="text-base font-black text-slate-900">{campaign.name}</h4>
+                      <span className={cn("rounded-md border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", statusInfo.color)}>
                         {statusInfo.label}
                       </span>
                     </div>
-                    <p className="mt-1 flex items-center gap-1 font-mono text-[11px] font-bold text-sky-600">
-                      <Link2 className="h-3 w-3 shrink-0" />
+                    <p className="mt-1 flex items-center gap-1.5 font-mono text-xs font-bold text-sky-600">
+                      <Link2 className="h-3.5 w-3.5 shrink-0 text-sky-500" />
                       /c/{campaign.slug}
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex flex-wrap shrink-0 items-center gap-2">
+                    <Button
+                      onClick={() => setStudioCampaign(campaign)}
+                      className="h-10 gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs px-4 rounded-xl shadow-sm border border-amber-300 transition-all hover:scale-[1.02]"
+                    >
+                      <Sparkles className="h-4 w-4 fill-slate-950" /> ✨ Abrir no Estúdio 4V (Elementor)
+                    </Button>
                     <IconAction onClick={() => handleCopyLink(campaign)} label="Copiar link">
                       {copiedId === campaign.id
                         ? <Check className="h-4 w-4 text-emerald-600" />
                         : <Copy className="h-4 w-4" />}
                     </IconAction>
                     <a href={`/c/${campaign.slug}`} target="_blank" rel="noopener noreferrer">
-                      <IconAction label="Abrir página"><ExternalLink className="h-4 w-4" /></IconAction>
+                      <IconAction label="Abrir página no navegador"><ExternalLink className="h-4 w-4" /></IconAction>
                     </a>
-                    <IconAction onClick={() => openEdit(campaign)} label="Editar">
+                    <IconAction onClick={() => openEdit(campaign)} label="Editar informações">
                       <Pencil className="h-4 w-4" />
                     </IconAction>
                     <IconAction onClick={() => handleDelete(campaign)} label="Excluir" danger>
@@ -557,6 +614,13 @@ export function CampaignBuilder({ leads }: CampaignBuilderProps) {
         bucket="banners"
         title="Imagem da campanha"
         description="Escolha a arte que aparece na página e na prévia do link."
+      />
+
+      <JsonAiModal
+        open={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        mode="create_campaign"
+        onImportCampaign={handleImportCampaign}
       />
     </div>
   )

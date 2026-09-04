@@ -6,6 +6,8 @@
  * página carrega o `campaignId`, fechando o ciclo criação → divulgação →
  * atribuição do lead.
  */
+import type { CampaignSection } from "./campaign-studio"
+
 export interface Campaign {
   id: string
   /** Identificador da URL pública: /c/{slug}. Único e imutável após criado. */
@@ -25,6 +27,10 @@ export interface Campaign {
   /** Modelo pré-selecionado no formulário de cadastro */
   vehicleInterest?: string
   theme: CampaignTheme
+
+  // ── Seções Dinâmicas do Estúdio 4V ──
+  sections?: CampaignSection[]
+  utmStats?: Record<string, number>
 
   // ── Vigência (opcional) ──
   startDate?: string

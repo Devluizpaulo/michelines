@@ -156,6 +156,8 @@ export type CampaignRow = {
   cta_text: string
   vehicle_interest: string | null
   theme: string
+  sections?: Record<string, unknown>[]
+  utm_stats?: Record<string, unknown>
   start_date: string | null
   end_date: string | null
   views: number

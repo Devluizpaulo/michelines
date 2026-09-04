@@ -211,7 +211,7 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
   const { success, error: showError } = useToast()
 
   // Central State Tabs
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const [activeTab, setActiveTab] = useState("builder")
 
   // Campaign Banner States
   const [showCampaignBanner, setShowCampaignBanner] = useState(false)
@@ -550,73 +550,73 @@ export function CampaignManager({ landingSettings, onSettingsSaved, leads = [] }
     <div className="space-y-6 max-w-7xl mx-auto select-none">
       
       {/* Tab Navigation header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-200 pb-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Megaphone className="h-5 w-5 text-violet-600" />
-            Marketing & Campanhas Center
+          <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500 fill-amber-400" />
+            Estúdio & Landing Pages Dinâmicas 4V
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5 font-semibold">
-            Central estratégica integrada para acompanhar resultados, criar materiais visuais e gerenciar campanhas.
+          <p className="text-[11px] text-slate-500 font-semibold">
+            Páginas de alta conversão para seus anúncios no Facebook, Instagram e WhatsApp.
           </p>
         </div>
         
-        <div className="bg-slate-100 border border-slate-200 p-0.5 rounded-xl flex flex-wrap gap-1">
-          <button
-            onClick={() => setActiveTab("dashboard")}
-            className={cn(
-              "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
-              activeTab === "dashboard" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
-            )}
-          >
-            <TrendingUp className="h-3.5 w-3.5" /> Performance & Calendário
-          </button>
+        <div className="flex items-center gap-1 overflow-x-auto w-full md:w-auto py-0.5 no-scrollbar">
           <button
             onClick={() => setActiveTab("builder")}
             className={cn(
-              "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
-              activeTab === "builder" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              "text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "builder" 
+                ? "bg-amber-400 text-slate-950 font-black shadow-xs ring-1 ring-amber-500/20" 
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
             )}
           >
-            <Megaphone className="h-3.5 w-3.5" /> Criador de Campanhas
+            <Sparkles className="h-3.5 w-3.5 fill-slate-950" /> 🚀 Landing Pages 4V
+          </button>
+          <button
+            onClick={() => setActiveTab("dashboard")}
+            className={cn(
+              "text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "dashboard" ? "bg-slate-900 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+            )}
+          >
+            <TrendingUp className="h-3.5 w-3.5" /> Performance
           </button>
           <button
             onClick={() => setActiveTab("editor")}
             className={cn(
-              "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
-              activeTab === "editor" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              "text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "editor" ? "bg-slate-900 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
             )}
           >
-            <Settings className="h-3.5 w-3.5" /> Banner da Home
+            <Settings className="h-3.5 w-3.5" /> Banners Home
           </button>
           <button
             onClick={() => setActiveTab("copies")}
             className={cn(
-              "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
-              activeTab === "copies" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              "text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "copies" ? "bg-slate-900 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
             )}
           >
-            <FileText className="h-3.5 w-3.5" /> Biblioteca de Copies
+            <FileText className="h-3.5 w-3.5" /> Copies
           </button>
           <button
             onClick={() => setActiveTab("intelligence")}
             className={cn(
-              "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
-              activeTab === "intelligence" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              "text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "intelligence" ? "bg-slate-900 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
             )}
           >
-            <BarChart3 className="h-3.5 w-3.5" /> Inteligência & BI
+            <BarChart3 className="h-3.5 w-3.5" /> BI
           </button>
           <button
-            onClick={() => {
-              setActiveTab("assets")
-            }}
+            onClick={() => setActiveTab("assets")}
             className={cn(
-              "text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
-              activeTab === "assets" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              "text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "assets" ? "bg-slate-900 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
             )}
           >
-            <ImageIcon className="h-3.5 w-3.5" /> Biblioteca de Mídia
+            <ImageIcon className="h-3.5 w-3.5" /> Mídia
           </button>
         </div>
       </div>

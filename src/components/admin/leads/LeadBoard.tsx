@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createLead, updateLead } from "@/lib/db/leads"
+import { createLeadAsAdmin, updateLead } from "@/lib/db/leads"
 import { Lead } from "@/types/lead"
 import { LeadFilters } from "./LeadFilters"
 import { LeadPipeline } from "./LeadPipeline"
@@ -101,7 +101,7 @@ export function LeadBoard({ leads, onLeadsChange, loading, onLeadClick }: LeadBo
 
     try {
       setCreatingLead(true)
-      const newLead = await createLead({
+      const newLead = await createLeadAsAdmin({
         fullName: newLeadData.fullName,
         phone: newLeadData.phone,
         source: newLeadData.source,

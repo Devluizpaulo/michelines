@@ -4,6 +4,19 @@ import type { Campaign, CampaignStatus, CampaignTheme } from "@/types/campaign"
 import { slugifyCampaign } from "@/types/campaign"
 
 export function rowToCampaign(row: CampaignRow): Campaign {
+  let parsedSections = (row.sections as any) ?? undefined
+  if (!parsedSections && row.description) {
+    const trimmed = row.description.trim()
+    if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        parsedSections = Array.isArray(parsed) ? parsed : parsed.sections
+      } catch (e) {
+        // Not JSON
+      }
+    }
+  }
+
   return {
     id: row.id,
     slug: row.slug,
@@ -17,6 +30,8 @@ export function rowToCampaign(row: CampaignRow): Campaign {
     ctaText: row.cta_text ?? "Quero Alugar",
     vehicleInterest: row.vehicle_interest ?? undefined,
     theme: (row.theme as CampaignTheme) ?? "navy",
+    sections: parsedSections ?? undefined,
+    utmStats: (row.utm_stats as any) ?? undefined,
     startDate: row.start_date ?? undefined,
     endDate: row.end_date ?? undefined,
     views: row.views,
@@ -40,6 +55,8 @@ export function campaignToRow(c: Partial<Campaign>): Partial<CampaignRow> {
   if (c.ctaText !== undefined) row.cta_text = c.ctaText
   if (c.vehicleInterest !== undefined) row.vehicle_interest = c.vehicleInterest ?? null
   if (c.theme !== undefined) row.theme = c.theme
+  if (c.sections !== undefined) row.sections = c.sections as any
+  if (c.utmStats !== undefined) row.utm_stats = c.utmStats as any
   if (c.startDate !== undefined) row.start_date = c.startDate ?? null
   if (c.endDate !== undefined) row.end_date = c.endDate ?? null
   return row
@@ -108,7 +125,21 @@ export async function createCampaign(
     headline: input.headline,
   }
 
-  const { data, error } = await supabase.from("campaigns").insert(row as any).select().single()
+  let { data, error } = await supabase.from("campaigns").insert(row as any).select().single()
+  
+  // Fallback: If 'sections' column does not exist in Supabase yet, store inside description
+  if (error && (error.message?.includes("sections") || error.message?.includes("utm_stats"))) {
+    const fallbackRow = { ...row }
+    delete (fallbackRow as any).sections
+    delete (fallbackRow as any).utm_stats
+    if (input.sections) {
+      fallbackRow.description = JSON.stringify(input.sections)
+    }
+    const res = await supabase.from("campaigns").insert(fallbackRow as any).select().single()
+    data = res.data
+    error = res.error
+  }
+
   if (error) throw error
   return rowToCampaign(data as CampaignRow)
 }
@@ -119,7 +150,20 @@ export async function updateCampaign(id: string, input: Partial<CampaignInput>):
     patch.slug = await ensureUniqueSlug(input.slug, id)
   }
 
-  const { error } = await supabase.from("campaigns").update(patch).eq("id", id)
+  let { error } = await supabase.from("campaigns").update(patch).eq("id", id)
+
+  // Fallback: If 'sections' column does not exist in Supabase yet, store inside description
+  if (error && (error.message?.includes("sections") || error.message?.includes("utm_stats"))) {
+    const fallbackPatch = { ...patch }
+    delete (fallbackPatch as any).sections
+    delete (fallbackPatch as any).utm_stats
+    if (input.sections) {
+      fallbackPatch.description = JSON.stringify(input.sections)
+    }
+    const res = await supabase.from("campaigns").update(fallbackPatch).eq("id", id)
+    error = res.error
+  }
+
   if (error) throw error
 }
 

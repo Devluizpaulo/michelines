@@ -217,6 +217,30 @@ export async function fetchLead(id: string): Promise<Lead | null> {
  */
 export async function createLead(
   lead: Partial<Lead> & Pick<Lead, "fullName" | "phone">
+): Promise<void> {
+  const payload = {
+    ...leadToRow(lead),
+    full_name: lead.fullName,
+    phone: lead.phone,
+  }
+
+  // Sem `.select()` de propósito: ele adiciona RETURNING à query, e o Postgres
+  // avalia a policy de LEITURA na linha recém-criada. O visitante anônimo do
+  // formulário público pode inserir, mas não pode ler leads — e nem deve, senão
+  // a base inteira ficaria exposta. Com o retorno ligado, o cadastro falhava com
+  // "new row violates row-level security policy".
+  const { error } = await supabase.from("leads").insert(payload)
+  if (error) throw error
+}
+
+/**
+ * Criação a partir do painel, por usuário autenticado.
+ *
+ * Aqui o `.select()` é seguro — o admin tem policy de leitura em leads — e o
+ * retorno é necessário para inserir o card no funil sem recarregar a lista.
+ */
+export async function createLeadAsAdmin(
+  lead: Partial<Lead> & Pick<Lead, "fullName" | "phone">
 ): Promise<Lead> {
   const payload = {
     ...leadToRow(lead),
