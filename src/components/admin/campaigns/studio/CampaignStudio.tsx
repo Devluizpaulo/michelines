@@ -469,8 +469,11 @@ export function CampaignStudio({ campaign, onCampaignUpdated, onClose }: Campaig
 
               <div className="space-y-1">
                 {[
-                  { id: "editorial", label: "Editorial Dark (Ouro & Preto)", color: "bg-amber-500", border: "border-amber-500" },
+                  { id: "claro", label: "Claro Neutro (Branco & Cinza)", color: "bg-white", border: "border-slate-300" },
+                  { id: "verde_claro", label: "Verde Claro (Sálvia & Eco)", color: "bg-emerald-300", border: "border-emerald-400" },
+                  { id: "creme", label: "Creme Nobre (Institucional)", color: "bg-amber-100", border: "border-amber-300" },
                   { id: "navy", label: "Azul Michelines (Céu & Marinho)", color: "bg-blue-600", border: "border-blue-600" },
+                  { id: "editorial", label: "Editorial Dark (Ouro & Preto)", color: "bg-amber-500", border: "border-amber-500" },
                   { id: "emerald", label: "Tons de Verde (Economia & Frota)", color: "bg-emerald-500", border: "border-emerald-500" },
                   { id: "amber", label: "Ouro & Âmbar (Urgência Feirão)", color: "bg-orange-500", border: "border-orange-500" },
                   { id: "violet", label: "Violeta Tecnológico (Moderno)", color: "bg-purple-600", border: "border-purple-600" },
@@ -492,7 +495,7 @@ export function CampaignStudio({ campaign, onCampaignUpdated, onClose }: Campaig
                       )}
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <span className={cn("h-3 w-3 rounded-full shrink-0", t.color)} />
+                        <span className={cn("h-3 w-3 rounded-full shrink-0 border border-black/20", t.color)} />
                         <span className="truncate">{t.label}</span>
                       </div>
                       {isSelected && <Check className="h-3.5 w-3.5 text-amber-400 shrink-0" />}
@@ -937,77 +940,16 @@ function InteractiveCanvasRenderer({
   onDeleteSection: (id: string) => void
 }) {
   return (
-    <div className="relative">
-      {/* DynamicLandingRenderer com overlays interativos em volta de cada seção */}
-      <div className="space-y-4">
-        {sections.map((section, idx) => {
-          if (!section.enabled) return null
-          const isSelected = activeSectionId === section.id
-
-          return (
-            <div
-              key={section.id}
-              onClick={() => onSelectSection(section.id)}
-              className={cn(
-                "group relative rounded-3xl transition-all cursor-pointer",
-                isSelected
-                  ? "ring-4 ring-violet-500 shadow-2xl ring-offset-4 ring-offset-[#0b0c11]"
-                  : "hover:ring-2 hover:ring-amber-400/40"
-              )}
-            >
-              {/* Barra Flutuante de Ação no Topo do Bloco Selecionado (Estilo Builder Profissional) */}
-              {isSelected && (
-                <div
-                  className="absolute -top-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#181b26] border border-violet-500/80 px-3 py-1 text-[11px] font-black text-white shadow-2xl backdrop-blur-md"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span className="text-violet-300 uppercase tracking-wider text-[10px]">
-                    {getSectionLabel(section.type)} #{idx + 1}
-                  </span>
-
-                  <div className="h-3 w-[1px] bg-slate-700" />
-
-                  <button
-                    onClick={() => onMoveSection(idx, "up")}
-                    disabled={idx === 0}
-                    className="text-slate-400 hover:text-white disabled:opacity-30"
-                    title="Mover para cima"
-                  >
-                    <ArrowUp className="h-3 w-3" />
-                  </button>
-                  <button
-                    onClick={() => onMoveSection(idx, "down")}
-                    disabled={idx === sections.length - 1}
-                    className="text-slate-400 hover:text-white disabled:opacity-30"
-                    title="Mover para baixo"
-                  >
-                    <ArrowDown className="h-3 w-3" />
-                  </button>
-                  <button
-                    onClick={() => onDuplicateSection(section)}
-                    className="text-slate-400 hover:text-violet-400"
-                    title="Duplicar seção"
-                  >
-                    <Copy className="h-3 w-3" />
-                  </button>
-                  <button
-                    onClick={() => onDeleteSection(section.id)}
-                    className="text-slate-400 hover:text-rose-400"
-                    title="Excluir seção"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              )}
-
-              {/* Renderização Real da Seção */}
-              <div className="pointer-events-none">
-                <DynamicLandingRenderer campaign={{ ...campaign, sections: [section] }} />
-              </div>
-            </div>
-          )
-        })}
-      </div>
+    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80">
+      <DynamicLandingRenderer
+        campaign={{ ...campaign, sections }}
+        isEditor={true}
+        activeSectionId={activeSectionId}
+        onSelectSection={onSelectSection}
+        onMoveSection={onMoveSection}
+        onDuplicateSection={onDuplicateSection}
+        onDeleteSection={onDeleteSection}
+      />
     </div>
   )
 }

@@ -48,7 +48,16 @@ export interface Campaign {
 
 export type CampaignStatus = "draft" | "active" | "paused" | "ended"
 
-export type CampaignTheme = "navy" | "amber" | "emerald" | "violet" | "editorial" | "minimal" | "claro" | "creme"
+export type CampaignTheme =
+  | "claro"
+  | "verde_claro"
+  | "creme"
+  | "navy"
+  | "amber"
+  | "emerald"
+  | "violet"
+  | "editorial"
+  | "minimal"
 
 export const CAMPAIGN_STATUS_LABELS: Record<
   CampaignStatus,
@@ -72,6 +81,14 @@ export const CAMPAIGN_THEMES: Record<
     accent: "bg-slate-900",
     accentHover: "hover:bg-slate-800",
     swatch: "#ffffff",
+  },
+  verde_claro: {
+    label: "Verde Claro (Sálvia & Esmeralda)",
+    from: "from-[#f3faf6]",
+    to: "to-[#dcf0e4]",
+    accent: "bg-emerald-600",
+    accentHover: "hover:bg-emerald-500",
+    swatch: "#10b981",
   },
   creme: {
     label: "Institucional Nobre (Creme & Ouro)",

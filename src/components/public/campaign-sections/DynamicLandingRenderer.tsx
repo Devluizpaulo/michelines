@@ -5,9 +5,9 @@ import Link from "next/link"
 import {
   ArrowRight, CheckCircle2, Phone, ShieldCheck, Clock, Award, Car, Fuel,
   ChevronDown, MessageSquare, Send, Sparkles, AlertCircle, HelpCircle, User, Star,
-  TrendingUp, Check, Zap
+  TrendingUp, Check, Zap, Copy, Trash2, ArrowUp, ArrowDown
 } from "lucide-react"
-import { Campaign, CAMPAIGN_THEMES, campaignSignupUrl } from "@/types/campaign"
+import { Campaign, CAMPAIGN_THEMES } from "@/types/campaign"
 import {
   CampaignSection,
   HeroSectionConfig,
@@ -25,105 +25,382 @@ import { registerCampaignClick } from "@/lib/campaigns-crud"
 import { createLead } from "@/lib/db/leads"
 import { useToast } from "@/components/ui/toast-simple"
 import { LOGO_IMAGES } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
 
-interface DynamicLandingRendererProps {
-  campaign: Campaign
-  onCtaClick?: () => void
-}
-
-// ── DEFINIÇÃO DE TEMAS COM CORES GARANTIDAS E ALTO CONTRASTE ───────────────────
-interface ThemePalette {
+export interface ThemePalette {
+  isDark: boolean
+  name: string
   bgGradient: string
   bgColor: string
+  // Header
+  headerBg: string
+  headerBorder: string
+  headerText: string
+  headerBadgeBg: string
+  headerBadgeBorder: string
+  headerBadgeText: string
+  // Typography
+  textPrimary: string
+  textSecondary: string
+  textMuted: string
+  textHighlight: string
+  // Cards & surfaces
+  cardBg: string
+  cardBorder: string
+  cardShadow: string
+  cardInnerBg: string
+  // Badges & Accents
   accentGradient: string
   accentHover: string
   accentText: string
   badgeBg: string
   badgeBorder: string
   badgeText: string
+  // Inputs
+  inputBg: string
+  inputBorder: string
+  inputText: string
+  inputPlaceholder: string
+  // Vehicle Stage
+  vehicleStageBg: string
+  vehicleStageBorder: string
+  vehicleStageShadow: string
   glowRgba: string
-  cardBg: string
-  cardBorder: string
+  // Footer & Mobile
+  footerBg: string
+  footerBorder: string
+  footerText: string
+  mobileBarBg: string
+  mobileBarBorder: string
 }
 
-const THEME_PALETTES: Record<string, ThemePalette> = {
+export const THEME_PALETTES: Record<string, ThemePalette> = {
+  // ── 1. CLARO NEUTRO (BRANCO & CINZA) ───────────────────────────────────────
+  claro: {
+    isDark: false,
+    name: "Claro Neutro",
+    bgGradient: "linear-gradient(180deg, #ffffff 0%, #f8fafc 40%, #f1f5f9 100%)",
+    bgColor: "#f8fafc",
+    headerBg: "bg-white/90 border-b border-slate-200 shadow-xs",
+    headerBorder: "border-slate-200",
+    headerText: "text-slate-900",
+    headerBadgeBg: "bg-slate-100",
+    headerBadgeBorder: "border-slate-300",
+    headerBadgeText: "text-slate-800",
+    textPrimary: "text-slate-950",
+    textSecondary: "text-slate-600",
+    textMuted: "text-slate-500",
+    textHighlight: "text-amber-600",
+    cardBg: "bg-white",
+    cardBorder: "border-slate-200 hover:border-slate-300",
+    cardShadow: "shadow-md shadow-slate-200/60",
+    cardInnerBg: "bg-slate-50 border border-slate-200",
+    accentGradient: "bg-slate-950 hover:bg-slate-800 text-white shadow-md shadow-slate-900/15",
+    accentHover: "hover:bg-slate-800",
+    accentText: "text-white",
+    badgeBg: "bg-amber-100/80",
+    badgeBorder: "border-amber-300",
+    badgeText: "text-amber-900",
+    inputBg: "bg-slate-50 focus:bg-white",
+    inputBorder: "border-slate-300 focus:border-amber-500",
+    inputText: "text-slate-900",
+    inputPlaceholder: "placeholder:text-slate-400",
+    vehicleStageBg: "bg-white border border-slate-200",
+    vehicleStageBorder: "border-slate-200",
+    vehicleStageShadow: "shadow-xl shadow-slate-200/60",
+    glowRgba: "rgba(203, 213, 225, 0.4)",
+    footerBg: "bg-slate-100",
+    footerBorder: "border-slate-200",
+    footerText: "text-slate-600",
+    mobileBarBg: "bg-white/95 border-t border-slate-200 shadow-lg",
+    mobileBarBorder: "border-slate-200",
+  },
+
+  // ── 2. VERDE CLARO (SÁLVIA & ESMERALDA) ────────────────────────────────────
+  verde_claro: {
+    isDark: false,
+    name: "Verde Sustentável",
+    bgGradient: "linear-gradient(180deg, #f4fbf7 0%, #e9f5ee 40%, #daf0e3 100%)",
+    bgColor: "#e9f5ee",
+    headerBg: "bg-white/90 border-b border-emerald-100 shadow-xs",
+    headerBorder: "border-emerald-200",
+    headerText: "text-[#062c1e]",
+    headerBadgeBg: "bg-emerald-100/70",
+    headerBadgeBorder: "border-emerald-300",
+    headerBadgeText: "text-emerald-950",
+    textPrimary: "text-[#062c1e]",
+    textSecondary: "text-[#1a4a34]",
+    textMuted: "text-[#2e6d4e]",
+    textHighlight: "text-emerald-700",
+    cardBg: "bg-white",
+    cardBorder: "border-emerald-100 hover:border-emerald-300",
+    cardShadow: "shadow-md shadow-emerald-950/5",
+    cardInnerBg: "bg-emerald-50/50 border border-emerald-100",
+    accentGradient: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20",
+    accentHover: "hover:from-emerald-500 hover:to-teal-500",
+    accentText: "text-white",
+    badgeBg: "bg-emerald-100/80",
+    badgeBorder: "border-emerald-300",
+    badgeText: "text-emerald-950",
+    inputBg: "bg-white focus:bg-emerald-50/30",
+    inputBorder: "border-emerald-200 focus:border-emerald-600",
+    inputText: "text-[#062c1e]",
+    inputPlaceholder: "placeholder:text-emerald-800/40",
+    vehicleStageBg: "bg-white border border-emerald-200",
+    vehicleStageBorder: "border-emerald-200",
+    vehicleStageShadow: "shadow-xl shadow-emerald-950/8",
+    glowRgba: "rgba(16, 185, 129, 0.2)",
+    footerBg: "bg-[#daf0e3]",
+    footerBorder: "border-emerald-200",
+    footerText: "text-[#1a4a34]",
+    mobileBarBg: "bg-white/95 border-t border-emerald-200 shadow-lg",
+    mobileBarBorder: "border-emerald-200",
+  },
+
+  // ── 3. INSTITUCIONAL NOBRE (CREME & OURO) ──────────────────────────────────
+  creme: {
+    isDark: false,
+    name: "Institucional Nobre",
+    bgGradient: "linear-gradient(180deg, #fdfbf7 0%, #f7f3ea 40%, #ede5d4 100%)",
+    bgColor: "#f7f3ea",
+    headerBg: "bg-[#fdfbf7]/90 border-b border-[#e2d8c7] shadow-xs",
+    headerBorder: "border-[#e2d8c7]",
+    headerText: "text-[#1c1813]",
+    headerBadgeBg: "bg-amber-100/70",
+    headerBadgeBorder: "border-amber-300/80",
+    headerBadgeText: "text-amber-950",
+    textPrimary: "text-[#1c1813]",
+    textSecondary: "text-[#544837]",
+    textMuted: "text-[#7f6f59]",
+    textHighlight: "text-amber-700",
+    cardBg: "bg-white/95",
+    cardBorder: "border-[#e5dcce] hover:border-amber-400/60",
+    cardShadow: "shadow-md shadow-amber-950/5",
+    cardInnerBg: "bg-[#faf7f0] border border-[#eee4d4]",
+    accentGradient: "bg-gradient-to-r from-amber-500 via-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/20",
+    accentHover: "hover:from-amber-400 hover:to-amber-500",
+    accentText: "text-slate-950",
+    badgeBg: "bg-amber-100/80",
+    badgeBorder: "border-amber-300",
+    badgeText: "text-amber-950",
+    inputBg: "bg-[#faf7f0] focus:bg-white",
+    inputBorder: "border-[#d8ccba] focus:border-amber-600",
+    inputText: "text-[#1c1813]",
+    inputPlaceholder: "placeholder:text-[#9e8f7a]",
+    vehicleStageBg: "bg-white border border-[#e5dcce]",
+    vehicleStageBorder: "border-[#e5dcce]",
+    vehicleStageShadow: "shadow-xl shadow-amber-950/8",
+    glowRgba: "rgba(245, 230, 205, 0.7)",
+    footerBg: "bg-[#ede5d4]",
+    footerBorder: "border-[#e2d8c7]",
+    footerText: "text-[#544837]",
+    mobileBarBg: "bg-[#fdfbf7]/95 border-t border-[#e2d8c7] shadow-lg",
+    mobileBarBorder: "border-[#e2d8c7]",
+  },
+
+  // ── 4. AZUL MICHELINES (CÉU & MARINHO) ─────────────────────────────────────
   navy: {
+    isDark: true,
+    name: "Azul Michelines",
     bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #0f1d38 0%, #060b14 55%, #020408 100%)",
     bgColor: "#020408",
+    headerBg: "bg-slate-950/85 border-b border-white/10 shadow-md",
+    headerBorder: "border-white/10",
+    headerText: "text-white",
+    headerBadgeBg: "bg-amber-400/10",
+    headerBadgeBorder: "border-amber-400/30",
+    headerBadgeText: "text-amber-300",
+    textPrimary: "text-white",
+    textSecondary: "text-slate-300",
+    textMuted: "text-slate-400",
+    textHighlight: "text-amber-400",
+    cardBg: "bg-slate-900/80 backdrop-blur-xl",
+    cardBorder: "border-slate-800 hover:border-slate-700",
+    cardShadow: "shadow-2xl shadow-black/40",
+    cardInnerBg: "bg-slate-950/70 border border-slate-800",
     accentGradient: "bg-gradient-to-r from-amber-400 via-amber-400 to-amber-500 text-slate-950 shadow-amber-500/25",
     accentHover: "hover:from-amber-300 hover:to-amber-400",
     accentText: "text-slate-950",
     badgeBg: "bg-amber-400/10",
     badgeBorder: "border-amber-400/40",
     badgeText: "text-amber-300",
+    inputBg: "bg-slate-950/80 focus:bg-slate-900",
+    inputBorder: "border-slate-700 focus:border-amber-400",
+    inputText: "text-white",
+    inputPlaceholder: "placeholder:text-slate-500",
+    vehicleStageBg: "bg-gradient-to-b from-slate-900/90 to-slate-950/90 border border-slate-800",
+    vehicleStageBorder: "border-slate-800",
+    vehicleStageShadow: "shadow-2xl shadow-black/60",
     glowRgba: "rgba(37, 99, 235, 0.25)",
-    cardBg: "bg-slate-900/80 backdrop-blur-xl",
-    cardBorder: "border-slate-800 hover:border-slate-700",
+    footerBg: "bg-black/40",
+    footerBorder: "border-white/10",
+    footerText: "text-slate-400",
+    mobileBarBg: "bg-slate-950/95 border-t border-slate-800",
+    mobileBarBorder: "border-slate-800",
   },
-  amber: {
-    bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #2f1304 0%, #120601 55%, #050201 100%)",
-    bgColor: "#050201",
-    accentGradient: "bg-gradient-to-r from-amber-400 via-amber-400 to-orange-500 text-slate-950 shadow-amber-500/25",
-    accentHover: "hover:from-amber-300 hover:to-amber-400",
-    accentText: "text-slate-950",
-    badgeBg: "bg-amber-400/10",
-    badgeBorder: "border-amber-400/40",
-    badgeText: "text-amber-300",
-    glowRgba: "rgba(245, 158, 11, 0.25)",
-    cardBg: "bg-stone-900/80 backdrop-blur-xl",
-    cardBorder: "border-stone-800 hover:border-stone-700",
-  },
-  emerald: {
-    bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #062f22 0%, #03140e 55%, #010805 100%)",
-    bgColor: "#010805",
-    accentGradient: "bg-gradient-to-r from-emerald-400 via-emerald-400 to-teal-500 text-slate-950 shadow-emerald-500/25",
-    accentHover: "hover:from-emerald-300 hover:to-emerald-400",
-    accentText: "text-slate-950",
-    badgeBg: "bg-emerald-400/10",
-    badgeBorder: "border-emerald-400/40",
-    badgeText: "text-emerald-300",
-    glowRgba: "rgba(16, 185, 129, 0.25)",
-    cardBg: "bg-slate-900/80 backdrop-blur-xl",
-    cardBorder: "border-slate-800 hover:border-emerald-900/60",
-  },
-  violet: {
-    bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #290d4a 0%, #0e041c 55%, #04010a 100%)",
-    bgColor: "#04010a",
-    accentGradient: "bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-500 text-slate-950 shadow-violet-500/25",
-    accentHover: "hover:from-violet-300 hover:to-violet-400",
-    accentText: "text-slate-950",
-    badgeBg: "bg-violet-400/10",
-    badgeBorder: "border-violet-400/40",
-    badgeText: "text-violet-300",
-    glowRgba: "rgba(139, 92, 246, 0.25)",
-    cardBg: "bg-slate-900/80 backdrop-blur-xl",
-    cardBorder: "border-slate-800 hover:border-violet-900/60",
-  },
+
+  // ── 5. EDITORIAL DARK (OURO & PRETO NOBRE) ─────────────────────────────────
   editorial: {
+    isDark: true,
+    name: "Editorial Dark",
     bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #241403 0%, #0c0701 55%, #030200 100%)",
     bgColor: "#030200",
+    headerBg: "bg-[#0c0701]/90 border-b border-amber-900/30 shadow-md",
+    headerBorder: "border-amber-900/30",
+    headerText: "text-amber-100",
+    headerBadgeBg: "bg-amber-400/15",
+    headerBadgeBorder: "border-amber-400/40",
+    headerBadgeText: "text-amber-300",
+    textPrimary: "text-amber-50",
+    textSecondary: "text-amber-200/80",
+    textMuted: "text-amber-300/60",
+    textHighlight: "text-amber-400",
+    cardBg: "bg-[#110c06]/90 backdrop-blur-xl",
+    cardBorder: "border-amber-900/40 hover:border-amber-600/50",
+    cardShadow: "shadow-2xl shadow-black/60",
+    cardInnerBg: "bg-[#080502] border border-amber-950",
     accentGradient: "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-slate-950 shadow-amber-500/30",
     accentHover: "hover:from-amber-300 hover:to-amber-200",
     accentText: "text-slate-950",
     badgeBg: "bg-amber-400/15",
     badgeBorder: "border-amber-400/40",
     badgeText: "text-amber-300",
+    inputBg: "bg-[#080502] focus:bg-[#150e04]",
+    inputBorder: "border-amber-900/60 focus:border-amber-400",
+    inputText: "text-amber-50",
+    inputPlaceholder: "placeholder:text-amber-300/40",
+    vehicleStageBg: "bg-gradient-to-b from-[#150e04] to-[#080502] border border-amber-900/40",
+    vehicleStageBorder: "border-amber-900/40",
+    vehicleStageShadow: "shadow-2xl shadow-amber-950/20",
     glowRgba: "rgba(217, 119, 6, 0.35)",
-    cardBg: "bg-[#110c06]/90 backdrop-blur-xl",
-    cardBorder: "border-amber-900/40 hover:border-amber-600/50",
+    footerBg: "bg-[#080502]",
+    footerBorder: "border-amber-900/30",
+    footerText: "text-amber-200/60",
+    mobileBarBg: "bg-[#080502]/95 border-t border-amber-900/40",
+    mobileBarBorder: "border-amber-900/40",
   },
+
+  // ── 6. MINIMAL SOFISTICADO (CARVÃO PROFUNDO) ──────────────────────────────
   minimal: {
+    isDark: true,
+    name: "Minimal Sofisticado",
     bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #1a1e26 0%, #0b0d12 55%, #020304 100%)",
     bgColor: "#020304",
+    headerBg: "bg-slate-950/85 border-b border-slate-800 shadow-md",
+    headerBorder: "border-slate-800",
+    headerText: "text-white",
+    headerBadgeBg: "bg-white/10",
+    headerBadgeBorder: "border-white/20",
+    headerBadgeText: "text-slate-200",
+    textPrimary: "text-white",
+    textSecondary: "text-slate-300",
+    textMuted: "text-slate-400",
+    textHighlight: "text-slate-200",
+    cardBg: "bg-slate-900/80 backdrop-blur-xl",
+    cardBorder: "border-slate-800 hover:border-slate-700",
+    cardShadow: "shadow-2xl shadow-black/50",
+    cardInnerBg: "bg-slate-950/80 border border-slate-800",
     accentGradient: "bg-gradient-to-r from-slate-100 to-slate-300 text-slate-950 shadow-white/10",
     accentHover: "hover:from-white hover:to-slate-200",
     accentText: "text-slate-950",
     badgeBg: "bg-white/10",
     badgeBorder: "border-white/20",
     badgeText: "text-slate-200",
+    inputBg: "bg-slate-950 border-slate-700",
+    inputBorder: "border-slate-700 focus:border-white",
+    inputText: "text-white",
+    inputPlaceholder: "placeholder:text-slate-500",
+    vehicleStageBg: "bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800",
+    vehicleStageBorder: "border-slate-800",
+    vehicleStageShadow: "shadow-2xl",
     glowRgba: "rgba(148, 163, 184, 0.2)",
+    footerBg: "bg-[#020304]",
+    footerBorder: "border-slate-800",
+    footerText: "text-slate-400",
+    mobileBarBg: "bg-slate-950/95 border-t border-slate-800",
+    mobileBarBorder: "border-slate-800",
+  },
+
+  // ── 7. OURO & ÂMBAR (URGÊNCIA FEIRÃO) ─────────────────────────────────────
+  amber: {
+    isDark: true,
+    name: "Ouro & Âmbar",
+    bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #2f1304 0%, #120601 55%, #050201 100%)",
+    bgColor: "#050201",
+    headerBg: "bg-stone-950/85 border-b border-amber-900/30 shadow-md",
+    headerBorder: "border-amber-900/30",
+    headerText: "text-white",
+    headerBadgeBg: "bg-amber-400/10",
+    headerBadgeBorder: "border-amber-400/40",
+    headerBadgeText: "text-amber-300",
+    textPrimary: "text-white",
+    textSecondary: "text-stone-300",
+    textMuted: "text-stone-400",
+    textHighlight: "text-amber-400",
+    cardBg: "bg-stone-900/80 backdrop-blur-xl",
+    cardBorder: "border-stone-800 hover:border-stone-700",
+    cardShadow: "shadow-2xl shadow-black/50",
+    cardInnerBg: "bg-stone-950/80 border border-stone-800",
+    accentGradient: "bg-gradient-to-r from-amber-400 via-amber-400 to-orange-500 text-slate-950 shadow-amber-500/25",
+    accentHover: "hover:from-amber-300 hover:to-amber-400",
+    accentText: "text-slate-950",
+    badgeBg: "bg-amber-400/10",
+    badgeBorder: "border-amber-400/40",
+    badgeText: "text-amber-300",
+    inputBg: "bg-stone-950 border-stone-700",
+    inputBorder: "border-stone-700 focus:border-amber-400",
+    inputText: "text-white",
+    inputPlaceholder: "placeholder:text-stone-500",
+    vehicleStageBg: "bg-gradient-to-b from-stone-900 to-stone-950 border border-stone-800",
+    vehicleStageBorder: "border-stone-800",
+    vehicleStageShadow: "shadow-2xl",
+    glowRgba: "rgba(245, 158, 11, 0.25)",
+    footerBg: "bg-black/50",
+    footerBorder: "border-stone-800",
+    footerText: "text-stone-400",
+    mobileBarBg: "bg-stone-950/95 border-t border-stone-800",
+    mobileBarBorder: "border-stone-800",
+  },
+
+  // ── 8. VIOLETA TECNOLÓGICO (MODERNO) ───────────────────────────────────────
+  violet: {
+    isDark: true,
+    name: "Violeta Tecnológico",
+    bgGradient: "radial-gradient(ellipse 100% 70% at 50% -10%, #290d4a 0%, #0e041c 55%, #04010a 100%)",
+    bgColor: "#04010a",
+    headerBg: "bg-slate-950/85 border-b border-violet-900/30 shadow-md",
+    headerBorder: "border-violet-900/30",
+    headerText: "text-white",
+    headerBadgeBg: "bg-violet-400/10",
+    headerBadgeBorder: "border-violet-400/40",
+    headerBadgeText: "text-violet-300",
+    textPrimary: "text-white",
+    textSecondary: "text-slate-300",
+    textMuted: "text-slate-400",
+    textHighlight: "text-violet-400",
     cardBg: "bg-slate-900/80 backdrop-blur-xl",
-    cardBorder: "border-slate-800 hover:border-slate-700",
+    cardBorder: "border-slate-800 hover:border-violet-900/60",
+    cardShadow: "shadow-2xl shadow-black/50",
+    cardInnerBg: "bg-slate-950/80 border border-slate-800",
+    accentGradient: "bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-500 text-slate-950 shadow-violet-500/25",
+    accentHover: "hover:from-violet-300 hover:to-violet-400",
+    accentText: "text-slate-950",
+    badgeBg: "bg-violet-400/10",
+    badgeBorder: "border-violet-400/40",
+    badgeText: "text-violet-300",
+    inputBg: "bg-slate-950 border-slate-700",
+    inputBorder: "border-slate-700 focus:border-violet-400",
+    inputText: "text-white",
+    inputPlaceholder: "placeholder:text-slate-500",
+    vehicleStageBg: "bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800",
+    vehicleStageBorder: "border-slate-800",
+    vehicleStageShadow: "shadow-2xl",
+    glowRgba: "rgba(139, 92, 246, 0.25)",
+    footerBg: "bg-black/50",
+    footerBorder: "border-violet-950",
+    footerText: "text-slate-400",
+    mobileBarBg: "bg-slate-950/95 border-t border-slate-800",
+    mobileBarBorder: "border-slate-800",
   },
 }
 
@@ -145,8 +422,28 @@ function resolveVehicleImage(campaign: Campaign, customUrl?: string): string {
   return "/images/cars/cross.png"
 }
 
-export function DynamicLandingRenderer({ campaign, onCtaClick }: DynamicLandingRendererProps) {
-  const palette = THEME_PALETTES[campaign.theme] || THEME_PALETTES.navy
+interface DynamicLandingRendererProps {
+  campaign: Campaign
+  onCtaClick?: () => void
+  isEditor?: boolean
+  activeSectionId?: string | null
+  onSelectSection?: (id: string) => void
+  onMoveSection?: (index: number, direction: "up" | "down") => void
+  onDuplicateSection?: (sec: CampaignSection) => void
+  onDeleteSection?: (id: string) => void
+}
+
+export function DynamicLandingRenderer({
+  campaign,
+  onCtaClick,
+  isEditor = false,
+  activeSectionId = null,
+  onSelectSection,
+  onMoveSection,
+  onDuplicateSection,
+  onDeleteSection,
+}: DynamicLandingRendererProps) {
+  const palette = THEME_PALETTES[campaign.theme] || THEME_PALETTES.claro
   const sections = campaign.sections || []
 
   const handleCta = () => {
@@ -166,10 +463,13 @@ export function DynamicLandingRenderer({ campaign, onCtaClick }: DynamicLandingR
         backgroundColor: palette.bgColor,
         minHeight: "100vh",
       }}
-      className="min-h-screen text-slate-100 antialiased selection:bg-amber-400 selection:text-slate-950 font-sans"
+      className={cn(
+        "min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 font-sans transition-colors duration-300",
+        palette.textPrimary
+      )}
     >
-      {/* Header Fixo Transparente com Glassmorphism */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-md">
+      {/* ── HEADER SUPERIOR (FIXO & RESPONSIVO) ────────────────────────────────── */}
+      <header className={cn("sticky top-0 z-40 backdrop-blur-md transition-colors duration-300", palette.headerBg)}>
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 py-3.5">
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -180,8 +480,15 @@ export function DynamicLandingRenderer({ campaign, onCtaClick }: DynamicLandingR
             />
           </Link>
           <div className="flex items-center gap-3">
-            <span className="hidden items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[11px] font-bold text-amber-300 sm:inline-flex">
-              <Sparkles className="h-3 w-3 text-amber-400" />
+            <span
+              className={cn(
+                "hidden items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold border transition-colors sm:inline-flex",
+                palette.headerBadgeBg,
+                palette.headerBadgeBorder,
+                palette.headerBadgeText
+              )}
+            >
+              <Sparkles className="h-3 w-3 text-amber-500" />
               45 anos de tradição em SP
             </span>
             <a
@@ -198,21 +505,93 @@ export function DynamicLandingRenderer({ campaign, onCtaClick }: DynamicLandingR
         </div>
       </header>
 
-      {/* Conteúdo Dinâmico das Seções */}
+      {/* ── CONTEÚDO DAS SEÇÕES (COM WRAPPERS INTERATIVOS SE EM MODO EDITOR) ─── */}
       <main className="mx-auto max-w-5xl space-y-16 px-4 sm:px-6 py-8 sm:py-12">
-        {activeSections.map((section) => (
-          <SectionComponent
-            key={section.id}
-            section={section}
-            campaign={campaign}
-            palette={palette}
-            onCta={handleCta}
-          />
-        ))}
+        {activeSections.map((section, idx) => {
+          const isSelected = isEditor && activeSectionId === section.id
+
+          return (
+            <div
+              key={section.id}
+              onClick={() => {
+                if (isEditor && onSelectSection) {
+                  onSelectSection(section.id)
+                }
+              }}
+              className={cn(
+                "relative transition-all duration-200",
+                isEditor && "cursor-pointer rounded-3xl",
+                isSelected && "ring-4 ring-violet-500 ring-offset-4 shadow-2xl",
+                isEditor && !isSelected && "hover:ring-2 hover:ring-amber-400/40"
+              )}
+            >
+              {/* Barra Flutuante de Ação no Topo do Bloco Ativo (Apenas no Modo Estúdio) */}
+              {isSelected && (
+                <div
+                  className="absolute -top-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#181b26] border border-violet-500/80 px-3 py-1 text-[11px] font-black text-white shadow-2xl backdrop-blur-md"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="text-violet-300 uppercase tracking-wider text-[10px]">
+                    Bloco #{idx + 1}
+                  </span>
+
+                  <div className="h-3 w-[1px] bg-slate-700" />
+
+                  {onMoveSection && (
+                    <>
+                      <button
+                        onClick={() => onMoveSection(idx, "up")}
+                        disabled={idx === 0}
+                        className="text-slate-400 hover:text-white disabled:opacity-30"
+                        title="Subir seção"
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => onMoveSection(idx, "down")}
+                        disabled={idx === activeSections.length - 1}
+                        className="text-slate-400 hover:text-white disabled:opacity-30"
+                        title="Descer seção"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </button>
+                    </>
+                  )}
+                  {onDuplicateSection && (
+                    <button
+                      onClick={() => onDuplicateSection(section)}
+                      className="text-slate-400 hover:text-violet-400"
+                      title="Duplicar seção"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  )}
+                  {onDeleteSection && (
+                    <button
+                      onClick={() => onDeleteSection(section.id)}
+                      className="text-slate-400 hover:text-rose-400"
+                      title="Excluir seção"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Componente da Seção Real */}
+              <SectionComponent
+                section={section}
+                campaign={campaign}
+                palette={palette}
+                onCta={handleCta}
+              />
+            </div>
+          )
+        })}
       </main>
 
-      {/* CTA Fixo Mobile Inferior */}
-      <div className="sticky bottom-0 z-40 border-t border-slate-800 bg-slate-950/95 p-3 backdrop-blur-xl sm:hidden">
+      {/* ── BARRA FIXA INFERIOR MOBILE ────────────────────────────────────────── */}
+      <div className={cn("sticky bottom-0 z-40 p-3 backdrop-blur-xl sm:hidden", palette.mobileBarBg)}>
         <div className="flex gap-2">
           <a
             href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20quero%20alugar%20um%20ve%C3%ADculo"
@@ -227,7 +606,10 @@ export function DynamicLandingRenderer({ campaign, onCtaClick }: DynamicLandingR
           <a
             href="#cadastro"
             onClick={handleCta}
-            className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-xl ${palette.accentGradient} text-sm font-black active:scale-95 transition-transform`}
+            className={cn(
+              "flex h-12 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black active:scale-95 transition-transform",
+              palette.accentGradient
+            )}
           >
             Alugar Agora
             <ArrowRight className="h-4 w-4" />
@@ -235,13 +617,13 @@ export function DynamicLandingRenderer({ campaign, onCtaClick }: DynamicLandingR
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 bg-black/40 px-5 py-10 text-center text-xs font-medium text-slate-400">
+      {/* ── FOOTER DA PÁGINA ──────────────────────────────────────────────────── */}
+      <footer className={cn("border-t px-5 py-10 text-center text-xs font-medium transition-colors", palette.footerBg, palette.footerBorder)}>
         <div className="mx-auto max-w-md space-y-2">
-          <p className="font-bold text-slate-300">
+          <p className={cn("font-bold text-sm", palette.textPrimary)}>
             © {new Date().getFullYear()} Grupo Michelines — Locação de Veículos para Aplicativos e Táxi em SP.
           </p>
-          <p className="text-[11px] text-slate-500">
+          <p className={cn("text-[11px] leading-relaxed", palette.footerText)}>
             45 anos de tradição · Frota própria, manutenção 100% inclusa e atendimento humanizado.
           </p>
         </div>
@@ -288,7 +670,7 @@ function SectionComponent({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. HERO COM LAYOUT 2 COLUNAS & FOTO DO CARRO COM ALTO CONTRASTE
+// 1. HERO COM DESIGN ELEGANTE & TIPOGRAFIA REFINADA
 // ─────────────────────────────────────────────────────────────────────────────
 function HeroRenderer({
   config,
@@ -310,18 +692,30 @@ function HeroRenderer({
         {/* Coluna da Esquerda: Textos, Selos e CTAs */}
         <div className="space-y-6 lg:col-span-7">
           {config.badgeText && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-amber-300 backdrop-blur-sm shadow-sm">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <div
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-black uppercase tracking-wider border shadow-xs transition-colors",
+                palette.badgeBg,
+                palette.badgeBorder,
+                palette.badgeText
+              )}
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
               <span>{config.badgeText}</span>
             </div>
           )}
 
-          <h1 className="text-3xl sm:text-5xl lg:text-5xl font-black leading-[1.12] tracking-tight text-white">
+          <h1
+            className={cn(
+              "font-display text-3xl sm:text-5xl lg:text-[3.25rem] font-black leading-[1.12] tracking-tight transition-colors",
+              palette.textPrimary
+            )}
+          >
             {config.title || campaign.headline}
           </h1>
 
           {(config.subtitle || campaign.subheadline) && (
-            <p className="max-w-xl text-base sm:text-lg font-medium leading-relaxed text-slate-300">
+            <p className={cn("max-w-xl text-base sm:text-lg font-medium leading-relaxed transition-colors", palette.textSecondary)}>
               {config.subtitle || campaign.subheadline}
             </p>
           )}
@@ -331,7 +725,11 @@ function HeroRenderer({
             <Link
               href={signupHref}
               onClick={onCta}
-              className={`inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl px-8 text-base font-black shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] ${palette.accentGradient} ${palette.accentHover}`}
+              className={cn(
+                "inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl px-8 text-base font-black shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]",
+                palette.accentGradient,
+                palette.accentHover
+              )}
             >
               <span>{config.primaryCtaText || "Quero me cadastrar"}</span>
               <ArrowRight className="h-5 w-5 shrink-0" />
@@ -343,26 +741,31 @@ function HeroRenderer({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={onCta}
-                className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-6 text-sm font-bold text-emerald-300 transition-all hover:bg-emerald-500/20 backdrop-blur-sm active:scale-[0.98]"
+                className={cn(
+                  "inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl border px-6 text-sm font-bold transition-all backdrop-blur-sm active:scale-[0.98]",
+                  palette.isDark
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                    : "border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+                )}
               >
-                <Phone className="h-4 w-4 shrink-0 text-emerald-400" />
+                <Phone className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span>WhatsApp Plantão</span>
               </a>
             )}
           </div>
 
           {/* 3 Pilares de Confiança */}
-          <div className="grid gap-2.5 border-t border-slate-800/80 pt-6 text-xs sm:grid-cols-3">
-            <div className="flex items-center gap-2 rounded-xl bg-slate-900/50 p-2.5 border border-slate-800 font-bold text-slate-200">
-              <ShieldCheck className="h-4 w-4 text-amber-400 shrink-0" />
+          <div className={cn("grid gap-2.5 border-t pt-6 text-xs sm:grid-cols-3", palette.isDark ? "border-slate-800" : "border-slate-200")}>
+            <div className={cn("flex items-center gap-2 rounded-xl p-2.5 border font-bold shadow-xs", palette.cardBg, palette.cardBorder, palette.textPrimary)}>
+              <ShieldCheck className="h-4 w-4 text-amber-500 shrink-0" />
               <span>Sem score impeditivo</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-slate-900/50 p-2.5 border border-slate-800 font-bold text-slate-200">
-              <Clock className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className={cn("flex items-center gap-2 rounded-xl p-2.5 border font-bold shadow-xs", palette.cardBg, palette.cardBorder, palette.textPrimary)}>
+              <Clock className="h-4 w-4 text-amber-500 shrink-0" />
               <span>Retirada em até 24h</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-slate-900/50 p-2.5 border border-slate-800 font-bold text-slate-200">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            <div className={cn("flex items-center gap-2 rounded-xl p-2.5 border font-bold shadow-xs", palette.cardBg, palette.cardBorder, palette.textPrimary)}>
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
               <span>Manutenção e seguro 100%</span>
             </div>
           </div>
@@ -376,14 +779,14 @@ function HeroRenderer({
             style={{ background: palette.glowRgba }}
           />
 
-          <div className="relative w-full overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-4 sm:p-6 shadow-2xl backdrop-blur-xl">
+          <div className={cn("relative w-full overflow-hidden rounded-3xl p-5 sm:p-6 transition-all", palette.vehicleStageBg, palette.vehicleStageBorder, palette.vehicleStageShadow)}>
             {/* Badge Flutuante Superior */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30 px-2.5 py-1 text-[11px] font-black uppercase text-emerald-300">
-                <Fuel className="h-3.5 w-3.5 text-emerald-400" />
+            <div className={cn("flex items-center justify-between pb-3 border-b", palette.isDark ? "border-slate-800" : "border-slate-100")}>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-300">
+                <Fuel className="h-3.5 w-3.5 text-emerald-500" />
                 Até 22 km/l em SP
               </span>
-              <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
+              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
                 Pronta Entrega
               </span>
             </div>
@@ -394,21 +797,26 @@ function HeroRenderer({
               <img
                 src={carImage}
                 alt={campaign.name}
-                className="h-auto w-full max-h-[300px] object-contain drop-shadow-[0_20px_25px_rgba(0,0,0,0.8)] transition-transform duration-500 hover:scale-105"
+                className="h-auto w-full max-h-[290px] object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_20px_25px_rgba(0,0,0,0.8)] transition-transform duration-500 hover:scale-105"
               />
             </div>
 
             {/* Informações Resumidas do Veículo */}
-            <div className="mt-2 rounded-2xl border border-slate-800 bg-black/40 p-3 flex items-center justify-between">
+            <div className={cn("mt-2 rounded-2xl p-3 flex items-center justify-between", palette.cardInnerBg)}>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Modelo Oficial</p>
-                <p className="text-sm font-black text-white">
+                <p className={cn("text-[10px] font-bold uppercase tracking-wider", palette.textMuted)}>Modelo Oficial</p>
+                <p className={cn("text-sm font-black", palette.textPrimary)}>
                   {campaign.vehicleInterest || "Corolla Cross Híbrido"}
                 </p>
               </div>
               <Link
                 href="#cadastro"
-                className="rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 text-xs font-bold text-white transition-colors"
+                className={cn(
+                  "rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors",
+                  palette.isDark
+                    ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                    : "bg-white hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs"
+                )}
               >
                 Ver Valores
               </Link>
@@ -433,14 +841,16 @@ function ContextEmpathyRenderer({
   const cards = config.cards || []
 
   return (
-    <section className="space-y-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 backdrop-blur-md">
+    <section className={cn("space-y-6 rounded-3xl p-6 sm:p-8 transition-colors", palette.cardBg, palette.cardBorder, palette.cardShadow)}>
       <div className="max-w-2xl">
-        <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+        <span className={cn("text-[10px] font-black uppercase tracking-widest block", palette.textHighlight)}>
           Vínculo & Empatia · V2
         </span>
-        <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl">{config.title}</h2>
+        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-3xl", palette.textPrimary)}>
+          {config.title}
+        </h2>
         {config.subtitle && (
-          <p className="mt-2 text-sm font-medium leading-relaxed text-slate-300">
+          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
@@ -450,13 +860,13 @@ function ContextEmpathyRenderer({
         {cards.map((card, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5 space-y-2 transition-all hover:border-slate-700 hover:shadow-lg"
+            className={cn("rounded-2xl p-5 space-y-2 transition-all hover:shadow-md", palette.cardInnerBg)}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400 font-black text-xs">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400/15 text-amber-600 dark:text-amber-400 font-black text-xs">
               0{i + 1}
             </div>
-            <h3 className="text-base font-black text-white">{card.title}</h3>
-            <p className="text-xs font-medium leading-relaxed text-slate-300">{card.description}</p>
+            <h3 className={cn("text-base font-black", palette.textPrimary)}>{card.title}</h3>
+            <p className={cn("text-xs font-medium leading-relaxed", palette.textSecondary)}>{card.description}</p>
           </div>
         ))}
       </div>
@@ -479,12 +889,14 @@ function Diferenciais4VRenderer({
   return (
     <section className="space-y-6">
       <div className="text-center max-w-2xl mx-auto">
-        <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+        <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Pilares da Parceria Michelines
         </span>
-        <h2 className="mt-1 text-2xl font-black text-white sm:text-4xl">{config.title}</h2>
+        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+          {config.title}
+        </h2>
         {config.subtitle && (
-          <p className="mt-2 text-sm font-medium text-slate-300 leading-relaxed">
+          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
@@ -494,15 +906,20 @@ function Diferenciais4VRenderer({
         {items.map((item, i) => (
           <div
             key={i}
-            className="group rounded-3xl border border-slate-800 bg-slate-900/70 p-6 space-y-3 backdrop-blur-sm transition-all hover:border-amber-400/40 hover:shadow-xl hover:shadow-amber-500/5"
+            className={cn(
+              "group rounded-3xl p-6 space-y-3 transition-all hover:scale-[1.01]",
+              palette.cardBg,
+              palette.cardBorder,
+              palette.cardShadow
+            )}
           >
-            <span className="inline-block rounded-full bg-amber-400/15 border border-amber-400/30 px-3 py-1 text-[11px] font-black text-amber-300">
+            <span className={cn("inline-block rounded-full px-3 py-1 text-[11px] font-black border", palette.badgeBg, palette.badgeBorder, palette.badgeText)}>
               {item.highlight}
             </span>
-            <h3 className="text-lg font-black text-white group-hover:text-amber-200 transition-colors">
+            <h3 className={cn("text-lg font-black transition-colors", palette.textPrimary)}>
               {item.title}
             </h3>
-            <p className="text-xs font-medium leading-relaxed text-slate-300">{item.description}</p>
+            <p className={cn("text-xs font-medium leading-relaxed", palette.textSecondary)}>{item.description}</p>
           </div>
         ))}
       </div>
@@ -527,16 +944,16 @@ function VehicleSpotlightRenderer({
   const carImage = resolveVehicleImage(campaign, config.imageUrl)
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 sm:p-10 shadow-2xl">
+    <section className={cn("overflow-hidden rounded-3xl p-6 sm:p-10 transition-all", palette.vehicleStageBg, palette.vehicleStageBorder, palette.vehicleStageShadow)}>
       <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
         {/* Informações da Oferta */}
         <div className="space-y-5 lg:col-span-7">
-          <span className="rounded-full bg-amber-400/20 border border-amber-400/40 px-3.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-300">
+          <span className={cn("rounded-full px-3.5 py-1 text-[10px] font-black uppercase tracking-widest border", palette.badgeBg, palette.badgeBorder, palette.badgeText)}>
             {config.vehicleCategory || "Oferta Exclusiva da Campanha"}
           </span>
-          <h2 className="text-2xl font-black sm:text-4xl text-white">{config.vehicleName}</h2>
+          <h2 className={cn("font-display text-2xl font-black sm:text-4xl", palette.textPrimary)}>{config.vehicleName}</h2>
           {config.subtitle && (
-            <p className="text-xs sm:text-sm font-medium text-slate-300 leading-relaxed">
+            <p className={cn("text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
               {config.subtitle}
             </p>
           )}
@@ -544,50 +961,50 @@ function VehicleSpotlightRenderer({
           {/* Cards de Preço / Valores */}
           <div className="flex flex-wrap gap-3 py-2">
             {config.dailyRate && (
-              <div className="rounded-2xl border border-slate-700/80 bg-slate-950/80 px-4 py-3 min-w-[120px]">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase">Diária</span>
-                <span className="text-2xl font-black text-amber-400">R$ {config.dailyRate}</span>
+              <div className={cn("rounded-2xl px-4 py-3 min-w-[120px]", palette.cardInnerBg)}>
+                <span className={cn("text-[10px] font-bold block uppercase", palette.textMuted)}>Diária</span>
+                <span className={cn("text-2xl font-black", palette.textHighlight)}>R$ {config.dailyRate}</span>
               </div>
             )}
             {config.weeklyRate && (
-              <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 min-w-[120px]">
-                <span className="text-[10px] font-bold text-amber-300 block uppercase">Semanal</span>
-                <span className="text-2xl font-black text-white">R$ {config.weeklyRate}</span>
+              <div className={cn("rounded-2xl px-4 py-3 min-w-[120px]", palette.cardInnerBg)}>
+                <span className={cn("text-[10px] font-bold block uppercase", palette.textMuted)}>Semanal</span>
+                <span className={cn("text-2xl font-black", palette.textPrimary)}>R$ {config.weeklyRate}</span>
               </div>
             )}
             {config.monthlyRate && (
-              <div className="rounded-2xl border border-slate-700/80 bg-slate-950/80 px-4 py-3 min-w-[120px]">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase">Mensal</span>
-                <span className="text-2xl font-black text-white">R$ {config.monthlyRate}</span>
+              <div className={cn("rounded-2xl px-4 py-3 min-w-[120px]", palette.cardInnerBg)}>
+                <span className={cn("text-[10px] font-bold block uppercase", palette.textMuted)}>Mensal</span>
+                <span className={cn("text-2xl font-black", palette.textPrimary)}>R$ {config.monthlyRate}</span>
               </div>
             )}
           </div>
 
-          {/* Lista de Vantagens / Itens Inclusos */}
-          <ul className="grid gap-2.5 text-xs font-bold text-slate-200 sm:grid-cols-2 pt-1">
+          {/* Lista de Vantagens */}
+          <ul className="grid gap-2.5 text-xs font-bold sm:grid-cols-2 pt-1">
             {config.features && config.features.length > 0 ? (
               config.features.map((feat, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <li key={i} className={cn("flex items-center gap-2", palette.textPrimary)}>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   <span>{feat}</span>
                 </li>
               ))
             ) : (
               <>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <li className={cn("flex items-center gap-2", palette.textPrimary)}>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   Consumo urbano de até 22 km/l
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <li className={cn("flex items-center gap-2", palette.textPrimary)}>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   Manutenção preventiva inclusa
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <li className={cn("flex items-center gap-2", palette.textPrimary)}>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   Seguro total e assistência 24h
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <li className={cn("flex items-center gap-2", palette.textPrimary)}>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   Aprovado para Uber Black & Comfort
                 </li>
               </>
@@ -598,7 +1015,7 @@ function VehicleSpotlightRenderer({
             <Link
               href={config.ctaUrl || "#cadastro"}
               onClick={onCta}
-              className={`inline-flex h-13 items-center justify-center gap-2 rounded-2xl px-7 text-sm font-black shadow-lg transition-all hover:scale-105 ${palette.accentGradient}`}
+              className={cn("inline-flex h-13 items-center justify-center gap-2 rounded-2xl px-7 text-sm font-black shadow-lg transition-all hover:scale-105", palette.accentGradient)}
             >
               <span>{config.ctaText || "Garantir Este Veículo"}</span>
               <ArrowRight className="h-4 w-4" />
@@ -608,12 +1025,12 @@ function VehicleSpotlightRenderer({
 
         {/* Foto do Veículo em Destaque */}
         <div className="lg:col-span-5 flex items-center justify-center">
-          <div className="relative w-full rounded-3xl border border-slate-800 bg-black/40 p-4 flex items-center justify-center">
+          <div className={cn("relative w-full rounded-3xl p-4 flex items-center justify-center", palette.cardInnerBg)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={carImage}
               alt={config.vehicleName}
-              className="h-auto w-full max-h-[260px] object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.9)] transition-transform duration-300 hover:scale-105"
+              className="h-auto w-full max-h-[260px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_15px_25px_rgba(0,0,0,0.9)] transition-transform duration-300 hover:scale-105"
             />
           </div>
         </div>
@@ -642,12 +1059,14 @@ function HowItWorksRenderer({
   return (
     <section className="space-y-6">
       <div className="text-center max-w-2xl mx-auto">
-        <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+        <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Passo a Passo Simplificado
         </span>
-        <h2 className="mt-1 text-2xl font-black text-white sm:text-4xl">{config.title}</h2>
+        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+          {config.title}
+        </h2>
         {config.subtitle && (
-          <p className="mt-2 text-sm font-medium text-slate-300 leading-relaxed">
+          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
@@ -657,13 +1076,13 @@ function HowItWorksRenderer({
         {steps.map((st) => (
           <div
             key={st.number}
-            className="relative rounded-3xl border border-slate-800 bg-slate-900/60 p-6 space-y-3 backdrop-blur-sm transition-all hover:border-slate-700"
+            className={cn("relative rounded-3xl p-6 space-y-3 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-400 font-black text-slate-950 text-base shadow-md shadow-amber-500/20">
               0{st.number}
             </span>
-            <h3 className="text-base font-black text-white">{st.title}</h3>
-            <p className="text-xs font-medium leading-relaxed text-slate-300">{st.description}</p>
+            <h3 className={cn("text-base font-black", palette.textPrimary)}>{st.title}</h3>
+            <p className={cn("text-xs font-medium leading-relaxed", palette.textSecondary)}>{st.description}</p>
           </div>
         ))}
       </div>
@@ -686,12 +1105,14 @@ function TestimonialsRenderer({
   return (
     <section className="space-y-6">
       <div className="text-center max-w-2xl mx-auto">
-        <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+        <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Quem Já Roda com a Michelines
         </span>
-        <h2 className="mt-1 text-2xl font-black text-white sm:text-4xl">{config.title}</h2>
+        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+          {config.title}
+        </h2>
         {config.subtitle && (
-          <p className="mt-2 text-sm font-medium text-slate-300 leading-relaxed">
+          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
@@ -701,7 +1122,7 @@ function TestimonialsRenderer({
         {items.map((item, i) => (
           <div
             key={i}
-            className="flex flex-col justify-between rounded-3xl border border-slate-800 bg-slate-900/70 p-6 space-y-4 backdrop-blur-sm transition-all hover:border-slate-700"
+            className={cn("flex flex-col justify-between rounded-3xl p-6 space-y-4 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}
           >
             <div className="space-y-3">
               <div className="flex gap-1 text-amber-400">
@@ -709,13 +1130,13 @@ function TestimonialsRenderer({
                   <Star key={r} className="h-4 w-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-xs font-medium italic leading-relaxed text-slate-200">
+              <p className={cn("text-xs font-medium italic leading-relaxed", palette.textSecondary)}>
                 "{item.testimony}"
               </p>
             </div>
-            <div className="border-t border-slate-800/80 pt-3">
-              <p className="text-sm font-black text-white">{item.name}</p>
-              <p className="text-[11px] font-bold text-amber-400">{item.role}</p>
+            <div className={cn("border-t pt-3", palette.isDark ? "border-slate-800" : "border-slate-100")}>
+              <p className={cn("text-sm font-black", palette.textPrimary)}>{item.name}</p>
+              <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">{item.role}</p>
             </div>
           </div>
         ))}
@@ -749,25 +1170,25 @@ function EarningsCalculatorRenderer({
   const monthlySavings = dailySavings * 26 // 26 dias úteis
 
   return (
-    <section className="rounded-3xl border border-amber-400/30 bg-gradient-to-b from-amber-400/10 via-slate-900/90 to-slate-950 p-6 sm:p-10 backdrop-blur-md space-y-6">
+    <section className={cn("rounded-3xl p-6 sm:p-10 space-y-6 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}>
       <div className="text-center max-w-xl mx-auto">
-        <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+        <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Simulador de Economia Real · V1
         </span>
-        <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl">{config.title}</h2>
+        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-3xl", palette.textPrimary)}>{config.title}</h2>
         {config.subtitle && (
-          <p className="mt-1 text-xs sm:text-sm font-medium text-slate-300 leading-relaxed">
+          <p className={cn("mt-1 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
       </div>
 
       <div className="mx-auto max-w-xl space-y-5">
-        {/* Controle Deslizante de Quilometragem */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5 space-y-3">
-          <div className="flex justify-between items-center text-sm font-bold text-white">
-            <span>Quilômetros rodados por dia:</span>
-            <span className="text-amber-400 font-black text-lg bg-amber-400/10 px-3 py-1 rounded-xl border border-amber-400/30">
+        {/* Controle Deslizante */}
+        <div className={cn("rounded-2xl p-5 space-y-3", palette.cardInnerBg)}>
+          <div className="flex justify-between items-center text-sm font-bold">
+            <span className={palette.textPrimary}>Quilômetros rodados por dia:</span>
+            <span className="text-amber-600 dark:text-amber-400 font-black text-lg bg-amber-400/10 px-3 py-1 rounded-xl border border-amber-400/30">
               {km} km/dia
             </span>
           </div>
@@ -778,9 +1199,9 @@ function EarningsCalculatorRenderer({
             step={10}
             value={km}
             onChange={(e) => setKm(Number(e.target.value))}
-            className="h-2.5 w-full accent-amber-400 cursor-pointer bg-slate-800 rounded-lg"
+            className="h-2.5 w-full accent-amber-500 cursor-pointer rounded-lg"
           />
-          <div className="flex justify-between text-[10px] font-bold text-slate-500">
+          <div className={cn("flex justify-between text-[10px] font-bold", palette.textMuted)}>
             <span>80 km (Part-time)</span>
             <span>200 km (Padrão)</span>
             <span>350 km (Integral)</span>
@@ -789,23 +1210,23 @@ function EarningsCalculatorRenderer({
 
         {/* Resultados Comparativos */}
         <div className="grid grid-cols-2 gap-3 text-center">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+          <div className={cn("rounded-2xl p-4 space-y-1", palette.cardInnerBg)}>
+            <span className={cn("text-[10px] font-bold block uppercase tracking-wider", palette.textMuted)}>
               Economia no Dia
             </span>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-400">
+            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
               R$ {dailySavings.toFixed(0)}
             </span>
-            <span className="text-[10px] text-slate-500 block">Menos gasto no posto</span>
+            <span className={cn("text-[10px] block", palette.textMuted)}>Menos gasto no posto</span>
           </div>
-          <div className="rounded-2xl border border-amber-400/50 bg-amber-400/15 p-4 space-y-1 shadow-lg shadow-amber-500/10">
-            <span className="text-[10px] font-bold text-amber-300 block uppercase tracking-wider">
+          <div className={cn("rounded-2xl p-4 space-y-1 border", palette.badgeBg, palette.badgeBorder)}>
+            <span className={cn("text-[10px] font-bold block uppercase tracking-wider", palette.badgeText)}>
               Economia no Mês
             </span>
-            <span className="text-2xl sm:text-3xl font-black text-amber-300">
+            <span className={cn("text-2xl sm:text-3xl font-black", palette.badgeText)}>
               R$ {monthlySavings.toFixed(0)}
             </span>
-            <span className="text-[10px] text-amber-200/80 block">Em 26 dias úteis</span>
+            <span className={cn("text-[10px] block opacity-80", palette.badgeText)}>Em 26 dias úteis</span>
           </div>
         </div>
 
@@ -813,7 +1234,7 @@ function EarningsCalculatorRenderer({
           <Link
             href="#cadastro"
             onClick={onCta}
-            className={`inline-flex h-13 items-center justify-center gap-2 rounded-2xl px-8 text-sm font-black shadow-xl transition-transform hover:scale-105 ${palette.accentGradient}`}
+            className={cn("inline-flex h-13 items-center justify-center gap-2 rounded-2xl px-8 text-sm font-black shadow-xl transition-transform hover:scale-105", palette.accentGradient)}
           >
             <span>{config.ctaText || "Quero Economizar Agora"}</span>
             <ArrowRight className="h-4 w-4" />
@@ -840,12 +1261,14 @@ function FaqAccordionRenderer({
   return (
     <section className="space-y-6">
       <div className="text-center max-w-2xl mx-auto">
-        <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+        <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Tire Suas Dúvidas
         </span>
-        <h2 className="mt-1 text-2xl font-black text-white sm:text-4xl">{config.title}</h2>
+        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+          {config.title}
+        </h2>
         {config.subtitle && (
-          <p className="mt-2 text-sm font-medium text-slate-300 leading-relaxed">
+          <p className={cn("mt-2 text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
@@ -857,22 +1280,20 @@ function FaqAccordionRenderer({
           return (
             <div
               key={i}
-              className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm transition-colors hover:border-slate-700"
+              className={cn("overflow-hidden rounded-2xl transition-colors", palette.cardBg, palette.cardBorder, palette.cardShadow)}
             >
               <button
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? null : i)}
-                className="flex w-full items-center justify-between p-4 sm:p-5 text-left font-bold text-white text-sm"
+                className="flex w-full items-center justify-between p-4 sm:p-5 text-left font-bold text-sm"
               >
-                <span>{item.question}</span>
+                <span className={palette.textPrimary}>{item.question}</span>
                 <ChevronDown
-                  className={`h-4 w-4 text-amber-400 shrink-0 transition-transform duration-200 ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
+                  className={cn("h-4 w-4 text-amber-500 shrink-0 transition-transform duration-200", isOpen ? "rotate-180" : "")}
                 />
               </button>
               {isOpen && (
-                <div className="border-t border-slate-800/80 p-4 sm:p-5 text-xs sm:text-sm font-medium leading-relaxed text-slate-300 bg-black/30">
+                <div className={cn("border-t p-4 sm:p-5 text-xs sm:text-sm font-medium leading-relaxed", palette.cardInnerBg, palette.textSecondary)}>
                   {item.answer}
                 </div>
               )}
@@ -933,15 +1354,17 @@ function LeadFormRenderer({
   return (
     <section
       id="cadastro"
-      className="scroll-mt-20 overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6 sm:p-10 shadow-2xl space-y-6"
+      className={cn("scroll-mt-20 overflow-hidden rounded-3xl p-6 sm:p-10 space-y-6 transition-all", palette.cardBg, palette.cardBorder, palette.cardShadow)}
     >
       <div className="text-center max-w-xl mx-auto">
-        <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+        <span className={cn("text-[10px] font-black uppercase tracking-widest", palette.textHighlight)}>
           Cadastro Direto sem Burocracia
         </span>
-        <h2 className="mt-1 text-2xl font-black sm:text-4xl text-white">{config.title}</h2>
+        <h2 className={cn("font-display mt-1 text-2xl font-black sm:text-4xl", palette.textPrimary)}>
+          {config.title}
+        </h2>
         {config.subtitle && (
-          <p className="mt-2 text-xs sm:text-sm font-medium text-slate-300 leading-relaxed">
+          <p className={cn("mt-2 text-xs sm:text-sm font-medium leading-relaxed", palette.textSecondary)}>
             {config.subtitle}
           </p>
         )}
@@ -949,58 +1372,58 @@ function LeadFormRenderer({
 
       {submitted ? (
         <div className="mx-auto max-w-md text-center space-y-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-8 shadow-inner">
-          <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto" />
-          <h3 className="text-xl font-black text-white">Cadastro Recebido!</h3>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
+          <h3 className={cn("text-xl font-black", palette.textPrimary)}>Cadastro Recebido!</h3>
+          <p className={cn("text-xs sm:text-sm leading-relaxed", palette.textSecondary)}>
             {config.successMessage || "Nosso consultor entrará em contato com você pelo WhatsApp em instantes para finalizar a reserva."}
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Seu Nome Completo</label>
+            <label className={cn("text-xs font-bold block", palette.textPrimary)}>Seu Nome Completo</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Ex: João Silva"
-              className="h-12 w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 text-sm font-medium text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none transition-colors"
+              className={cn("h-12 w-full rounded-xl border px-4 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
               required
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">WhatsApp com DDD</label>
+            <label className={cn("text-xs font-bold block", palette.textPrimary)}>WhatsApp com DDD</label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="(11) 99999-9999"
-              className="h-12 w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 text-sm font-medium text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none transition-colors"
+              className={cn("h-12 w-full rounded-xl border px-4 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
               required
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Veículo de Interesse</label>
+            <label className={cn("text-xs font-bold block", palette.textPrimary)}>Veículo de Interesse</label>
             <input
               type="text"
               value={vehicle}
               onChange={(e) => setVehicle(e.target.value)}
               placeholder="Ex: Corolla Cross Híbrido, Spin, D-Taxi..."
-              className="h-12 w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 text-sm font-medium text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none transition-colors"
+              className={cn("h-12 w-full rounded-xl border px-4 text-sm font-medium focus:outline-none transition-colors", palette.inputBg, palette.inputBorder, palette.inputText, palette.inputPlaceholder)}
             />
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className={`h-14 w-full rounded-2xl text-base font-black shadow-xl transition-all ${palette.accentGradient} hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50`}
+            className={cn("h-14 w-full rounded-2xl text-base font-black shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50", palette.accentGradient)}
           >
             {submitting ? "Enviando..." : config.buttonText || "Enviar Cadastro para Análise"}
           </button>
 
-          <p className="text-center text-[11px] text-slate-400">
+          <p className={cn("text-center text-[11px]", palette.textMuted)}>
             🔒 Seus dados estão protegidos. Não consultamos restrições impeditivas de score.
           </p>
         </form>
@@ -1025,10 +1448,19 @@ function WhatsAppCtaRenderer({
   const message = encodeURIComponent(config.customMessage || "Olá! Gostaria de informações sobre a locação de veículos.")
 
   return (
-    <section className="rounded-3xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950 via-slate-950 to-emerald-950 p-6 sm:p-10 text-center space-y-4 shadow-2xl">
-      <h2 className="text-2xl font-black sm:text-3xl text-white">{config.title}</h2>
+    <section
+      className={cn(
+        "rounded-3xl border p-6 sm:p-10 text-center space-y-4 shadow-xl transition-colors",
+        palette.isDark
+          ? "border-emerald-500/40 bg-gradient-to-r from-emerald-950 via-slate-950 to-emerald-950 text-white"
+          : "border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 text-emerald-950"
+      )}
+    >
+      <h2 className={cn("font-display text-2xl font-black sm:text-3xl", palette.isDark ? "text-white" : "text-emerald-950")}>
+        {config.title}
+      </h2>
       {config.subtitle && (
-        <p className="text-xs sm:text-sm font-medium text-emerald-100/80 max-w-lg mx-auto leading-relaxed">
+        <p className={cn("text-xs sm:text-sm font-medium max-w-lg mx-auto leading-relaxed", palette.isDark ? "text-emerald-100/80" : "text-emerald-800")}>
           {config.subtitle}
         </p>
       )}
