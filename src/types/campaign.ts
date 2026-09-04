@@ -48,7 +48,7 @@ export interface Campaign {
 
 export type CampaignStatus = "draft" | "active" | "paused" | "ended"
 
-export type CampaignTheme = "navy" | "amber" | "emerald" | "violet" | "editorial" | "minimal"
+export type CampaignTheme = "navy" | "amber" | "emerald" | "violet" | "editorial" | "minimal" | "claro" | "creme"
 
 export const CAMPAIGN_STATUS_LABELS: Record<
   CampaignStatus,
@@ -65,6 +65,22 @@ export const CAMPAIGN_THEMES: Record<
   CampaignTheme,
   { label: string; from: string; to: string; accent: string; accentHover: string; swatch: string }
 > = {
+  claro: {
+    label: "Claro Neutro (Branco & Cinza)",
+    from: "from-[#ffffff]",
+    to: "to-[#f1f5f9]",
+    accent: "bg-slate-900",
+    accentHover: "hover:bg-slate-800",
+    swatch: "#ffffff",
+  },
+  creme: {
+    label: "Institucional Nobre (Creme & Ouro)",
+    from: "from-[#fbf9f5]",
+    to: "to-[#eee6d8]",
+    accent: "bg-amber-500",
+    accentHover: "hover:bg-amber-600",
+    swatch: "#f5f0e8",
+  },
   navy: {
     label: "Azul Michelines (Céu & Marinho)",
     from: "from-[#0a192f]",
