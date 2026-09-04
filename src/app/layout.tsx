@@ -2,7 +2,6 @@ import type React from "react"
 import "@/app/globals.css"
 import type { Metadata, Viewport } from "next"
 import WhatsAppNotification from "@/components/whatsapp-notification"
-import { ToastProvider } from "@/components/ui/toast-simple"
 
 export const viewport: Viewport = {
   themeColor: "#2563eb",
@@ -29,10 +28,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <ToastProvider>
-          {children}
-          <WhatsAppNotification />
-        </ToastProvider>
+        {children}
+        <WhatsAppNotification />
       </body>
     </html>
   )
