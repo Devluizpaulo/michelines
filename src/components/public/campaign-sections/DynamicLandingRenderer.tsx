@@ -27,6 +27,24 @@ import { useToast } from "@/components/ui/toast-simple"
 import { LOGO_IMAGES } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 
+/** Número comercial do Grupo Michelines — o mesmo usado no restante do site. */
+const WHATSAPP_COMERCIAL = "5511944830851"
+
+/**
+ * Monta o link de WhatsApp carimbando a campanha de origem na mensagem.
+ *
+ * Quem sai pela conversa não passa pelo formulário da página, então o lead não
+ * nasce com `campaign_id`. Identificar a campanha no próprio texto é o que
+ * permite ao atendente saber de onde veio e registrar a origem na ficha.
+ */
+function linkWhatsapp(campaign: Campaign, texto: string, telefone?: string): string {
+  const numero = (telefone || WHATSAPP_COMERCIAL).replace(/\D/g, "") || WHATSAPP_COMERCIAL
+  const corpo = `${texto}
+
+(vim pela campanha: ${campaign.slug})`
+  return `https://wa.me/${numero}?text=${encodeURIComponent(corpo)}`
+}
+
 export interface ThemePalette {
   isDark: boolean
   name: string
@@ -519,7 +537,7 @@ export function DynamicLandingRenderer({
                 </span>
               )}
               <a
-                href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20loca%C3%A7%C3%A3o%20de%20ve%C3%ADculos"
+                href={linkWhatsapp(campaign, "Olá, gostaria de informações sobre locação de veículos.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={handleCta}
@@ -631,7 +649,7 @@ export function DynamicLandingRenderer({
       )}>
         <div className="flex gap-2">
           <a
-            href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20quero%20alugar%20um%20ve%C3%ADculo"
+            href={linkWhatsapp(campaign, "Olá, quero alugar um veículo.")}
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCta}
@@ -706,7 +724,7 @@ function SectionComponent({
     case "lead_form":
       return <LeadFormRenderer config={section} campaign={campaign} palette={palette} onCta={onCta} />
     case "whatsapp_cta_banner":
-      return <WhatsAppCtaRenderer config={section} palette={palette} onCta={onCta} />
+      return <WhatsAppCtaRenderer config={section} campaign={campaign} palette={palette} onCta={onCta} />
     default:
       return null
   }
@@ -796,7 +814,7 @@ function HeroRenderer({
 
             {config.showWhatsappBtn !== false && (
               <a
-                href={`https://wa.me/${config.whatsappPhone || "5511999999999"}?text=${encodeURIComponent(config.whatsappText || "Olá! Gostaria de alugar um veículo da frota.")}`}
+                href={linkWhatsapp(campaign, config.whatsappText || "Olá! Gostaria de alugar um veículo da frota.", config.whatsappPhone)}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={onCta}
@@ -1516,6 +1534,11 @@ function LeadFormRenderer({
         phone,
         vehicleInterest: vehicle || campaign.vehicleInterest || "Geral",
         source: `campanha_${campaign.slug}`,
+        // Sem estes dois o lead nasce órfão: a campanha registra a visita e o
+        // clique, mas o painel não consegue ligar o cadastro à origem, e a
+        // conversão por campanha fica sempre em zero.
+        campaignId: campaign.id,
+        campaignName: campaign.name,
         notes: `Cadastrado direto pela landing page /c/${campaign.slug}`,
       })
 
@@ -1624,16 +1647,21 @@ function LeadFormRenderer({
 // ─────────────────────────────────────────────────────────────────────────────
 function WhatsAppCtaRenderer({
   config,
+  campaign,
   palette,
   onCta,
 }: {
   config: WhatsAppCtaSectionConfig
+  campaign: Campaign
   palette: ThemePalette
   onCta: () => void
 }) {
   const { isMobile } = useDevice()
-  const phone = config.phone || "5511999999999"
-  const message = encodeURIComponent(config.customMessage || "Olá! Gostaria de informações sobre a locação de veículos.")
+  const href = linkWhatsapp(
+    campaign,
+    config.customMessage || "Olá! Gostaria de informações sobre a locação de veículos.",
+    config.phone
+  )
 
   return (
     <section
@@ -1660,7 +1688,7 @@ function WhatsAppCtaRenderer({
 
       <div className="pt-1">
         <a
-          href={`https://wa.me/${phone}?text=${message}`}
+          href={href}
           target="_blank"
           rel="noopener noreferrer"
           onClick={onCta}

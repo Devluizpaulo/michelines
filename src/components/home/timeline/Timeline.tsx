@@ -454,7 +454,7 @@ export function Timeline() {
                             Iniciar Minha Jornada <Sparkles className="h-4 w-4 text-sky-200" />
                           </Button>
                         </Link>
-                        <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                        <a href="https://wa.me/5511944830851" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                           <Button variant="outline" className="w-full border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl h-11 px-6 shadow-xs flex items-center justify-center gap-1.5">
                             Falar com Nossa Equipe
                           </Button>
@@ -485,7 +485,7 @@ export function Timeline() {
                 Iniciar Cadastro Oficial
               </Button>
             </Link>
-            <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/5511944830851" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 rounded-2xl font-bold text-xs h-10 px-6 shadow-xs">
                 Falar com Atendente
               </Button>

@@ -172,7 +172,7 @@ export const DEFAULT_4V_SECTIONS: CampaignSection[] = [
     primaryCtaText: "Quero Alugar Agora",
     primaryCtaUrl: "#cadastro",
     showWhatsappBtn: true,
-    whatsappPhone: "511999999999",
+    whatsappPhone: "5511944830851",
     whatsappText: "Olá! Vi a campanha e gostaria de informações sobre a locação de veículos.",
   },
   {

@@ -42,7 +42,7 @@ FORMATO DE RESPOSTA (Retorne APENAS o JSON válido sem texto adicional):
       "primaryCtaText": "Garantir Minha Vaga",
       "primaryCtaUrl": "#cadastro",
       "showWhatsappBtn": true,
-      "whatsappPhone": "5511999999999",
+      "whatsappPhone": "5511944830851",
       "whatsappText": "Olá! Quero saber mais sobre os carros híbridos."
     },
     {

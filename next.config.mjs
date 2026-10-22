@@ -59,28 +59,43 @@ const withPWA = withPWAInit({
   },
 });
 
+/**
+ * Host do Supabase derivado do ambiente.
+ *
+ * Estava fixo no código, o que quebraria TODAS as imagens ao migrar para um
+ * Supabase auto-hospedado: o Next recusa otimizar imagem de host não listado.
+ * Lendo da env, trocar de servidor é só trocar a variável.
+ */
+function hostDoSupabase() {
+  const bruto = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!bruto) return null;
+  try {
+    const { hostname, protocol } = new URL(bruto);
+    return { hostname, protocol: protocol.replace(":", "") };
+  } catch {
+    console.warn("[next.config] NEXT_PUBLIC_SUPABASE_URL inválida:", bruto);
+    return null;
+  }
+}
+
+const supabaseHost = hostDoSupabase();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Empacota só o necessário para rodar — imagem Docker menor e boot mais rápido.
+  // Em plataformas gerenciadas é ignorado, então não atrapalha.
+  output: "standalone",
   images: {
-    // Habilita otimização para imagens do Supabase Storage
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cbynwzxalzcaownnouwp.supabase.co",
-        pathname: "/storage/v1/**",
-      },
-      {
-        // Fallback para outros domínios externos (Firebase Storage, etc.)
-        protocol: "https",
-        hostname: "*.googleapis.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "*.googleusercontent.com",
-        pathname: "/**",
-      },
+      // Storage do Supabase, seja na nuvem ou no seu VPS
+      ...(supabaseHost
+        ? [{
+            protocol: supabaseHost.protocol,
+            hostname: supabaseHost.hostname,
+            pathname: "/storage/v1/**",
+          }]
+        : []),
     ],
     // Formatos modernos para melhor performance
     formats: ["image/avif", "image/webp"],

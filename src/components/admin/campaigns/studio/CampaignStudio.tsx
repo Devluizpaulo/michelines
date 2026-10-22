@@ -1573,7 +1573,7 @@ function createDefaultSection(type: SectionType, order: number): CampaignSection
         title: "Prefere Tirar Dúvidas Direto no WhatsApp?",
         subtitle: "Nosso plantão de atendimento está disponível para responder todas as suas perguntas agora.",
         buttonText: "Falar com Consultor no WhatsApp",
-        phone: "5511999999999",
+        phone: "5511944830851",
         customMessage: "Olá! Gostaria de informações sobre o aluguel de veículos da Michelines.",
       }
     default:

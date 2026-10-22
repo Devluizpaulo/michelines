@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, Clock, ShieldCheck, Phone } from "lucide-react"
-import { Campaign, CAMPAIGN_THEMES, campaignSignupUrl } from "@/types/campaign"
+import { Campaign, CAMPAIGN_THEMES } from "@/types/campaign"
 import { registerCampaignView, registerCampaignClick } from "@/lib/campaigns-crud"
 import { LOGO_IMAGES } from "@/lib/supabase"
 
